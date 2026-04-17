@@ -11,7 +11,7 @@ _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokko
 |---|---|---|---|---|---|
 | 0 | — | Előkészítés és repo-tisztítás | 0,5 nap | ✅ | 2026-04-17 |
 | 1 | — | Locomotion interfész és command layer | 1 nap | ✅ | 2026-04-17 |
-| 2 | A | G1 Locomotion Command Env + tanítás | 5–8 nap | 🔄 | — |
+| 2 | A | G1 Locomotion Command Env + tanítás | 5–8 nap | 🔄 impl kész, tanítás hátra | — |
 | 3 | B | Hierarchikus navigációs env + tanítás | 5–7 nap | ⬜ | — |
 | 4 | — | Imitációs tanulás csatorna (BC) | 2–3 nap | ⬜ | — |
 | 5 | C | Manipulációs sandbox env + tanítás | 5–8 nap | ⬜ | — |
@@ -63,16 +63,16 @@ _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokko
 ## 2. Munkacsomag — G1 Locomotion Command Env (Fázis A)
 
 **Becsült idő:** 5–8 nap (implementáció 1–2 nap + tanítás + iteráció)  
-**Állapot:** ⬜ nem kezdett  
+**Állapot:** 🔄 implementáció kész, tanítás hátra  
 **Elfogadási feltétel:** Stabil talpon maradás 300+ lépésen, command-tracking hiba csökkenő trendje 1M lépésen belül.
 
 ### Feladatok
 
-- [ ] `src/roboshelf_ai/mujoco/envs/locomotion/g1_locomotion_command_env.py` megírva
-- [ ] `configs/locomotion/g1_command_v1.yaml` létrehozva
-- [ ] `src/roboshelf_ai/training/train_loco_v1.py` megírva (SubprocVecEnv, TensorBoard, checkpoint)
-- [ ] `src/roboshelf_ai/locomotion/eval_loco.py` megírva
-- [ ] Sanity run: 10 000 lépés crash nélkül
+- [x] `src/roboshelf_ai/mujoco/envs/locomotion/g1_locomotion_command_env.py` megírva
+- [x] `configs/locomotion/g1_command_v1.yaml` létrehozva
+- [x] `src/roboshelf_ai/training/train_loco_v1.py` megírva (SubprocVecEnv, TensorBoard, checkpoint)
+- [x] `src/roboshelf_ai/locomotion/eval_loco.py` megírva
+- [ ] Sanity run: 10 000 lépés crash nélkül ← **következő, saját Mac-en**
 - [ ] Teljes tanítási run: 5M lépés
 - [ ] TensorBoard görbe és eval videó értékelve
 - [ ] `roboshelf-results/loco/v1/best_model.zip` elfogadva

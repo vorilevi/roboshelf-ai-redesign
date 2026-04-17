@@ -1,0 +1,53 @@
+# G1 Locomotion Command Policy — v1 konfiguráció
+# Fázis A: command-tracking locomotion prior tanítása
+# Futtatás: python src/roboshelf_ai/training/train_loco_v1.py --config configs/locomotion/g1_command_v1.yaml
+
+env:
+  max_episode_steps: 1000
+  sub_steps: 2
+  action_scale: 0.3
+  noise_scale: 0.01
+  v_forward_range: [0.0, 1.5]   # m/s
+  yaw_rate_range: [-1.0, 1.0]   # rad/s
+
+reward:
+  w_forward: 2.0
+  w_yaw: 0.5
+  w_upright: 1.5
+  w_alive: 0.5
+  w_smooth: -0.1
+  w_energy: -0.05
+  w_feet_slip: -0.1
+  w_feet_dist: -1.0
+  feet_min_dist: 0.15
+
+ppo:
+  n_envs: 8                 # SubprocVecEnv — M2 8 magja
+  n_steps: 2048             # lépések env-enként gyűjtés előtt
+  batch_size: 256
+  n_epochs: 10
+  learning_rate: 3.0e-4
+  gamma: 0.99
+  gae_lambda: 0.95
+  clip_range: 0.2
+  ent_coef: 0.01
+  vf_coef: 0.5
+  max_grad_norm: 0.5
+  total_timesteps: 5_000_000
+
+eval:
+  n_eval_episodes: 5
+  eval_freq: 50_000          # lépésenként (összes env-re)
+  deterministic: true
+
+checkpoint:
+  save_freq: 100_000         # lépésenként (összes env-re)
+  save_path: roboshelf-results/loco/v1/
+
+logging:
+  tensorboard_log: data/logs/loco_v1/
+  verbose: 1
+
+acceptance:
+  min_episode_length: 300   # lépés — Fázis A elfogadási feltétel
+  target_mean_reward: 100.0 # epizódos átlagos reward célja
