@@ -1,6 +1,6 @@
 # Roboshelf AI Redesign — Ütemezés
 
-_Utoljára frissítve: 2026-04-17 (2. munkacsomag kész, Fázis A döntés)_  
+_Utoljára frissítve: 2026-04-17 (interfész réteg + __init__ exportok kész, Isaac Lab stub, VecNormalize, IL csatorna alap, járásteszt következik)_  
 _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokkolt_
 
 ---
@@ -52,7 +52,12 @@ _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokko
 - [x] `src/roboshelf_ai/core/interfaces/locomotion_command.py` megírva
 - [x] `src/roboshelf_ai/locomotion/policy_adapter.py` megírva (DummyAdapter támogatással)
 - [x] Import teszt zöld mindkettőre
-- [ ] Git commit + push: `"feat: LocomotionCommand interface and PolicyAdapter stub"` ← **saját terminálból**
+- [x] `src/roboshelf_ai/core/interfaces/__init__.py` — teljes export (RobotState, LocomotionCommand, Base*Policy, DemoCollector stb.)
+- [x] `src/roboshelf_ai/core/__init__.py` — re-export + lazy callbacks
+- [x] `src/roboshelf_ai/locomotion/__init__.py` — adapterek + G1 konstansok
+- [x] `src/roboshelf_ai/__init__.py` — top-level convenience, `__version__ = "0.2.0"`
+- [x] `src/roboshelf_ai/isaac/` — Isaac Lab placeholder stub (adapters/, envs/)
+- [ ] Git commit + push ← **saját terminálból**
 
 ### Megjegyzések
 
@@ -78,7 +83,10 @@ _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokko
 - [x] **Architekturális döntés: unitree_rl_gym motion.pt átvétele** — saját tanítás kiesik
 - [x] `UnitreeRLGymAdapter` megírva és tesztelve (47 dim obs, LSTM, PD control, 50 Hz)
 - [x] motion.pt betöltve és inference-képes: `is_dummy: False`
-- [ ] Git commit: `"feat: UnitreeRLGymAdapter + motion.pt locomotion prior"` ← **saját terminálból**
+- [x] `train_loco_v1.py` — VecNormalize + EpisodeStatsCallback + LinearCurriculumCallback bekötve
+- [x] `configs/locomotion/g1_command_v2.yaml` — `vec_normalize:` szekció hozzáadva
+- [ ] **Járásteszt: motion.pt + UnitreeRLGymAdapter live futtatás** ← következő lépés
+- [ ] Git commit ← **saját terminálból**
 
 ### Tanítási futások naplója
 
@@ -105,8 +113,8 @@ _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokko
 
 ### Feladatok
 
+- [x] `configs/navigation/retail_nav_hier_v1.yaml` létrehozva (curriculum, PPO hyperparamok RL Zoo alapján, vec_normalize szekció)
 - [ ] `src/roboshelf_ai/mujoco/envs/navigation/retail_nav_hier_env.py` megírva
-- [ ] `configs/navigation/retail_nav_hier_v1.yaml` létrehozva
 - [ ] `src/roboshelf_ai/tasks/navigation/train_nav_hierarchical.py` megírva
 - [ ] `src/roboshelf_ai/tasks/navigation/eval_nav.py` megírva
 - [ ] Sanity run crash nélkül
@@ -134,8 +142,8 @@ _ide kerülnek az action space, reward és locomotion adapter döntések_
 
 ### Feladatok
 
-- [ ] `src/roboshelf_ai/core/interfaces/demonstration.py` megírva
-- [ ] `src/roboshelf_ai/scripts/collect_scripted_expert.py` megírva
+- [x] `src/roboshelf_ai/core/interfaces/demonstration.py` megírva (DemoCollector, DemoDataset, DemoStep)
+- [x] `src/roboshelf_ai/scripts/collect_scripted_expert.py` megírva (ScriptedNavExpert P-szabályozó, CLI)
 - [ ] Demonstrációs adatgyűjtés: 100 epizód → `data/demonstrations/scripted_loco_v1.npz`
 - [ ] `src/roboshelf_ai/locomotion/train_loco_bc.py` megírva
 - [ ] BC futtatva, policy mentve: `roboshelf-results/loco/bc_init/policy.zip`

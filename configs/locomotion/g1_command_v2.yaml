@@ -67,6 +67,13 @@ logging:
   tensorboard_log: data/logs/loco_v2/
   verbose: 1
 
+vec_normalize:
+  enabled: true
+  norm_obs: true
+  norm_reward: true
+  clip_obs: 10.0
+  # load_path: roboshelf-results/loco/v2/vec_normalize.pkl  # fine-tune esetén
+
 acceptance:
   min_episode_length: 300
   target_mean_reward: 200.0

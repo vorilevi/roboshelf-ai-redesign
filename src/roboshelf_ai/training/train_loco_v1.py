@@ -8,6 +8,11 @@ Használat:
 
     # Sanity run (10k lépés, nincs mentés):
     python src/roboshelf_ai/training/train_loco_v1.py --config configs/locomotion/g1_command_v1.yaml --total-timesteps 10000 --no-save
+
+VecNormalize:
+    A tanítási env VecNormalize-ba van csomagolva (obs + reward normalizálás).
+    Mentés: <save_path>/vec_normalize.pkl  — eval-nál és inference-nél szükséges.
+    Betöltés: make_vec_normalize(..., load_path='vec_normalize.pkl')
 """
 
 import argparse
@@ -33,6 +38,11 @@ from stable_baselines3.common.monitor import Monitor
 
 from roboshelf_ai.mujoco.envs.locomotion.g1_locomotion_command_env import (
     G1LocomotionCommandEnv
+)
+from roboshelf_ai.core.callbacks import (
+    EpisodeStatsCallback,
+    LinearCurriculumCallback,
+    make_vec_normalize,
 )
 
 
@@ -120,16 +130,55 @@ def train(cfg: dict) -> None:
     print(f"  No-save mód:   {no_save}")
     print("=" * 60 + "\n")
 
+    norm_cfg = cfg.get("vec_normalize", {})
+    use_vec_norm = norm_cfg.get("enabled", True)
+    vec_norm_path = os.path.join(save_path, "vec_normalize.pkl")
+
     # Tanítási env-ek (SubprocVecEnv — M2 CPU magok kihasználása)
     train_env = SubprocVecEnv([make_env(cfg, rank=i, seed=42) for i in range(n_envs)])
     train_env = VecMonitor(train_env)
+    if use_vec_norm:
+        load_norm = norm_cfg.get("load_path", None)
+        train_env = make_vec_normalize(
+            train_env,
+            load_path=load_norm,
+            norm_obs=norm_cfg.get("norm_obs", True),
+            norm_reward=norm_cfg.get("norm_reward", True),
+            clip_obs=norm_cfg.get("clip_obs", 10.0),
+            gamma=ppo_cfg.get("gamma", 0.99),
+        )
 
-    # Eval env (egyetlen env, determinisztikus)
+    # Eval env (egyetlen env, VecNormalize betöltve — reward norm kikapcsolt)
     eval_env = SubprocVecEnv([make_env(cfg, rank=0, seed=99)])
     eval_env = VecMonitor(eval_env)
+    if use_vec_norm:
+        eval_env = make_vec_normalize(
+            eval_env,
+            load_path=vec_norm_path if os.path.exists(vec_norm_path) else None,
+            norm_obs=norm_cfg.get("norm_obs", True),
+            norm_reward=False,   # eval-nál reward normalizálás kikapcsol
+            clip_obs=norm_cfg.get("clip_obs", 10.0),
+            gamma=ppo_cfg.get("gamma", 0.99),
+        )
 
     # Callback-ek
     callbacks = []
+
+    # Reward komponens logging (mindig aktív)
+    callbacks.append(EpisodeStatsCallback(verbose=0))
+
+    # Buoyancy curriculum (ha konfigurálva)
+    env_cfg = cfg.get("env", {})
+    buoy_start = env_cfg.get("buoyancy_force_start", 0.0)
+    buoy_anneal = env_cfg.get("buoyancy_anneal_steps", 0)
+    if buoy_start > 0.0 and buoy_anneal > 0:
+        callbacks.append(LinearCurriculumCallback(
+            attr_name="buoyancy_force",
+            start_value=buoy_start,
+            end_value=env_cfg.get("buoyancy_force_end", 0.0),
+            anneal_timesteps=buoy_anneal,
+            verbose=1,
+        ))
 
     if not no_save:
         os.makedirs(save_path, exist_ok=True)
@@ -152,7 +201,7 @@ def train(cfg: dict) -> None:
             verbose=1,
         )
 
-        callbacks = [eval_callback, checkpoint_callback]
+        callbacks += [eval_callback, checkpoint_callback]
 
     # PPO modell
     model = PPO(
@@ -188,6 +237,10 @@ def train(cfg: dict) -> None:
         model.save(final_path)
         print(f"\n✅ Tanítás kész! Végső modell mentve: {final_path}.zip")
         print(f"   Legjobb modell: {os.path.join(save_path, 'best_model.zip')}")
+        # VecNormalize statisztikák mentése (obs running mean/var)
+        if use_vec_norm and hasattr(train_env, "save"):
+            train_env.save(vec_norm_path)
+            print(f"   VecNormalize stats: {vec_norm_path}")
     else:
         print("\n✅ Sanity run kész! (--no-save, nincs mentés)")
 

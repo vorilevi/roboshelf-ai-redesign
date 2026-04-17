@@ -40,6 +40,8 @@ from roboshelf_ai.core.interfaces.locomotion_command import (
     COMMAND_SPACE_BASIC,
     validate_command,
 )
+from roboshelf_ai.core.interfaces.robot_state import RobotState
+from roboshelf_ai.core.interfaces.base_policy import BaseLocomotionPolicy
 
 logger = logging.getLogger(__name__)
 
@@ -81,23 +83,37 @@ SIM_DT = 0.002
 # Alap adapter interfész
 # ---------------------------------------------------------------------------
 
-class BaseLocomotionAdapter:
-    """Közös interfész minden locomotion adapter számára."""
+class BaseLocomotionAdapter(BaseLocomotionPolicy):
+    """Közös ősosztály minden locomotion adapterhez.
 
-    def step_mujoco(self, data, command: LocomotionCommand) -> np.ndarray:
-        """MuJoCo MjData-ból olvas, visszaad aktuátorparancsot.
+    Örökli a BaseLocomotionPolicy-t (szimulátorfüggetlen interfész),
+    és kiegészíti egy MuJoCo kényelmi metódussal.
 
-        Args:
-            data:    mujoco.MjData — aktuális szimulációs állapot
-            command: LocomotionCommand — high-level mozgási parancs
+    A step(state, command) metódus szimulátorfüggetlen — RobotState-et vár.
+    A step_mujoco(data, command) metódus MuJoCo-specifikus kényelmi wrapper.
+    """
 
-        Returns:
-            ctrl (np.ndarray): aktuátorparancs, shape a konkrét adaptertől függ
+    def step(
+        self,
+        state: RobotState,
+        command: LocomotionCommand,
+    ) -> np.ndarray:
+        """Szimulátorfüggetlen lépés — RobotState-ből dolgozik.
+
+        Ez az elsődleges interfész. A step_mujoco() ezt hívja belül.
+        Isaac Lab-on is ez a metódus marad, csak a RobotState kitöltése változik.
         """
         raise NotImplementedError
 
+    def step_mujoco(self, data, command: LocomotionCommand) -> np.ndarray:
+        """MuJoCo kényelmi wrapper: MjData → RobotState → step().
+
+        Használd ezt MuJoCo-ban, step()-et Isaac Lab-ban vagy tesztben.
+        """
+        state = RobotState.from_mujoco(data)
+        return self.step(state, command)
+
     def reset(self) -> None:
-        """Adapter belső állapotának nullázása (epizód reset előtt hívandó)."""
         pass
 
     @property
@@ -119,7 +135,7 @@ class DummyLocomotionAdapter(BaseLocomotionAdapter):
             "Cseréld le UnitreeRLGymAdapter-re."
         )
 
-    def step_mujoco(self, data, command: LocomotionCommand) -> np.ndarray:
+    def step(self, state: RobotState, command: LocomotionCommand) -> np.ndarray:
         return np.zeros(self._dof, dtype=np.float32)
 
     @property
@@ -211,8 +227,8 @@ class UnitreeRLGymAdapter(BaseLocomotionAdapter):
         self._prev_action = np.zeros(G1_LEG_DOF, dtype=np.float32)
         self._sim_counter = 0
 
-    def step_mujoco(self, data, command: LocomotionCommand) -> np.ndarray:
-        """Egy MuJoCo szimulációs lépés.
+    def step(self, state: RobotState, command: LocomotionCommand) -> np.ndarray:
+        """Szimulátorfüggetlen lépés — RobotState-ből dolgozik.
 
         A policy 50 Hz-en fut (control_decimation=10):
         minden 10. MuJoCo lépésnél frissül az akció.
@@ -222,21 +238,16 @@ class UnitreeRLGymAdapter(BaseLocomotionAdapter):
             torque (np.ndarray, shape=(12,)): nyomaték a 12 láb aktuátorra
         """
         if self._dummy is not None:
-            return self._dummy.step_mujoco(data, command)
+            return self._dummy.step(state, command)
 
         self._sim_counter += 1
 
-        # Aktuális joint állapot
-        qj  = data.qpos[self._qpos_s : self._qpos_s + G1_LEG_DOF].copy().astype(np.float32)
-        dqj = data.qvel[self._qvel_s : self._qvel_s + G1_LEG_DOF].copy().astype(np.float32)
+        qj  = state.qpos[self._qpos_s : self._qpos_s + G1_LEG_DOF].copy()
+        dqj = state.qvel[self._qvel_s : self._qvel_s + G1_LEG_DOF].copy()
 
         # Policy frissítés minden control_decimation-dik lépésben
         if self._sim_counter % CONTROL_DECIMATION == 0:
-            # Obs vektor összerakása (deploy_mujoco.py alapján)
-            quat  = data.qpos[3:7].astype(np.float32)   # [qw, qx, qy, qz]
-            omega = data.qvel[3:6].astype(np.float32)   # szögsebesség
-
-            gravity = self._get_gravity_orientation(quat)
+            gravity = self._get_gravity_orientation(state.quat)
             cmd_vec = np.array([command.v_forward, command.v_lateral, command.yaw_rate],
                                dtype=np.float32)
 
@@ -246,8 +257,8 @@ class UnitreeRLGymAdapter(BaseLocomotionAdapter):
             sin_ph = math.sin(2 * math.pi * phase)
             cos_ph = math.cos(2 * math.pi * phase)
 
-            # Obs feltöltés
-            self._obs[0:3]   = omega * ANG_VEL_SCALE
+            # Obs összerakása (deploy_mujoco.py alapján, 47 dim)
+            self._obs[0:3]   = state.omega * ANG_VEL_SCALE
             self._obs[3:6]   = gravity
             self._obs[6:9]   = cmd_vec * CMD_SCALE
             self._obs[9:21]  = (qj - G1_DEFAULT_ANGLES) * DOF_POS_SCALE
@@ -256,7 +267,6 @@ class UnitreeRLGymAdapter(BaseLocomotionAdapter):
             self._obs[45]    = sin_ph
             self._obs[46]    = cos_ph
 
-            # Policy inference (LSTM)
             obs_t = self._torch.from_numpy(self._obs).unsqueeze(0)
             with self._torch.no_grad():
                 action_t = self._policy(obs_t)
