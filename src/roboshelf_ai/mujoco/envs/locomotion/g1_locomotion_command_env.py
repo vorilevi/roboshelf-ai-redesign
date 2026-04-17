@@ -126,6 +126,14 @@ class G1LocomotionCommandEnv(gym.Env):
         sub_steps: int = 2,
         action_scale: float = 0.3,
         noise_scale: float = 0.01,
+        # Termination küszöbök
+        healthy_z_min: float = 0.4,
+        healthy_z_max: float = 1.5,
+        upright_threshold: float = 0.5,   # cos(szög) — 0.5 = 60°, 0.3 = ~73°
+        # Felhajtóerő curriculum (0 = kikapcsolt)
+        buoyancy_force_start: float = 0.0,
+        buoyancy_force_end: float = 0.0,
+        buoyancy_anneal_steps: int = 3_000_000,
         # Reward súlyok
         w_forward: float = 2.0,
         w_yaw: float = 0.5,
@@ -144,6 +152,13 @@ class G1LocomotionCommandEnv(gym.Env):
 
         self.render_mode = render_mode
         self.max_episode_steps = max_episode_steps
+        self.healthy_z_min = healthy_z_min
+        self.healthy_z_max = healthy_z_max
+        self.upright_threshold = upright_threshold
+        self.buoyancy_force_start = buoyancy_force_start
+        self.buoyancy_force_end = buoyancy_force_end
+        self.buoyancy_anneal_steps = buoyancy_anneal_steps
+        self._total_steps = 0  # globális lépésszámláló a buoyancy curriculumhoz
         self.sub_steps = sub_steps
         self.action_scale = action_scale
         self.noise_scale = noise_scale
@@ -382,9 +397,16 @@ class G1LocomotionCommandEnv(gym.Env):
         ctrl_range = self.model.actuator_ctrlrange
         self.data.ctrl[:] = np.clip(raw_ctrl, ctrl_range[:, 0], ctrl_range[:, 1])
 
+        # Felhajtóerő alkalmazása (buoyancy curriculum)
+        buoyancy = self._get_buoyancy()
+        if buoyancy > 0.0:
+            self.data.xfrc_applied[self._torso_id, 5] = buoyancy
+
         # Fizikai szimuláció (2 sub-step — v22 tanulság)
         for _ in range(self.sub_steps):
             mujoco.mj_step(self.model, self.data)
+
+        self._total_steps += 1
 
         self._episode_steps += 1
         obs = self._get_obs()
@@ -480,14 +502,20 @@ class G1LocomotionCommandEnv(gym.Env):
 
     def _is_healthy(self) -> bool:
         torso_z = float(self.data.body(self._torso_id).xpos[2])
-        if not (0.4 < torso_z < 1.5):
+        if not (self.healthy_z_min < torso_z < self.healthy_z_max):
             return False
-        # Dőlési szög ellenőrzés: ha a torzó Z-tengelye túl elfordul
         torso_xmat = self.data.body(self._torso_id).xmat.reshape(3, 3)
-        upright = torso_xmat[2, 2]  # cos(dőlési szög)
-        if upright < 0.5:  # > ~60° dőlés
+        upright = torso_xmat[2, 2]  # cos(dőlési szög): 1=függőleges, 0=vízszintes
+        if upright < self.upright_threshold:
             return False
         return True
+
+    def _get_buoyancy(self) -> float:
+        """Lineárisan csökkenő felhajtóerő (curriculum). 0 ha ki van kapcsolva."""
+        if self.buoyancy_force_start <= 0.0:
+            return 0.0
+        t = min(self._total_steps / max(self.buoyancy_anneal_steps, 1), 1.0)
+        return self.buoyancy_force_start + t * (self.buoyancy_force_end - self.buoyancy_force_start)
 
     # ------------------------------------------------------------------
     # Render / Close

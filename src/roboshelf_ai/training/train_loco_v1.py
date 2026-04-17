@@ -17,7 +17,9 @@ import yaml
 from pathlib import Path
 
 # PYTHONPATH: src mappa hozzáadása (ha nem telepített csomagként fut)
-_src = str(Path(__file__).resolve().parents[3])
+# Fájl helye: src/roboshelf_ai/training/train_loco_v1.py
+# parents[0] = training/, parents[1] = roboshelf_ai/, parents[2] = src/
+_src = str(Path(__file__).resolve().parents[2])
 if _src not in sys.path:
     sys.path.insert(0, _src)
 
@@ -70,6 +72,12 @@ def make_env(cfg: dict, rank: int = 0, seed: int = 0):
             noise_scale=env_cfg.get("noise_scale", 0.01),
             v_forward_range=tuple(env_cfg.get("v_forward_range", [0.0, 1.5])),
             yaw_rate_range=tuple(env_cfg.get("yaw_rate_range", [-1.0, 1.0])),
+            healthy_z_min=env_cfg.get("healthy_z_min", 0.4),
+            healthy_z_max=env_cfg.get("healthy_z_max", 1.5),
+            upright_threshold=env_cfg.get("upright_threshold", 0.5),
+            buoyancy_force_start=env_cfg.get("buoyancy_force_start", 0.0),
+            buoyancy_force_end=env_cfg.get("buoyancy_force_end", 0.0),
+            buoyancy_anneal_steps=env_cfg.get("buoyancy_anneal_steps", 3_000_000),
             w_forward=rew_cfg.get("w_forward", 2.0),
             w_yaw=rew_cfg.get("w_yaw", 0.5),
             w_upright=rew_cfg.get("w_upright", 1.5),

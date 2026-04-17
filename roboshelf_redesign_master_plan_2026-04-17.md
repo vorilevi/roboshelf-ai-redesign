@@ -194,16 +194,23 @@ A jövőbeli demo- vagy IL-adatokat valószínűleg külön tárhelyre kell tenn
 
 ### Fázis A — locomotion prior
 
-Az első redesign-tanítás nem retail task lesz, hanem egy G1 command-following locomotion policy. A cél az, hogy a policy stabilan kövesse a kívánt előrehaladási sebességet és yaw-rate-et különböző reset zajok, enyhe perturbációk és stance variációk mellett.
+**2026-04-17 architekturális döntés: saját locomotion tanítás HELYETT a Unitree RL Gym kész policy-ját használjuk.**
 
-Elvárt eredmények:
-- a robot legalább több száz szimulációs lépésen át talpon maradjon.
-- a parancskövetési hiba trendszerűen csökkenjen.
-- a policy ne „állj és dőlj el” vagy „kapálózz” lokális optimumba tanuljon.
+A `unitree_rl_gym` repo tartalmaz egy kész, betanított G1 locomotion policy-t (`deploy/pre_train/g1/motion.pt`). Ez egy TorchScript LSTM policy (47 dim obs, 12 dim output, 50 Hz control), amelyet a Unitree validált a valós G1 roboton. A saját locomotion prior tanítás (v1, v2) kísérletei azt mutatták, hogy ez nem triviális feladat M2 CPU-n: az első 5M lépéses tanítás ep_len=71-nél stagnált (0.28 szimulációs másodperc után esik el a robot).
 
-Tanítási módszer:
-- első körben RL command-tracking env-ben;
-- később vagy párhuzamosan teleop/imitációs adatokból behavior cloning előtanítás, ha lesz demonstrációs pipeline.
+A döntés indoklása:
+- a motion.pt már stabil G1 járást tud, ezt nem kell újratanítani
+- a Fázis A így kiesik mint önálló tanítási fázis
+- a `UnitreeRLGymAdapter` pontosan reprodukálja a deploy_mujoco.py logikáját (obs összerakás, LSTM state kezelés, PD control)
+- a hierarchikus nav policy (Fázis B) rögtön a motion.pt-re épülhet
+
+A motion.pt helye lokálisan: `~/unitree_rl_gym/deploy/pre_train/g1/motion.pt`
+
+Obs vektor (47 dim): `[omega(3)*0.25, gravity(3), cmd(3)*[2,2,0.25], qj(12)*1.0, dqj(12)*0.05, prev_action(12), sin_phase, cos_phase]`
+
+Output (12 dim): láb joint pozíció target → PD control → nyomaték
+
+Ha a jövőben saját locomotion prior kell (pl. speciális terep, manipuláció közbeni járás), a `G1LocomotionCommandEnv` és a v2 config megmaradnak referenciaként.
 
 ### Fázis B — hierarchikus navigáció
 

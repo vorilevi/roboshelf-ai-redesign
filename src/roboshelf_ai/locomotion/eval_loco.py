@@ -28,7 +28,9 @@ from pathlib import Path
 import numpy as np
 import yaml
 
-_src = str(Path(__file__).resolve().parents[3])
+# Fájl helye: src/roboshelf_ai/locomotion/eval_loco.py
+# parents[0] = locomotion/, parents[1] = roboshelf_ai/, parents[2] = src/
+_src = str(Path(__file__).resolve().parents[2])
 if _src not in sys.path:
     sys.path.insert(0, _src)
 

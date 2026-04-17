@@ -1,6 +1,6 @@
 # Roboshelf AI Redesign — Ütemezés
 
-_Utoljára frissítve: 2026-04-17 (0. munkacsomag kész)_  
+_Utoljára frissítve: 2026-04-17 (2. munkacsomag kész, Fázis A döntés)_  
 _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokkolt_
 
 ---
@@ -11,8 +11,8 @@ _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokko
 |---|---|---|---|---|---|
 | 0 | — | Előkészítés és repo-tisztítás | 0,5 nap | ✅ | 2026-04-17 |
 | 1 | — | Locomotion interfész és command layer | 1 nap | ✅ | 2026-04-17 |
-| 2 | A | G1 Locomotion Command Env + tanítás | 5–8 nap | 🔄 impl kész, tanítás hátra | — |
-| 3 | B | Hierarchikus navigációs env + tanítás | 5–7 nap | ⬜ | — |
+| 2 | A | G1 Locomotion Command Env + tanítás | 5–8 nap | ✅ motion.pt átvéve | 2026-04-17 |
+| 3 | B | Hierarchikus navigációs env + tanítás | 5–7 nap | 🔄 | — |
 | 4 | — | Imitációs tanulás csatorna (BC) | 2–3 nap | ⬜ | — |
 | 5 | C | Manipulációs sandbox env + tanítás | 5–8 nap | ⬜ | — |
 | 6 | D+E | Integráció + investor demo | 3–5 nap | ⬜ | — |
@@ -63,8 +63,8 @@ _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokko
 ## 2. Munkacsomag — G1 Locomotion Command Env (Fázis A)
 
 **Becsült idő:** 5–8 nap (implementáció 1–2 nap + tanítás + iteráció)  
-**Állapot:** 🔄 implementáció kész, tanítás hátra  
-**Elfogadási feltétel:** Stabil talpon maradás 300+ lépésen, command-tracking hiba csökkenő trendje 1M lépésen belül.
+**Állapot:** ✅ kész — 2026-04-17 (Fázis A döntés: motion.pt átvéve, saját tanítás kiesik)  
+**Elfogadási feltétel:** ~~Stabil talpon maradás 300+ lépésen~~ → helyette: UnitreeRLGymAdapter betöltve és inference-képes.
 
 ### Feladatok
 
@@ -72,21 +72,24 @@ _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokko
 - [x] `configs/locomotion/g1_command_v1.yaml` létrehozva
 - [x] `src/roboshelf_ai/training/train_loco_v1.py` megírva (SubprocVecEnv, TensorBoard, checkpoint)
 - [x] `src/roboshelf_ai/locomotion/eval_loco.py` megírva
-- [ ] Sanity run: 10 000 lépés crash nélkül ← **következő, saját Mac-en**
-- [ ] Teljes tanítási run: 5M lépés
-- [ ] TensorBoard görbe és eval videó értékelve
-- [ ] `roboshelf-results/loco/v1/best_model.zip` elfogadva
-- [ ] Git commit: `"feat: G1 locomotion command env v1, training run results"`
+- [x] `g1_locomotion_command_env.py`, train, eval scriptek megírva
+- [x] Sanity run: 5587 fps, de ep_len=71 konstans (0.28s után elesik)
+- [x] v1 tanítás: 5M lépés, ep_len stagnál → fizikai stabilitási probléma diagnosztizálva
+- [x] **Architekturális döntés: unitree_rl_gym motion.pt átvétele** — saját tanítás kiesik
+- [x] `UnitreeRLGymAdapter` megírva és tesztelve (47 dim obs, LSTM, PD control, 50 Hz)
+- [x] motion.pt betöltve és inference-képes: `is_dummy: False`
+- [ ] Git commit: `"feat: UnitreeRLGymAdapter + motion.pt locomotion prior"` ← **saját terminálból**
 
 ### Tanítási futások naplója
 
 | Run | Dátum | Lépések | Legjobb ep. hossz | Tracking hiba | Megjegyzés |
 |---|---|---|---|---|---|
-| — | — | — | — | — | — |
+| v1 | 2026-04-17 | 5M | 72 lépés | 0.284s után elesik | ep_len konstans, buoyancy hiányzott |
+| v2 | — | — | — | — | buoyancy curriculum + reward rebalance |
 
 ### Megjegyzések
 
-_ide kerülnek a reward-hangolás döntései, összeomlások, tanulságok_
+2026-04-17 v1 diagnózis: ep_len=71 konstans az 5M lépés alatt. A robot 0.284 szimulációs másodperc után mindig elesik — fizikai stabilitási probléma, nem reward hiba. A legacy nav env-ben buoyancy_force=103N segített a korai fázisban. v2 javítások: buoyancy curriculum (103N→0 az első 3M lépésen), lazított termination (upright 0.5→0.3, z_min 0.4→0.35m), erősebb stabilitási reward (w_alive 0.5→3.0, w_upright 1.5→4.0), kisebb büntetések.
 
 ---
 

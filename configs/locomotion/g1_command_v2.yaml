@@ -1,0 +1,72 @@
+# G1 Locomotion Command Policy — v2 konfiguráció
+# Változások a v1-hez képest (diagnózis: ep_len=71 konstans, 0.28s után mindig elesik):
+#
+#   Gyökér ok: a robot 0.28 szimulációs másodpercen belül elveszti egyensúlyát,
+#   mielőtt a policy bármit tanulhatna. Ez fizikai stabilitási probléma, nem reward hiba.
+#
+#   Javítások:
+#   A. Felhajtóerő (buoyancy) curriculum: 103N kezdetben, lineárisan 0-ra csökken 3M lépésen át
+#      → a legacy nav env-ben ez működött (ep_len 71 → 138+)
+#   B. Termination lazítása: upright küszöb 0.5 → 0.3 (60° → ~73°), z_min 0.4 → 0.35m
+#      → ne termináljon olyan hamar, legyen ideje tanulni
+#   C. Reward rebalance: w_alive 0.5→3.0, w_upright 1.5→4.0 (erősebb stabilitási ösztönzés)
+#   D. Büntetések csökkentése: w_smooth -0.1→-0.01, w_energy -0.05→-0.005
+#      → a büntetések ne nyomják el a stabilitási reward tanulását
+
+env:
+  max_episode_steps: 1000
+  sub_steps: 2
+  action_scale: 0.3
+  noise_scale: 0.01
+  v_forward_range: [0.0, 1.0]   # v1-nél 1.5 volt — konzervatívabb kezdés
+  yaw_rate_range: [-0.5, 0.5]   # v1-nél ±1.0 — konzervatívabb
+  # Termination lazítás
+  healthy_z_min: 0.35            # v1: 0.4m — kicsit lazább
+  healthy_z_max: 1.5
+  upright_threshold: 0.3         # v1: 0.5 (cos 60°) → 0.3 (cos ~73°)
+  # Felhajtóerő curriculum
+  buoyancy_force_start: 103.0    # N — G1 tömeg 30%-a (35kg * 9.81 * 0.3)
+  buoyancy_force_end: 0.0        # N — tanítás végén nulla
+  buoyancy_anneal_steps: 3000000 # lépés — 3M lépésen át csökken
+
+reward:
+  w_forward: 2.0
+  w_yaw: 0.5
+  w_upright: 4.0      # v1: 1.5 → 4.0 (erősebb stabilitási ösztönzés)
+  w_alive: 3.0        # v1: 0.5 → 3.0 (talpon maradás a legfontosabb)
+  w_smooth: -0.01     # v1: -0.1 → kisebb büntetés
+  w_energy: -0.005    # v1: -0.05 → kisebb büntetés
+  w_feet_slip: -0.05  # v1: -0.1 → kisebb
+  w_feet_dist: -0.5   # v1: -1.0 → kisebb
+  feet_min_dist: 0.15
+
+ppo:
+  n_envs: 8
+  n_steps: 2048
+  batch_size: 256
+  n_epochs: 10
+  learning_rate: 3.0e-4
+  gamma: 0.99
+  gae_lambda: 0.95
+  clip_range: 0.2
+  ent_coef: 0.01
+  vf_coef: 0.5
+  max_grad_norm: 0.5
+  total_timesteps: 5_000_000
+
+eval:
+  n_eval_episodes: 5
+  eval_freq: 50_000
+  deterministic: true
+
+checkpoint:
+  save_freq: 100_000
+  save_path: roboshelf-results/loco/v2/
+
+logging:
+  tensorboard_log: data/logs/loco_v2/
+  verbose: 1
+
+acceptance:
+  min_episode_length: 300
+  target_mean_reward: 200.0
