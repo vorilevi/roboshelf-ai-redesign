@@ -1,0 +1,13 @@
+mujoco>=3.6.0
+mujoco-mjx
+gymnasium[mujoco]
+stable-baselines3>=2.7.0
+torch>=2.10.0
+torchvision
+jax
+jaxlib
+tensorboard
+matplotlib
+huggingface_hub
+pandas
+numpy

@@ -1,0 +1,182 @@
+<!--
+  ROBOSHELF AI — Kiskereskedelmi bolt környezet v1
+  MuJoCo MJCF modell
+
+  Méretezés a Unitree G1-hez (127 cm, kar elérés ~60 cm):
+    - Polcok: 4 szint, 0.10m — 1.00m magasság
+    - Gondola szélesség: 0.90m, mélység: 0.40m
+    - Folyosó szélesség: 1.80m
+    - Termékek: 5-15 cm objektumok (dobozok, hengerek)
+  Gondola A: x=-1.35, y=2.0 | Gondola B: x=1.35, y=2.0
+  Raktár asztal: y=3.8       | Robot start: x=0, y=0.5
+-->
+<mujoco model="roboshelf_retail_v1">
+
+  <compiler angle="radian" autolimits="true"/>
+  <option timestep="0.002" gravity="0 0 -9.81" integrator="implicit"/>
+
+  <visual>
+    <headlight diffuse="0.8 0.8 0.8" ambient="0.3 0.3 0.3" specular="0.1 0.1 0.1"/>
+    <global azimuth="135" elevation="-25" offwidth="1920" offheight="1080"/>
+    <quality shadowsize="4096"/>
+    <map znear="0.01" zfar="50"/>
+  </visual>
+
+  <default>
+    <default class="product_box">
+      <geom friction="0.7 0.01 0.001" condim="4" solref="0.01 1" solimp="0.9 0.95 0.001"/>
+    </default>
+    <default class="product_cyl">
+      <geom friction="0.6 0.01 0.001" condim="4" solref="0.01 1" solimp="0.9 0.95 0.001"/>
+    </default>
+  </default>
+
+  <asset>
+    <texture name="tex_floor" type="2d" builtin="checker" width="512" height="512"
+             rgb1="0.82 0.82 0.78" rgb2="0.78 0.78 0.74"/>
+    <material name="mat_floor" texture="tex_floor" texrepeat="8 6" reflectance="0.1"/>
+    <material name="mat_shelf" rgba="0.7 0.7 0.7 1" reflectance="0.3" shininess="0.5"/>
+    <material name="mat_board" rgba="0.88 0.86 0.82 1" reflectance="0.05"/>
+    <material name="mat_wall" rgba="0.95 0.94 0.92 1"/>
+    <material name="mat_red" rgba="0.85 0.15 0.15 1"/>
+    <material name="mat_blue" rgba="0.15 0.25 0.85 1"/>
+    <material name="mat_green" rgba="0.15 0.70 0.25 1"/>
+    <material name="mat_yellow" rgba="0.95 0.85 0.10 1"/>
+    <material name="mat_orange" rgba="0.95 0.55 0.10 1"/>
+    <material name="mat_white" rgba="0.95 0.95 0.95 1"/>
+    <material name="mat_brown" rgba="0.55 0.35 0.15 1"/>
+    <material name="mat_cardboard" rgba="0.65 0.50 0.30 1"/>
+  </asset>
+
+  <worldbody>
+
+    <!-- Világítás -->
+    <light name="ceil_1" pos="0 1.5 3.0" dir="0 0 -1" diffuse="0.9 0.9 0.9" castshadow="true" cutoff="60"/>
+    <light name="ceil_2" pos="0 3.5 3.0" dir="0 0 -1" diffuse="0.9 0.9 0.9" castshadow="true" cutoff="60"/>
+    <light name="ambient" pos="0 2.5 4.0" dir="0 0 -1" diffuse="0.3 0.3 0.3" castshadow="false"/>
+
+    <!-- Padló & falak -->
+    <geom name="floor" type="plane" size="5 4 0.01" material="mat_floor"/>
+    <geom name="wall_back" type="box" size="5 0.05 1.5" pos="0 4.5 1.5" material="mat_wall"/>
+    <geom name="wall_L" type="box" size="0.05 4.5 1.5" pos="-3.5 2.25 1.5" material="mat_wall"/>
+    <geom name="wall_R" type="box" size="0.05 4.5 1.5" pos="3.5 2.25 1.5" material="mat_wall"/>
+
+    <!-- ========== GONDOLA A (statikus polcváz) — x=-1.35, y=2.0 ========== -->
+    <body name="gondola_A" pos="-1.35 2.0 0">
+      <geom name="gA_sL" type="box" size="0.02 0.45 0.60" pos="-0.47 0 0.60" material="mat_shelf"/>
+      <geom name="gA_sR" type="box" size="0.02 0.45 0.60" pos="0.47 0 0.60" material="mat_shelf"/>
+      <geom name="gA_bk" type="box" size="0.47 0.01 0.60" pos="0 -0.20 0.60" material="mat_shelf"/>
+      <geom name="gA_b1" type="box" size="0.45 0.20 0.012" pos="0 0 0.10" material="mat_board"/>
+      <geom name="gA_b2" type="box" size="0.45 0.20 0.012" pos="0 0 0.40" material="mat_board"/>
+      <geom name="gA_b3" type="box" size="0.45 0.20 0.012" pos="0 0 0.70" material="mat_board"/>
+      <geom name="gA_b4" type="box" size="0.45 0.20 0.012" pos="0 0 1.00" material="mat_board"/>
+    </body>
+
+    <!-- ========== GONDOLA B (statikus polcváz) — x=1.35, y=2.0 ========== -->
+    <body name="gondola_B" pos="1.35 2.0 0">
+      <geom name="gB_sL" type="box" size="0.02 0.45 0.60" pos="-0.47 0 0.60" material="mat_shelf"/>
+      <geom name="gB_sR" type="box" size="0.02 0.45 0.60" pos="0.47 0 0.60" material="mat_shelf"/>
+      <geom name="gB_bk" type="box" size="0.47 0.01 0.60" pos="0 0.20 0.60" material="mat_shelf"/>
+      <geom name="gB_b1" type="box" size="0.45 0.20 0.012" pos="0 0 0.10" material="mat_board"/>
+      <geom name="gB_b2" type="box" size="0.45 0.20 0.012" pos="0 0 0.40" material="mat_board"/>
+      <geom name="gB_b3" type="box" size="0.45 0.20 0.012" pos="0 0 0.70" material="mat_board"/>
+      <geom name="gB_b4" type="box" size="0.45 0.20 0.012" pos="0 0 1.00" material="mat_board"/>
+    </body>
+
+    <!-- ========== RAKTÁR ASZTAL (statikus) ========== -->
+    <body name="storage" pos="0 3.8 0">
+      <geom name="st_legs" type="box" size="1.0 0.40 0.40" pos="0 0 0.40" rgba="0.50 0.45 0.35 1"/>
+      <geom name="st_top" type="box" size="1.0 0.40 0.015" pos="0 0 0.815" rgba="0.60 0.55 0.45 1"/>
+      <geom name="crate_1" type="box" size="0.25 0.20 0.15" pos="-0.70 0.25 0.15" material="mat_cardboard"/>
+      <geom name="crate_2" type="box" size="0.20 0.15 0.12" pos="0.70 0.30 0.12" material="mat_cardboard"/>
+    </body>
+
+    <!-- ========== POLCON LÉVŐ TERMÉKEK (freejoint, worldbody szinten) ========== -->
+
+    <!-- Gondola A, 1. polc: piros dobozok, z = 0.10 + 0.012 + 0.055 = 0.167 -->
+    <body name="pA1_1" pos="-1.65 2.05 0.167"><freejoint/>
+      <geom type="box" size="0.06 0.04 0.055" class="product_box" material="mat_red" mass="0.35"/></body>
+    <body name="pA1_2" pos="-1.45 2.05 0.167"><freejoint/>
+      <geom type="box" size="0.06 0.04 0.055" class="product_box" material="mat_red" mass="0.35"/></body>
+    <!-- pA1_3: ÜRES (OOS) -->
+    <body name="pA1_4" pos="-1.05 2.05 0.167"><freejoint/>
+      <geom type="box" size="0.06 0.04 0.055" class="product_box" material="mat_red" mass="0.35"/></body>
+
+    <!-- Gondola A, 2. polc: kék hengerek, z = 0.40 + 0.012 + 0.055 = 0.467 -->
+    <body name="pA2_1" pos="-1.65 2.05 0.467"><freejoint/>
+      <geom type="cylinder" size="0.035 0.055" class="product_cyl" material="mat_blue" mass="0.50"/></body>
+    <body name="pA2_2" pos="-1.45 2.05 0.467"><freejoint/>
+      <geom type="cylinder" size="0.035 0.055" class="product_cyl" material="mat_blue" mass="0.50"/></body>
+    <body name="pA2_3" pos="-1.25 2.05 0.467"><freejoint/>
+      <geom type="cylinder" size="0.035 0.055" class="product_cyl" material="mat_blue" mass="0.50"/></body>
+
+    <!-- Gondola A, 3. polc: zöld dobozok, z = 0.70 + 0.012 + 0.065 = 0.777 -->
+    <body name="pA3_1" pos="-1.60 2.05 0.777"><freejoint/>
+      <geom type="box" size="0.08 0.05 0.065" class="product_box" material="mat_green" mass="0.60"/></body>
+    <!-- pA3_2: ÜRES (OOS) -->
+    <body name="pA3_3" pos="-1.10 2.05 0.777"><freejoint/>
+      <geom type="box" size="0.08 0.05 0.065" class="product_box" material="mat_green" mass="0.60"/></body>
+
+    <!-- Gondola A, 4. polc: sárga, z = 1.00 + 0.012 + 0.06 = 1.072 -->
+    <body name="pA4_1" pos="-1.55 2.05 1.072"><freejoint/>
+      <geom type="box" size="0.07 0.045 0.06" class="product_box" material="mat_yellow" mass="0.25"/></body>
+
+    <!-- Gondola B, 1. polc: narancssárga -->
+    <body name="pB1_1" pos="1.10 1.95 0.167"><freejoint/>
+      <geom type="box" size="0.055 0.04 0.05" class="product_box" material="mat_orange" mass="0.30"/></body>
+    <body name="pB1_2" pos="1.35 1.95 0.167"><freejoint/>
+      <geom type="box" size="0.055 0.04 0.05" class="product_box" material="mat_orange" mass="0.30"/></body>
+    <body name="pB1_3" pos="1.60 1.95 0.167"><freejoint/>
+      <geom type="box" size="0.055 0.04 0.05" class="product_box" material="mat_orange" mass="0.30"/></body>
+
+    <!-- Gondola B, 2. polc: fehér hengerek -->
+    <body name="pB2_1" pos="1.05 1.95 0.472"><freejoint/>
+      <geom type="cylinder" size="0.03 0.06" class="product_cyl" material="mat_white" mass="0.40"/></body>
+    <!-- pB2_2: ÜRES (OOS) -->
+    <body name="pB2_3" pos="1.45 1.95 0.472"><freejoint/>
+      <geom type="cylinder" size="0.03 0.06" class="product_cyl" material="mat_white" mass="0.40"/></body>
+
+    <!-- Gondola B, 3. polc: barna -->
+    <body name="pB3_1" pos="1.15 1.95 0.777"><freejoint/>
+      <geom type="box" size="0.07 0.05 0.06" class="product_box" material="mat_brown" mass="0.55"/></body>
+    <body name="pB3_2" pos="1.45 1.95 0.777"><freejoint/>
+      <geom type="box" size="0.07 0.05 0.06" class="product_box" material="mat_brown" mass="0.55"/></body>
+
+    <!-- ========== RAKTÁRI TERMÉKEK (pótolni kell a polcra) ========== -->
+    <!-- stock_1: piros → gA 1. polc 3. pozíció -->
+    <body name="stock_1" pos="-0.50 3.8 0.885"><freejoint/>
+      <geom type="box" size="0.06 0.04 0.055" class="product_box" material="mat_red" mass="0.35"/></body>
+    <!-- stock_2: zöld → gA 3. polc 2. pozíció -->
+    <body name="stock_2" pos="-0.20 3.8 0.895"><freejoint/>
+      <geom type="box" size="0.08 0.05 0.065" class="product_box" material="mat_green" mass="0.60"/></body>
+    <!-- stock_3: fehér → gB 2. polc 2. pozíció -->
+    <body name="stock_3" pos="0.10 3.8 0.890"><freejoint/>
+      <geom type="cylinder" size="0.03 0.06" class="product_cyl" material="mat_white" mass="0.40"/></body>
+    <!-- stock_4: extra narancssárga -->
+    <body name="stock_4" pos="0.40 3.8 0.880"><freejoint/>
+      <geom type="box" size="0.055 0.04 0.05" class="product_box" material="mat_orange" mass="0.30"/></body>
+    <!-- stock_5: extra sárga -->
+    <body name="stock_5" pos="0.65 3.8 0.890"><freejoint/>
+      <geom type="box" size="0.07 0.045 0.06" class="product_box" material="mat_yellow" mass="0.25"/></body>
+
+    <!-- Jelölők -->
+    <geom name="nav" type="box" size="0.02 3.0 0.001" pos="0 2.0 0.001" rgba="0 0.83 0.66 0.3" contype="0" conaffinity="0"/>
+    <site name="oos_A1_3" type="box" size="0.065 0.045 0.002" pos="-1.25 2.05 0.115" rgba="1 0 0 0.5"/>
+    <site name="oos_A3_2" type="box" size="0.085 0.055 0.002" pos="-1.35 2.05 0.715" rgba="1 0 0 0.5"/>
+    <site name="oos_B2_2" type="box" size="0.035 0.035 0.002" pos="1.25 1.95 0.415" rgba="1 0 0 0.5"/>
+    <site name="robot_start" type="cylinder" size="0.15 0.001" pos="0 0.5 0.001" rgba="0 0.83 0.66 0.3"/>
+    <site name="target_A1_3" type="sphere" size="0.01" pos="-1.25 2.05 0.167" rgba="0 1 0 0.3"/>
+    <site name="target_A3_2" type="sphere" size="0.01" pos="-1.35 2.05 0.777" rgba="0 1 0 0.3"/>
+    <site name="target_B2_2" type="sphere" size="0.01" pos="1.25 1.95 0.472" rgba="0 1 0 0.3"/>
+
+  </worldbody>
+
+  <sensor>
+    <framepos name="s_stock_1" objtype="body" objname="stock_1"/>
+    <framepos name="s_stock_2" objtype="body" objname="stock_2"/>
+    <framepos name="s_stock_3" objtype="body" objname="stock_3"/>
+    <framepos name="s_stock_4" objtype="body" objname="stock_4"/>
+    <framepos name="s_stock_5" objtype="body" objname="stock_5"/>
+  </sensor>
+
+</mujoco>
