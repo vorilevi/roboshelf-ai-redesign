@@ -58,6 +58,22 @@ G1_DEFAULT_ANGLES = np.array([
     -0.1, 0.0, 0.0,  0.3, -0.2, 0.0,   # jobb láb
 ], dtype=np.float32)
 
+# G1 teljes 29 DoF default ctrl (position control target-ek)
+# ctrl[0:12]  = lábak (motion.pt vezérli)
+# ctrl[12:15] = derék (yaw, roll, pitch) → 0.0
+# ctrl[15:29] = karok → legacy env keyframe értékek alapján
+G1_DEFAULT_CTRL = np.array([
+    # Lábak [0:12] — motion.pt vezérli, ezek csak a reset értékek
+    -0.1, 0.0, 0.0,  0.3, -0.2, 0.0,   # bal láb
+    -0.1, 0.0, 0.0,  0.3, -0.2, 0.0,   # jobb láb
+    # Derék [12:15]
+    0.0, 0.0, 0.0,
+    # Bal kar [15:22]: shoulder_pitch, shoulder_roll, shoulder_yaw, elbow, wrist x3
+    0.2,  0.2,  0.0,  1.28, 0.0, 0.0, 0.0,
+    # Jobb kar [22:29]
+    0.2, -0.2,  0.0,  1.28, 0.0, 0.0, 0.0,
+], dtype=np.float32)
+
 # PD gain-ek (g1.yaml)
 G1_KPS = np.array([100, 100, 100, 150, 40, 40,
                     100, 100, 100, 150, 40, 40], dtype=np.float32)
@@ -106,12 +122,18 @@ class BaseLocomotionAdapter(BaseLocomotionPolicy):
         raise NotImplementedError
 
     def step_mujoco(self, data, command: LocomotionCommand) -> np.ndarray:
-        """MuJoCo kényelmi wrapper: MjData → RobotState → step().
+        """MuJoCo kényelmi wrapper: MjData → RobotState → step() → tau.
 
-        Használd ezt MuJoCo-ban, step()-et Isaac Lab-ban vagy tesztben.
+        Visszaadja a PD torque vektort (12 dim) a láb aktuátorokhoz.
+        Pontosan a deploy_mujoco.py logikája: d.ctrl[:] = tau
+
+        Használd így:
+            tau = adapter.step_mujoco(data, command)
+            data.ctrl[:12] = tau
+            mujoco.mj_step(model, data)
         """
         state = RobotState.from_mujoco(data)
-        return self.step(state, command)
+        return self.step(state, command)   # shape (12,) PD torque
 
     def reset(self) -> None:
         pass
@@ -230,18 +252,20 @@ class UnitreeRLGymAdapter(BaseLocomotionAdapter):
     def step(self, state: RobotState, command: LocomotionCommand) -> np.ndarray:
         """Szimulátorfüggetlen lépés — RobotState-ből dolgozik.
 
-        A policy 50 Hz-en fut (control_decimation=10):
-        minden 10. MuJoCo lépésnél frissül az akció.
-        Közbülső lépéseknél az előző PD target marad érvényes.
+        Pontosan reprodukálja a deploy_mujoco.py logikáját:
+        - PD torque számítás minden lépésben az aktuális target_dof_pos alapján
+        - Policy frissítés csak minden control_decimation-dik lépésben (50 Hz)
 
         Returns:
-            torque (np.ndarray, shape=(12,)): nyomaték a 12 láb aktuátorra
+            tau (np.ndarray, shape=(12,)): PD torque a 12 láb aktuátorra.
+            Írja data.ctrl[:12]-be (torque control, scene.xml).
         """
         if self._dummy is not None:
             return self._dummy.step(state, command)
 
         self._sim_counter += 1
 
+        # deploy_mujoco.py: qj = d.qpos[7:], dqj = d.qvel[6:]
         qj  = state.qpos[self._qpos_s : self._qpos_s + G1_LEG_DOF].copy()
         dqj = state.qvel[self._qvel_s : self._qvel_s + G1_LEG_DOF].copy()
 
@@ -275,10 +299,10 @@ class UnitreeRLGymAdapter(BaseLocomotionAdapter):
             self._prev_action = action.copy()
             self._target_dof_pos = action * ACTION_SCALE + G1_DEFAULT_ANGLES
 
-        # PD control → nyomaték
+        # PD torque — deploy_mujoco.py: pd_control(target_dof_pos, d.qpos[7:], kps, 0, d.qvel[6:], kds)
         target_q = getattr(self, '_target_dof_pos', G1_DEFAULT_ANGLES)
-        torque = (target_q - qj) * G1_KPS + (0.0 - dqj) * G1_KDS
-        return torque
+        tau = (target_q - qj) * G1_KPS + (0.0 - dqj) * G1_KDS
+        return tau
 
     @staticmethod
     def _get_gravity_orientation(quat: np.ndarray) -> np.ndarray:

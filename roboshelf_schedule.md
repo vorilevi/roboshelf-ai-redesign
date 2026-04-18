@@ -1,6 +1,6 @@
 # Roboshelf AI Redesign — Ütemezés
 
-_Utoljára frissítve: 2026-04-17 (interfész réteg + __init__ exportok kész, Isaac Lab stub, VecNormalize, IL csatorna alap, járásteszt következik)_  
+_Utoljára frissítve: 2026-04-18 (járásteszt ✅ elfogadva — 3/3 talpon, 2.17m/5s, Fázis B következik)_  
 _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokkolt_
 
 ---
@@ -85,7 +85,9 @@ _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokko
 - [x] motion.pt betöltve és inference-képes: `is_dummy: False`
 - [x] `train_loco_v1.py` — VecNormalize + EpisodeStatsCallback + LinearCurriculumCallback bekötve
 - [x] `configs/locomotion/g1_command_v2.yaml` — `vec_normalize:` szekció hozzáadva
-- [ ] **Járásteszt: motion.pt + UnitreeRLGymAdapter live futtatás** ← következő lépés
+- [x] `src/roboshelf_ai/locomotion/test_walk.py` megírva és futtatva
+- [x] **Járásteszt ✅ ELFOGADVA** — 3/3 talpon, 2.17m/5s @ 0.5m/s parancs, upright=0.999
+- [x] unitree_rl_gym áthelyezve: `~/unitree_rl_gym` → `roboshelf-ai-redesign/unitree_rl_gym/`
 - [ ] Git commit ← **saját terminálból**
 
 ### Tanítási futások naplója
@@ -104,12 +106,12 @@ _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokko
 ## 3. Munkacsomag — Hierarchikus navigációs env (Fázis B)
 
 **Becsült idő:** 5–7 nap  
-**Állapot:** ⬜ nem kezdett  
+**Állapot:** 🔄 folyamatban  
 **Elfogadási feltétel:** Robot 50%+ esetben eléri a célt random startból, locomotion nem omlik össze közben.
 
 ### Előfeltétel
 
-- [ ] 2. munkacsomag elfogadási feltétele teljesült
+- [x] 2. munkacsomag elfogadási feltétele teljesült (járásteszt ✅ 2026-04-18)
 
 ### Feladatok
 
