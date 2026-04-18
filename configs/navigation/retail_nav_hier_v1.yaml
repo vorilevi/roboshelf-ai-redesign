@@ -13,7 +13,7 @@
 
 locomotion:
   adapter: UnitreeRLGymAdapter
-  model_path: ~/unitree_rl_gym/deploy/pre_train/g1/motion.pt
+  model_path: unitree_rl_gym/deploy/pre_train/g1/motion.pt
   # Ha saját loco policy kell (PPF fine-tune után):
   # model_path: roboshelf-results/loco/ppf_v1/best_model.zip
   # adapter: LocomotionPolicyAdapter
@@ -22,7 +22,8 @@ env:
   scene_xml: src/envs/assets/roboshelf_retail_store.xml
   max_episode_steps: 500
   goal_radius: 0.5           # m — ennyi távolságon belül "célba ért"
-  n_loco_steps: 10           # hány MuJoCo lépés = 1 nav policy lépés (50 Hz loco, 5 Hz nav)
+  n_sim_steps_per_nav: 100   # hány 500Hz sim lépés = 1 nav lépés (5 Hz nav)
+                             # = NAV_DECIMATION a kódban
   # Observation space:
   #   robot_xy (2) + goal_rel_polar (2: dist, angle) + torso_heading (1)
   #   + torso_lin_vel (2) + foot_contact (2) = 9 dim
@@ -37,8 +38,8 @@ curriculum:
   levels:
     - id: 1
       name: "egyenes_rovid"
-      description: "Egyenes előre haladás, 0.5m"
-      goal_fixed: [0.0, 0.5]    # fix célpont [x, y]
+      description: "Egyenes előre haladás, 1.5m (start random ±0.3m offset)"
+      goal_fixed: [0.0, 1.5]    # fix célpont [x, y] — elég messze a start offsets-tól
       obstacles: false
       acceptance:
         success_rate: 0.8       # 80%-ban érje el a célt
@@ -46,8 +47,8 @@ curriculum:
 
     - id: 2
       name: "egyenes_hosszu"
-      description: "Egyenes navigáció, 1.5m"
-      goal_fixed: [0.0, 1.5]
+      description: "Egyenes navigáció, 2.5m"
+      goal_fixed: [0.0, 2.5]
       obstacles: false
       acceptance:
         success_rate: 0.7

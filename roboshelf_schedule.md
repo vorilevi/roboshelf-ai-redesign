@@ -1,6 +1,6 @@
 # Roboshelf AI Redesign — Ütemezés
 
-_Utoljára frissítve: 2026-04-18 (járásteszt ✅ elfogadva — 3/3 talpon, 2.17m/5s, Fázis B következik)_  
+_Utoljára frissítve: 2026-04-18 (Fázis B curriculum szint 1 ✅ elfogadva — 20/20 célba ért, 0% loco összeomlás)_  
 _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokkolt_
 
 ---
@@ -12,7 +12,7 @@ _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokko
 | 0 | — | Előkészítés és repo-tisztítás | 0,5 nap | ✅ | 2026-04-17 |
 | 1 | — | Locomotion interfész és command layer | 1 nap | ✅ | 2026-04-17 |
 | 2 | A | G1 Locomotion Command Env + tanítás | 5–8 nap | ✅ motion.pt átvéve | 2026-04-17 |
-| 3 | B | Hierarchikus navigációs env + tanítás | 5–7 nap | 🔄 | — |
+| 3 | B | Hierarchikus navigációs env + tanítás | 5–7 nap | 🔄 curriculum 1/4 ✅ | — |
 | 4 | — | Imitációs tanulás csatorna (BC) | 2–3 nap | ⬜ | — |
 | 5 | C | Manipulációs sandbox env + tanítás | 5–8 nap | ⬜ | — |
 | 6 | D+E | Integráció + investor demo | 3–5 nap | ⬜ | — |
@@ -116,23 +116,26 @@ _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokko
 ### Feladatok
 
 - [x] `configs/navigation/retail_nav_hier_v1.yaml` létrehozva (curriculum, PPO hyperparamok RL Zoo alapján, vec_normalize szekció)
-- [ ] `src/roboshelf_ai/mujoco/envs/navigation/retail_nav_hier_env.py` megírva
-- [ ] `src/roboshelf_ai/tasks/navigation/train_nav_hierarchical.py` megírva
-- [ ] `src/roboshelf_ai/tasks/navigation/eval_nav.py` megírva
-- [ ] Sanity run crash nélkül
-- [ ] Teljes tanítási run
-- [ ] Eval: navigáció vizuálisan értékelve
+- [x] `src/roboshelf_ai/mujoco/envs/navigation/retail_nav_hier_env.py` megírva
+- [x] `src/roboshelf_ai/tasks/navigation/train_nav_hierarchical.py` megírva
+- [x] `src/roboshelf_ai/tasks/navigation/eval_nav.py` megírva
+- [x] Sanity run crash nélkül
+- [x] Curriculum szint 1 tanítás: 3M lépés ✅ ELFOGADVA (100% siker, 0% loco összeomlás)
+- [ ] Curriculum szint 2 tanítás (goal [0, 2.5], 3M lépés)
+- [ ] Curriculum szint 3 tanítás (kanyar, goal_range)
+- [ ] Curriculum szint 4 tanítás (teljes pálya, akadályokkal)
+- [ ] Eval: navigáció vizuálisan értékelve (--render)
 - [ ] Git commit: `"feat: hierarchical nav env v1, training run results"`
 
 ### Tanítási futások naplója
 
 | Run | Dátum | Lépések | Célpont-elérési arány | Locomotion összeomlás | Megjegyzés |
 |---|---|---|---|---|---|
-| — | — | — | — | — | — |
+| lvl1 v1 | 2026-04-18 | 3M | 100% (20/20) | 0% | Javított config: goal [0,1.5], random start ±0.3m, átlag 18 lépés/ep |
 
 ### Megjegyzések
 
-_ide kerülnek az action space, reward és locomotion adapter döntések_
+2026-04-18 Curriculum szint 1: Az első tanítás triviális eredményt adott (robot startban már célba ért: goal=[0,0.5], goal_radius=0.5m). Javítás: random start ±0.3m xy + random yaw, goal=[0,1.5]. Újratanítás után: 100% siker, 0% loco összeomlás, átlag 18 nav lépés/epizód (≈3.6s valós idő). PPO policy_kwargs: net_arch dict(pi=[256,256], vf=[256,256]). VecNormalize mentve.
 
 ---
 
