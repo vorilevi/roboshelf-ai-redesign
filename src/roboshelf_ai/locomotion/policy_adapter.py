@@ -10,18 +10,22 @@ Három adapter érhető el:
    A unitree_rl_gym motion.pt LSTM policy-t futtatja MuJoCo-ban,
    pontosan reprodukálva a deploy_mujoco.py logikáját.
    - 47 dim obs vektor (omega, gravity, cmd, qj, dqj, action, gait_phase)
-   - 12 dim output (lábak PD target pozíciói)
+   - 12 dim output → PD torque a 12 láb aktuátorra
    - LSTM hidden state kezelés epizódonként
    - 50 Hz control (control_decimation=10, sim_dt=0.002)
+   - MuJoCo XML: scene.xml (torque control, nu=12)
+
+   Járásteszt (2026-04-18): 3/3 talpon, 2.17m/5s @ 0.5m/s → ✅ ELFOGADVA
+
+   Használat:
+       adapter = UnitreeRLGymAdapter("unitree_rl_gym/deploy/pre_train/g1/motion.pt")
+       # Minden MuJoCo lépés előtt:
+       tau = adapter.step_mujoco(data, command)  # shape (12,) PD torque
+       data.ctrl[:] = tau
+       mujoco.mj_step(model, data)
 
 3. LocomotionPolicyAdapter
    SB3 PPO modellt futtat — saját tanítású policy-hoz.
-
-Használat:
-    from roboshelf_ai.locomotion.policy_adapter import UnitreeRLGymAdapter
-    adapter = UnitreeRLGymAdapter("~/unitree_rl_gym/deploy/pre_train/g1/motion.pt")
-    ctrl = adapter.step(mj_data, command)
-    mj_data.ctrl[:12] = ctrl
 """
 
 from __future__ import annotations

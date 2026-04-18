@@ -204,11 +204,18 @@ A döntés indoklása:
 - a `UnitreeRLGymAdapter` pontosan reprodukálja a deploy_mujoco.py logikáját (obs összerakás, LSTM state kezelés, PD control)
 - a hierarchikus nav policy (Fázis B) rögtön a motion.pt-re épülhet
 
-A motion.pt helye lokálisan: `~/unitree_rl_gym/deploy/pre_train/g1/motion.pt`
+A motion.pt helye: `roboshelf-ai-redesign/unitree_rl_gym/deploy/pre_train/g1/motion.pt`  
+(2026-04-18: a `unitree_rl_gym` repo áthelyezve `~/unitree_rl_gym`-ből a projekt repo-ba, submodule helyett rendes fájlokként.)
+
+MuJoCo XML: `unitree_rl_gym/resources/robots/g1_description/scene.xml`  
+(tartalmazza a padlót és a 12 láb aktuátort — torque control, nem position control!)
 
 Obs vektor (47 dim): `[omega(3)*0.25, gravity(3), cmd(3)*[2,2,0.25], qj(12)*1.0, dqj(12)*0.05, prev_action(12), sin_phase, cos_phase]`
 
-Output (12 dim): láb joint pozíció target → PD control → nyomaték
+Output (12 dim): láb joint pozíció target → PD torque → `data.ctrl[:]`  
+PD: `tau = (target_q - qj) * kps + (0 - dqj) * kds`
+
+**Járásteszt eredménye (2026-04-18):** 3/3 epizód talpon, 2.17m/5s @ 0.5m/s parancs, upright=0.999 → ✅ ELFOGADVA
 
 Ha a jövőben saját locomotion prior kell (pl. speciális terep, manipuláció közbeni járás), a `G1LocomotionCommandEnv` és a v2 config megmaradnak referenciaként.
 

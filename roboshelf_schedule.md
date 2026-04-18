@@ -87,8 +87,8 @@ _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokko
 - [x] `configs/locomotion/g1_command_v2.yaml` — `vec_normalize:` szekció hozzáadva
 - [x] `src/roboshelf_ai/locomotion/test_walk.py` megírva és futtatva
 - [x] **Járásteszt ✅ ELFOGADVA** — 3/3 talpon, 2.17m/5s @ 0.5m/s parancs, upright=0.999
-- [x] unitree_rl_gym áthelyezve: `~/unitree_rl_gym` → `roboshelf-ai-redesign/unitree_rl_gym/`
-- [ ] Git commit ← **saját terminálból**
+- [x] unitree_rl_gym áthelyezve: `~/unitree_rl_gym` → `roboshelf-ai-redesign/unitree_rl_gym/` (rendes fájlokként, nem submodule)
+- [x] Git commit + push ✅ fac955b
 
 ### Tanítási futások naplója
 
