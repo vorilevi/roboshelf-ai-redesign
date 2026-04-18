@@ -221,6 +221,106 @@ def train(cfg: dict) -> None:
     train_env.close()
     eval_env.close()
 
+    # --- Automatikus kiértékelés a tanítás végén ---
+    if not no_save:
+        _run_final_eval(cfg, save_path, vec_norm_path, curriculum_level, norm_cfg)
+
+
+def _run_final_eval(cfg, save_path, vec_norm_path, curriculum_level, norm_cfg):
+    """Tanítás utáni automatikus kiértékelés a best_model.zip-pel."""
+    import numpy as np
+    from stable_baselines3.common.vec_env import DummyVecEnv, VecMonitor
+
+    eval_cfg    = cfg.get("eval", {})
+    accept_cfg  = cfg.get("acceptance", {})
+    n_episodes  = eval_cfg.get("n_eval_episodes", 10)
+    best_model_path = os.path.join(save_path, "best_model.zip")
+
+    print("\n" + "=" * 62)
+    print("  Automatikus kiértékelés — tanítás utáni eval")
+    print("=" * 62)
+    print(f"  Modell:     {best_model_path}")
+    print(f"  Epizódok:   {n_episodes}")
+    print(f"  Curriculum: Szint {curriculum_level}")
+    print("=" * 62 + "\n")
+
+    # Eval env (DummyVecEnv — nincs render)
+    def _init():
+        from roboshelf_ai.mujoco.envs.navigation.retail_nav_hier_env import RetailNavHierEnv
+        return RetailNavHierEnv(cfg=cfg, curriculum_level=curriculum_level)
+
+    env = DummyVecEnv([_init])
+    env = VecMonitor(env)
+    if norm_cfg.get("enabled", True) and os.path.exists(vec_norm_path):
+        env = make_vec_normalize(
+            env,
+            load_path=vec_norm_path,
+            norm_obs=norm_cfg.get("norm_obs", True),
+            norm_reward=False,
+            clip_obs=norm_cfg.get("clip_obs", 10.0),
+            gamma=cfg.get("ppo", {}).get("gamma", 0.999),
+        )
+
+    model = PPO.load(best_model_path, device="cpu")
+
+    results = []
+    obs = env.reset()
+    for ep in range(n_episodes):
+        ep_reward, ep_steps, done, info_last = 0.0, 0, False, {}
+        while not done:
+            action, _ = model.predict(obs, deterministic=True)
+            obs, reward, done_arr, info_arr = env.step(action)
+            ep_reward += float(reward[0])
+            ep_steps  += 1
+            info_last  = info_arr[0]
+            done = bool(done_arr[0])
+
+        goal_reached   = info_last.get("goal_reached", False)
+        loco_collapsed = info_last.get("loco_collapsed", False)
+        dist_final     = info_last.get("dist_to_goal", -1.0)
+        results.append(dict(
+            steps=ep_steps, reward=ep_reward,
+            goal_reached=goal_reached, loco_collapsed=loco_collapsed,
+            dist_final=dist_final,
+        ))
+        status = "✅ CÉLBA" if goal_reached else ("❌ ELESETT" if loco_collapsed else "⏱ TIMEOUT")
+        print(f"  Ep {ep+1:3d}: {status:12s} | lépés={ep_steps:4d} | "
+              f"reward={ep_reward:8.1f} | dist={dist_final:.2f}m")
+        obs = env.reset()
+
+    env.close()
+
+    n_goal   = sum(1 for r in results if r["goal_reached"])
+    n_loco   = sum(1 for r in results if r["loco_collapsed"])
+    n_to     = n_episodes - n_goal - n_loco
+    sr       = n_goal / n_episodes
+    print(f"\n{'-'*62}")
+    print(f"  ÖSSZESÍTŐ")
+    print(f"{'-'*62}")
+    print(f"  Célba ért:        {n_goal}/{n_episodes} ({100*sr:.0f}%)")
+    print(f"  Loco összeomlás:  {n_loco}/{n_episodes} ({100*n_loco/n_episodes:.0f}%)")
+    print(f"  Timeout:          {n_to}/{n_episodes}")
+    print(f"  Átlag lépés:      {np.mean([r['steps'] for r in results]):.0f}")
+    print(f"  Átlag reward:     {np.mean([r['reward'] for r in results]):.1f}")
+    print(f"  Átlag záró dist:  {np.mean([r['dist_final'] for r in results]):.2f}m")
+
+    min_success = accept_cfg.get("min_success_rate", 0.5)
+    max_loco    = accept_cfg.get("loco_collapse_max", 0.1)
+    ok_success  = sr >= min_success
+    ok_loco     = (n_loco / n_episodes) <= max_loco
+    print()
+    if ok_success and ok_loco:
+        print(f"  ✅ ELFOGADVA: sikerességi arány {100*sr:.0f}% >= {100*min_success:.0f}%")
+        print(f"              loco összeomlás {100*n_loco/n_episodes:.0f}% <= {100*max_loco:.0f}%")
+    else:
+        reasons = []
+        if not ok_success:
+            reasons.append(f"siker {100*sr:.0f}% < {100*min_success:.0f}%")
+        if not ok_loco:
+            reasons.append(f"loco összeomlás {100*n_loco/n_episodes:.0f}% > {100*max_loco:.0f}%")
+        print(f"  ❌ NEM ELFOGADVA: {', '.join(reasons)}")
+    print()
+
 
 # ---------------------------------------------------------------------------
 # CLI

@@ -98,9 +98,9 @@ ppo:
   #   - ent_coef: 0.01 → v1 0.005-ről emelve (jobb exploráció nav-nál)
   #   - vf_coef: 0.5 standard
   #   - max_grad_norm: 0.5 standard
-  n_envs: 4                 # nav env nehezebb → kevesebb párhuzamos env
+  n_envs: 8                 # M2 8 mag — loco env-vel azonos párhuzamosság
   n_steps: 2048             # v1: 1024 → 2048 (RL Zoo Humanoid alap)
-  batch_size: 256           # v1: 128 → 256 (n_steps*n_envs/32)
+  batch_size: 512           # n_steps*n_envs/32 = 2048*8/32 = 512
   n_epochs: 10
   learning_rate: 3.0e-4     # v1: 1e-4 → 3e-4, lineáris decay
   lr_schedule: linear       # tanítás végén lr→0 (RL Zoo ajánlás)

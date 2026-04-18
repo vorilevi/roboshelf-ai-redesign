@@ -1,6 +1,6 @@
 # Roboshelf AI Redesign — Ütemezés
 
-_Utoljára frissítve: 2026-04-18 (Fázis B curriculum szint 1 ✅ elfogadva — 20/20 célba ért, 0% loco összeomlás)_  
+_Utoljára frissítve: 2026-04-18 (Fázis B ✅ KÉSZ — mind a 4 curriculum szint elfogadva, 100% siker, 0% loco összeomlás)_  
 _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokkolt_
 
 ---
@@ -12,7 +12,7 @@ _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokko
 | 0 | — | Előkészítés és repo-tisztítás | 0,5 nap | ✅ | 2026-04-17 |
 | 1 | — | Locomotion interfész és command layer | 1 nap | ✅ | 2026-04-17 |
 | 2 | A | G1 Locomotion Command Env + tanítás | 5–8 nap | ✅ motion.pt átvéve | 2026-04-17 |
-| 3 | B | Hierarchikus navigációs env + tanítás | 5–7 nap | 🔄 curriculum 1/4 ✅ | — |
+| 3 | B | Hierarchikus navigációs env + tanítás | 5–7 nap | ✅ | 2026-04-18 |
 | 4 | — | Imitációs tanulás csatorna (BC) | 2–3 nap | ⬜ | — |
 | 5 | C | Manipulációs sandbox env + tanítás | 5–8 nap | ⬜ | — |
 | 6 | D+E | Integráció + investor demo | 3–5 nap | ⬜ | — |
@@ -106,7 +106,7 @@ _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokko
 ## 3. Munkacsomag — Hierarchikus navigációs env (Fázis B)
 
 **Becsült idő:** 5–7 nap  
-**Állapot:** 🔄 folyamatban  
+**Állapot:** ✅ kész — 2026-04-18  
 **Elfogadási feltétel:** Robot 50%+ esetben eléri a célt random startból, locomotion nem omlik össze közben.
 
 ### Előfeltétel
@@ -121,10 +121,10 @@ _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokko
 - [x] `src/roboshelf_ai/tasks/navigation/eval_nav.py` megírva
 - [x] Sanity run crash nélkül
 - [x] Curriculum szint 1 tanítás: 3M lépés ✅ ELFOGADVA (100% siker, 0% loco összeomlás)
-- [ ] Curriculum szint 2 tanítás (goal [0, 2.5], 3M lépés)
-- [ ] Curriculum szint 3 tanítás (kanyar, goal_range)
-- [ ] Curriculum szint 4 tanítás (teljes pálya, akadályokkal)
-- [ ] Eval: navigáció vizuálisan értékelve (--render)
+- [x] Curriculum szint 2 tanítás: 3M lépés ✅ ELFOGADVA (100% siker, 0% loco összeomlás)
+- [x] Curriculum szint 3 tanítás: 3M lépés ✅ ELFOGADVA (100% siker, 0% loco összeomlás)
+- [x] Curriculum szint 4 tanítás: 3M lépés ✅ ELFOGADVA (100% siker, 0% loco összeomlás) — akadályok nélkül (store XML Fázis C-re halasztva)
+- [ ] Eval vizuálisan (--render) — opcionális, Fázis C előtt
 - [ ] Git commit: `"feat: hierarchical nav env v1, training run results"`
 
 ### Tanítási futások naplója
@@ -132,6 +132,9 @@ _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokko
 | Run | Dátum | Lépések | Célpont-elérési arány | Locomotion összeomlás | Megjegyzés |
 |---|---|---|---|---|---|
 | lvl1 v1 | 2026-04-18 | 3M | 100% (20/20) | 0% | Javított config: goal [0,1.5], random start ±0.3m, átlag 18 lépés/ep |
+| lvl2 v1 | 2026-04-18 | 3M | 100% (10/10) | 0% | goal [0,2.5], n_envs=8, batch_size=512, átlag 21 lépés/ep |
+| lvl3 v1 | 2026-04-18 | 3M | 100% (10/10) | 0% | goal_range x[-1,1] y[1.5,2.5], kanyar, átlag 15 lépés/ep |
+| lvl4 v1 | 2026-04-18 | 3M | 100% (10/10) | 0% | goal [0,3.8], akadályok nélkül (store XML nincs), átlag 33 lépés/ep |
 
 ### Megjegyzések
 
