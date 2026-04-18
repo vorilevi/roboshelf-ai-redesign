@@ -42,3 +42,8 @@ data/demonstrations/
 data/exports/
 data/logs/
 
+# Bizalmas üzleti dokumentumok — soha ne kerüljön publikus repo-ba
+*confidential*
+*_private*
+roboshelf_strategic_*.md
+
