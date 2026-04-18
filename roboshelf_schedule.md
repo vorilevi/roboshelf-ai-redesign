@@ -189,13 +189,13 @@ _ide kerülnek a demonstrációs adat minőségéről szerzett tapasztalatok_
 
 ### Feladatok
 
-- [ ] `g1_29dof_with_hand.xml` + padló scene XML összerakása (manip sandbox)
-- [ ] `src/roboshelf_ai/mujoco/envs/manipulation/g1_shelf_stock_env.py` megírva
-- [ ] `configs/manipulation/shelf_stock_v1.yaml` létrehozva
-- [ ] `src/roboshelf_ai/tasks/manipulation/train_shelf_stock.py` megírva
-- [ ] `src/roboshelf_ai/tasks/manipulation/eval_shelf_stock.py` megírva
+- [x] `src/envs/assets/scene_manip_sandbox.xml` megírva (G1 with hand + padló + asztal + gondola + stock termék)
+- [x] `src/roboshelf_ai/mujoco/envs/manipulation/g1_shelf_stock_env.py` megírva (4 fázis: reach/grasp/lift/place)
+- [x] `configs/manipulation/shelf_stock_v1.yaml` létrehozva
+- [x] `src/roboshelf_ai/tasks/manipulation/train_shelf_stock.py` megírva
+- [x] `src/roboshelf_ai/tasks/manipulation/eval_shelf_stock.py` megírva
 - [ ] Sanity run crash nélkül
-- [ ] Teljes tanítási run
+- [ ] Teljes tanítási run (5M lépés)
 - [ ] Komponens-szintű eval: reach/grasp/lift/place külön mérve
 - [ ] Git commit: `"feat: manipulation sandbox env v1 — shelf stocking"`
 
