@@ -319,6 +319,20 @@ A legnagyobb kockázat az, hogy a redesign közben visszacsúszik a projekt a le
 
 További kockázat, hogy a locomotion prior minősége gyenge lesz, és akkor a hierarchikus nav csak zajos alaprendszerre épül. Ezért a locomotion fázist nem szabad elkapkodni, még ha üzletileg csábító is rögtön a retail taskra ugrani.
 
+### motion.pt átvételéből fakadó hosszú távú kockázatok (2026-04-18)
+
+A Fázis A saját locomotion tanítást kihagytuk és a Unitree kész motion.pt policy-ját vettük át. Ez demóhoz nulla kockázat, de hosszabb távon három pontban jelent rizikót:
+
+**1. Fizikai deployment (sim2real gap):** A motion.pt Isaac Gym dinamikájára van hangolva — más súrlódási modellek, más kontakt fizika, más joint damping mint a valós G1-en. MuJoCo sim2sim-ben működik (Unitree maga tesztelte és dokumentálta), de valós roboton a sim2real gap a mi felelősségünk is lesz. Ha a locomotion instabil lesz fizikailag, nincs saját tanítási pipeline a finomításhoz.
+
+**2. Nav-loco coupling:** A nav policy azt tanulta meg, hogy *ezzel* a motion.pt viselkedéssel navigáljon. Ha a locomotion adaptert le kell cserélni (pl. más kp/kd hangolás kell a valós roboton, vagy lassabb yaw_rate szükséges), a nav policy-t is újra kell tanítani.
+
+**3. Parancskövetés torzítása:** A walk tesztben 0.5 m/s parancsnál ~0.43 m/s-t mértünk (14% alulteljesítés). A yaw_rate pontosságát nem mértük. Ha a nav policy erre a torzításra tanult rá, valós roboton más lehet a viselkedés.
+
+**Mikor válik ez akut problémává:** Csak fizikai deployment esetén. Investor demóhoz (MuJoCo renderelt) semmi kockázat.
+
+**Kezelési stratégia:** Ha eljön a valós G1 tesztelés ideje, a PPF (Preservative Fine-Tune) opciót kell bekapcsolni (`ppf.enabled: true` a nav config-ban). Ez a meglévő motion.pt-t finomhangolja a valós robot visszajelzéseire anélkül, hogy nulláról kellene tanítani — a legkisebb erőfeszítéssel kezeli a rizikót. A `G1LocomotionCommandEnv` és a v2 loco config megmaradnak referenciaként erre az esetre.
+
 ## Ajánlott következő konkrét lépés
 
 A redesign végrehajtásának leghelyesebb első gyakorlati lépése nem újabb Phase 2 tréning futtatása, hanem az új repóstruktúra és az első három fájl létrehozása: `locomotion_command.py`, `policy_adapter.py`, `g1_locomotion_command_env.py`. Ez teremti meg azt az interfészt, amelyre a hierarchical navigation ténylegesen ráépíthető.

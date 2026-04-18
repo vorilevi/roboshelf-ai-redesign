@@ -97,6 +97,10 @@ _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokko
 | v1 | 2026-04-17 | 5M | 72 lépés | 0.284s után elesik | ep_len konstans, buoyancy hiányzott |
 | v2 | — | — | — | — | buoyancy curriculum + reward rebalance |
 
+### Kockázati feljegyzés — motion.pt átvétel hosszú távú hatásai (2026-04-18)
+
+Demóhoz (MuJoCo renderelt) nulla kockázat. Fizikai deploymentnél három ponton jelent rizikót: (1) sim2real gap — motion.pt Isaac Gym dinamikájára hangolt, valós G1-en a mi felelősségünk a finomhangolás, nincs saját loco pipeline; (2) nav-loco coupling — ha a loco adaptert le kell cserélni, a nav policy-t is újra kell tanítani; (3) parancskövetési torzítás — walk tesztben 14% alulteljesítés (0.5 → 0.43 m/s), yaw_rate nem mérve. Kezelési stratégia ha valós robot tesztelés jön: PPF (`ppf.enabled: true` a nav configban) — a motion.pt finomhangolása a valós visszajelzésekre, nulláról tanítás nélkül.
+
 ### Megjegyzések
 
 2026-04-17 v1 diagnózis: ep_len=71 konstans az 5M lépés alatt. A robot 0.284 szimulációs másodperc után mindig elesik — fizikai stabilitási probléma, nem reward hiba. A legacy nav env-ben buoyancy_force=103N segített a korai fázisban. v2 javítások: buoyancy curriculum (103N→0 az első 3M lépésen), lazított termination (upright 0.5→0.3, z_min 0.4→0.35m), erősebb stabilitási reward (w_alive 0.5→3.0, w_upright 1.5→4.0), kisebb büntetések.
