@@ -230,11 +230,24 @@ Elvárt eredmények:
 
 ### Fázis C — manipuláció
 
-A manipulációs env már létezik vázlatként a kontextus szerint, de a tanítása még nem kezdődött el. A redesign szerint ezt külön, minimalizált manipulációs sandboxban kell elkezdeni, nem teljes boltban.
+A manipulációs env külön, minimalizált sandboxban indul, nem teljes boltban. A feladat: robot asztalról (majd rollkonténerből) vesz fel termékeket és polcra helyezi őket (polcfeltöltés, nem levétel).
 
-Elvárt eredmények:
+**Modell:** `g1_29dof_with_hand.xml` — 12 láb + 3 derék + 7 bal kar/csukló/kéz + 7 jobb kar/csukló/kéz (~43 aktuátor). A kéz 3 ujjal modellezett (thumb, index, middle), mindegyik 2 ízülettel.
+
+**Demóhoz választott megközelítés: B) Rögzített testű manipuláció (sandbox)**
+- A robot áll (lábak fixek, motion.pt nem fut), csak a kar+kéz 16 DoF-ját tanulja a policy.
+- A nav policy viszi a robotot a pozícióba, megáll, majd a manip policy veszi át.
+- Reálisan 1-2 hét tanítással elérhető demóminőség.
+
+**Hosszú távú megközelítés: A) Hierarchikus karmanipuláció** ← *jövőbeli fejlesztési irány*
+- motion.pt kezeli a lábakat (12 aktuátor), külön ManipPolicy kezeli a karokat+kezeket (16 aktuátor), párhuzamosan futnak.
+- A kar tudjon stabilizálni miközben a lábak mozognak (járás közbeni manipuláció).
+- Komplex, hónapokat vehet igénybe — fizikai deploymentnél lesz kritikus.
+
+Elvárt eredmények (demó):
 - reach, grasp, lift, place komponensek külön mérhetők legyenek.
 - a manipuláció és navigáció külön debugolható maradjon.
+- rögzített testtartásból polcra helyezés >70%-os sikerrel.
 
 ### Fázis D — integráció
 

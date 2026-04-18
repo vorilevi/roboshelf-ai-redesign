@@ -174,19 +174,30 @@ _ide kerülnek a demonstrációs adat minőségéről szerzett tapasztalatok_
 **Állapot:** ⬜ nem kezdett  
 **Elfogadási feltétel:** Reach, grasp, lift, place külön mérhetők és ismételhetők >70%-os sikerrel.
 
+### Megközelítés: B) Rögzített testű sandbox (demóhoz)
+
+**Feladat:** robot asztalról vesz fel terméket és polcra helyezi (polcfeltöltés).  
+**Modell:** `g1_29dof_with_hand.xml` (~43 aktuátor: 12 láb + 3 derék + 16 kar/kéz).  
+**Policy:** csak kar+kéz 16 DoF-ját tanulja, lábak fixek (motion.pt nem fut manip közben).  
+**Workflow:** nav policy → robot pozícióba megy → megáll → manip policy veszi át.
+
+**Hosszú távú fejlesztési irány (nem demó scope):** Hierarchikus karmanipuláció — motion.pt + ManipPolicy párhuzamosan, járás közbeni manipuláció. Fizikai deploymentnél lesz kritikus.
+
 ### Előfeltétel
 
-- [ ] 3. munkacsomag elfogadási feltétele teljesült
+- [x] 3. munkacsomag elfogadási feltétele teljesült (Fázis B ✅ 2026-04-18)
 
 ### Feladatok
 
-- [ ] `src/roboshelf_ai/mujoco/envs/manipulation/g1_pickplace_env.py` megírva
-- [ ] `configs/manipulation/pickplace_v1.yaml` létrehozva
-- [ ] `src/roboshelf_ai/tasks/manipulation/train_pickplace.py` megírva
+- [ ] `g1_29dof_with_hand.xml` + padló scene XML összerakása (manip sandbox)
+- [ ] `src/roboshelf_ai/mujoco/envs/manipulation/g1_shelf_stock_env.py` megírva
+- [ ] `configs/manipulation/shelf_stock_v1.yaml` létrehozva
+- [ ] `src/roboshelf_ai/tasks/manipulation/train_shelf_stock.py` megírva
+- [ ] `src/roboshelf_ai/tasks/manipulation/eval_shelf_stock.py` megírva
 - [ ] Sanity run crash nélkül
 - [ ] Teljes tanítási run
 - [ ] Komponens-szintű eval: reach/grasp/lift/place külön mérve
-- [ ] Git commit: `"feat: manipulation sandbox env v1, training results"`
+- [ ] Git commit: `"feat: manipulation sandbox env v1 — shelf stocking"`
 
 ### Tanítási futások naplója
 
