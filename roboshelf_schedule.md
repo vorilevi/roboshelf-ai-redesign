@@ -1,7 +1,25 @@
 # Roboshelf AI Redesign — Ütemezés
 
-_Utoljára frissítve: 2026-04-22 (Phase 030 F0 kész — scaffold, HEIS/VLA/PIL stubok, sanity check scriptek, ABC eval script)_  
+_Utoljára frissítve: 2026-04-22 (Platform-szétválasztás hozzáadva: Mac M2 vs Vast.ai)_  
 _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokkolt_
+
+---
+
+## Platform-szétválasztás — Mi fut hol?
+
+| Feladat | Platform | Megjegyzés |
+|---|---|---|
+| G1 env betölt, play.py vizualizáció | **Mac M2** | ✅ F1-ben bizonyítva (CPU fallback) |
+| Locomotion PPO fine-tune (unitree_rl_mjlab) | **Mac M2** | Lassabb CPU-n, de fut — nem kell Vast.ai |
+| Manipulation env rebuild (MuJoCo + SB3 PPO) | **Mac M2** | Phase 025 precedens: loco ✅, nav ✅ |
+| HEIS adapter, PIL DB, stub tesztek, eval_vla_abc stub | **Mac M2** | Pure Python |
+| WALL-OSS inference (valós) | **Vast.ai A100** | `device="cuda"` hardcoded, CUDA 12.x kell |
+| UnifoLM-VLA-0 inference (valós) | **Vast.ai A100** | CUDA 12.4 + flash-attn 2.5.6 kell |
+| GR00T N1.6 inference (valós) | **Vast.ai A100** | Diffúziós transzformer, GPU kötelező |
+| VLA A/B/C teszt — 50 epizód/modell (F4) | **Vast.ai A100** | Első GPU-igényes mérföldkő |
+| Retail fine-tune (F5) | **Vast.ai A100** | ~500 epizód, több epoch |
+
+**Ökölszabály:** MuJoCo + PPO → Mac M2. VLA inference → Vast.ai. Vast.ai csak F4-től kell.
 
 ---
 
@@ -13,15 +31,15 @@ _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokko
 
 ### Phase 030 fázisok összesítő
 
-| Fázis | Időszak | Fókusz | Állapot |
-|---|---|---|---|
-| **030-F0** | ápr. 22–25 | Scaffold, dokumentáció, repo prep | ✅ kész |
-| **030-F1** | ápr. 26 – máj. 9 | unitree_rl_mjlab + WALL-OSS sanity check | ⬜ |
-| **030-F2** | máj. 10–23 | VLA A/B/C protokoll + loco fine-tune | ⬜ |
-| **030-F3** | máj. 24 – jún. 13 | EAN VLA stub + manip env v2 | ⬜ |
-| **030-F4** | jún. 14 – júl. 4 | A/B/C teszt Vast.ai A100-on | ⬜ |
-| **030-F5** | júl. 5 – aug. 1 | Retail fine-tune + EIbench | ⬜ |
-| **030-F6** | aug. 2–31 | Befektetői demó, pitch deck, roadshow | ⬜ |
+| Fázis | Időszak | Fókusz | Platform | Állapot |
+|---|---|---|---|---|
+| **030-F0** | ápr. 22–25 | Scaffold, dokumentáció, repo prep | Mac M2 | ✅ kész |
+| **030-F1** | ápr. 26 – máj. 9 | unitree_rl_mjlab + WALL-OSS sanity check | Mac M2 | 🔄 folyamatban |
+| **030-F2** | máj. 10–23 | VLA A/B/C protokoll + **loco PPO fine-tune** | **Mac M2** | ⬜ |
+| **030-F3** | máj. 24 – jún. 13 | **Manip env rebuild (equality constraint nélkül) + PPO** | **Mac M2** | ⬜ |
+| **030-F4** | jún. 14 – júl. 4 | A/B/C teszt — VLA inference | **Vast.ai A100** | ⬜ |
+| **030-F5** | júl. 5 – aug. 1 | Retail fine-tune + EIbench | **Vast.ai A100** | ⬜ |
+| **030-F6** | aug. 2–31 | Befektetői demó, pitch deck, roadshow | Mac M2 + Vast.ai | ⬜ |
 
 ---
 
@@ -50,10 +68,11 @@ _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokko
 
 ---
 
-### 030-F1 — Tooling sanity check (ápr. 22–, folyamatban)
+### 030-F1 — Tooling sanity check (ápr. 22–máj. 9) — Platform: Mac M2
 
 **Állapot:** 🔄 folyamatban  
-**Elfogadási feltétel:** unitree_rl_mjlab G1 env fut Mac M2-n, WALL-OSS bfloat16 inference fut crash nélkül, SHA pinok dokumentálva.
+**Platform:** Mac M2 (CPU) — WALL-OSS/UnifoLM valós inference → F4 Vast.ai  
+**Elfogadási feltétel:** unitree_rl_mjlab G1 env fut Mac M2-n, SHA pinok dokumentálva, WALL-OSS README auditálva (CUDA dependency megerősítve).
 
 **unitree_rl_mjlab — ✅ KÉSZ (2026-04-22)**
 - [x] Klón: `unitreerobotics/unitree_rl_mjlab` → `~/roboshelf-ai-dev/unitree_rl_mjlab_roboshelf`
@@ -62,7 +81,7 @@ _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokko
 - [x] G1 env betölt Mac M2-n CPU-n (Warp CUDA disabled, CPU fallback)
 - [x] Actor obs dim: **98** (base_ang_vel+gravity+cmd+phase+joint_pos+vel+actions)
 - [x] Action dim: **29 DoF**, Control freq: **50 Hz**
-- [x] Training: GPU szükséges (Vast.ai) — Mac-en csak play/vizualizáció
+- [x] Training Mac M2-n: CPU-n fut (lassabb), play/vizualizáció is OK — ⚠️ korábbi megjegyzés félrevezető volt, javítva: PPO train Mac M2-n lehetséges
 - [x] HEIS adapter komment frissítve a valós obs dim-mel
 - [ ] GitHub fork létrehozása (opcionális, klón megvan)
 
@@ -80,6 +99,54 @@ _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokko
 - [ ] Inference futtatás → F4 Vast.ai
 
 - [ ] Git commit: `"feat(phase030): F1 SHA pinok — wallx+unitree_rl_mjlab, inference F4-re"`
+
+---
+
+### 030-F2 — VLA A/B/C protokoll + Locomotion PPO fine-tune (máj. 10–23) — Platform: Mac M2
+
+**Állapot:** ⬜ nem kezdett  
+**Platform:** Mac M2 (CPU PPO) — VLA stub tesztek szintén Mac M2-n  
+**Elfogadási feltétel:** A/B/C protokoll dokumentálva, unitree_rl_mjlab locomotion PPO tanítás Mac M2-n elindul és stabil.
+
+- [ ] `docs/vla_abc_test_protocol.md` — A/B/C protokoll definíció (environment, metrikák, döntési szabály)
+- [ ] `scripts/eval_vla_abc.py --stub` futtatás Mac M2-n: mindhárom modell stub-ban kiértékelhető
+- [ ] Locomotion PPO fine-tune Mac M2-n:
+  ```bash
+  cd ~/roboshelf-ai-dev/unitree_rl_mjlab_roboshelf
+  python scripts/train.py --config configs/g1/locomotion_roboshelf_v1.yaml \
+    --total-timesteps 3_000_000
+  ```
+  _(3M lépés Mac M2-n ~2-4 óra, 5M lépés ha stabil)_
+- [ ] Tanítási futás eredményei dokumentálva (ep_len, reward)
+- [ ] Git commit: `"feat(phase030): F2 VLA ABC protokoll, loco PPO Mac M2-n"`
+
+---
+
+### 030-F3 — Manipulation env rebuild (máj. 24 – jún. 13) — Platform: Mac M2
+
+**Állapot:** ⬜ nem kezdett  
+**Platform:** Mac M2 (MuJoCo + SB3 PPO) — Phase 025 precedens: loco ✅, nav ✅  
+**Elfogadási feltétel:** `g1_shelf_stock_env_v2.py` fut equality constraint nélkül, NaN/Inf-mentes, PPO training indul.
+
+**Kontextus — Phase 025 manip failure root cause:**
+- Equality constraint a csukló/ujj DoF 12, 29-es pozíciókon → QACC NaN/Inf → fizikai instabilitás
+- 3 tanítási futás, mind 0% success rate → Fázis C lezárva
+- **Fix: equality constraint teljes eltávolítása az MJCF-ből**
+
+- [ ] `src/roboshelf_ai/mujoco/envs/manipulation/g1_shelf_stock_env_v2.py` megírva:
+  - Equality constraint-ek eltávolítva (csak actuator + joint limit marad)
+  - HEIS-kompatibilis reward exportálás
+  - PIL metaadat beolvasása
+- [ ] 100 lépés sanity check: NaN/Inf = 0 ellenőrzés
+- [ ] PPO training indítás Mac M2-n:
+  ```bash
+  python src/roboshelf_ai/tasks/manipulation/train_pickplace_v2.py \
+    --config configs/manipulation/pickplace_v2_no_eq_constraint.yaml \
+    --total-timesteps 500_000
+  ```
+  _(500K sanity run először, majd 5M ha stabil)_
+- [ ] VLA stub bekötése: `vla_client.predict()` hívás az env high-level planning rétegéből
+- [ ] Git commit: `"feat(phase030): F3 manip env v2 (no equality constraint), PPO Mac M2-n"`
 
 ---
 
