@@ -50,22 +50,36 @@ _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokko
 
 ---
 
-### 030-F1 — Tooling sanity check (ápr. 26 – máj. 9)
+### 030-F1 — Tooling sanity check (ápr. 22–, folyamatban)
 
-**Állapot:** ⬜ nem kezdett  
-**Elfogadási feltétel:** unitree_rl_mjlab G1 env fut Mac M2-n, WALL-OSS bfloat16 inference fut crash nélkül, mindkét SHA pin dokumentálva.
+**Állapot:** 🔄 folyamatban  
+**Elfogadási feltétel:** unitree_rl_mjlab G1 env fut Mac M2-n, WALL-OSS bfloat16 inference fut crash nélkül, SHA pinok dokumentálva.
 
-- [ ] GitHub fork: `unitree-robotics/unitree_rl_mjlab` → `vorilevi/unitree_rl_mjlab_roboshelf`
-- [ ] Lokális klón, SHA pin: `docs/dependencies/unitree_rl_mjlab_pinned_sha.txt`
-- [ ] G1 env sanity run (100 lépés crash nélkül)
-- [ ] GitHub fork: `XSquareRobot/WallX` → `vorilevi/wallx_roboshelf`
-- [ ] `fake_inference.py` bfloat16 Mac M2-n (memória < 16 GB, kimenet: action tensor)
-- [ ] SHA pin: `docs/dependencies/wallx_pinned_sha.txt`
-- [ ] GitHub fork: `unitreerobotics/UnifoLM` → `vorilevi/unifolm_roboshelf`
-- [ ] UnifoLM-VLA-0 sanity check
-- [ ] SHA pin: `docs/dependencies/unifolm_pinned_sha.txt`
-- [ ] HuggingFace lokális mirror: WALL-OSS + UnifoLM-VLA-0 checkpoint
-- [ ] Git commit: `"feat(phase030): F1 done — SHA pins, sanity checks passed"`
+**unitree_rl_mjlab — ✅ KÉSZ (2026-04-22)**
+- [x] Klón: `unitreerobotics/unitree_rl_mjlab` → `~/roboshelf-ai-dev/unitree_rl_mjlab_roboshelf`
+- [x] SHA pin: `docs/dependencies/unitree_rl_mjlab_pinned_sha.txt` — `1425b15`
+- [x] Framework: mjlab==1.2.0, task: `Unitree-G1-Flat`, CLI: tyro
+- [x] G1 env betölt Mac M2-n CPU-n (Warp CUDA disabled, CPU fallback)
+- [x] Actor obs dim: **98** (base_ang_vel+gravity+cmd+phase+joint_pos+vel+actions)
+- [x] Action dim: **29 DoF**, Control freq: **50 Hz**
+- [x] Training: GPU szükséges (Vast.ai) — Mac-en csak play/vizualizáció
+- [x] HEIS adapter komment frissítve a valós obs dim-mel
+- [ ] GitHub fork létrehozása (opcionális, klón megvan)
+
+**WALL-OSS / WallX — ✅ KÉSZ (2026-04-22, SHA pin)**
+- [x] Klón: `X-Square-Robot/wall-x` → `~/roboshelf-ai-dev/wallx_roboshelf`
+- [x] SHA pin: `docs/dependencies/wallx_pinned_sha.txt`
+- [x] README audit: CUDA 12.x + Ubuntu required, flash-attn CUDA-only
+- [x] `fake_inference.py` elemzése: `device="cuda"` hardkódolt, modell letöltés szükséges
+- [x] **Döntés: inference futtatás → F4 Vast.ai (nem Mac M2)**
+- [x] Proprioception dim: **20**, DoF mask: **32**, dataset: `"x2_normal"`
+
+**UnifoLM-VLA-0 — ⬜**
+- [ ] Klón: `unitreerobotics/UnifoLM` → `~/roboshelf-ai-dev/unifolm_roboshelf`
+- [ ] README audit + SHA pin: `docs/dependencies/unifolm_pinned_sha.txt`
+- [ ] Inference futtatás → F4 Vast.ai
+
+- [ ] Git commit: `"feat(phase030): F1 SHA pinok — wallx+unitree_rl_mjlab, inference F4-re"`
 
 ---
 
@@ -84,9 +98,9 @@ _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokko
 | 1 | — | Locomotion interfész és command layer | 1 nap | ✅ | 2026-04-17 |
 | 2 | A | G1 Locomotion Command Env + tanítás | 5–8 nap | ✅ motion.pt átvéve | 2026-04-17 |
 | 3 | B | Hierarchikus navigációs env + tanítás | 5–7 nap | ✅ | 2026-04-18 |
-| 4 | — | Imitációs tanulás csatorna (BC) | 2–3 nap | ⬜ | — |
-| 5 | C | Manipulációs sandbox env + tanítás | 5–8 nap | 🔄 | 2026-04-20 (javítások kész) |
-| 6 | D+E | Integráció + investor demo | 3–5 nap | ⬜ | — |
+| 4 | — | Imitációs tanulás csatorna (BC) | 2–3 nap | ⬜ kihagyva | — |
+| 5 | C | Manipulációs sandbox env + tanítás | 5–8 nap | ❌ 0% success — Phase 030-ba átkerül | 2026-04-22 eval |
+| 6 | D+E | Integráció + investor demo | 3–5 nap | ⬜ Phase 030-ba átkerül | — |
 
 **Teljes becsült időtartam:** ~21–32 fejlesztési nap (a tanítási futások falióra-idejével együtt).
 
@@ -282,7 +296,7 @@ _ide kerülnek a demonstrációs adat minőségéről szerzett tapasztalatok_
 |---|---|---|---|---|---|---|---|
 | v1 manip | 2026-04-20 | 10M | 0% | 0% | 0% | 0% | Hibás XML (v1), kar rossz irányba nézett |
 | v2a manip | 2026-04-20 | 10M | 0% | 0% | 0% | 0% | Generált XML (v2), de asztal x=1.2m — elérhetetlen |
-| v3 manip | holnap | 10M | ? | ? | ? | ? | x=0.45m + dense reward + 4-DOF — VÁRHATÓ ÁTTÖRÉS |
+| v3 manip | 2026-04-22 | 10M | 0% | 0% | 0% | 0% | best_model eval: dist=1.654m konstans, kar nem mozdul — 0% success |
 
 ### Megjegyzések
 
@@ -296,6 +310,14 @@ _ide kerülnek a demonstrációs adat minőségéről szerzett tapasztalatok_
 - Dense distance reward: `-w*dist` helyett delta → nincs "mozdulatlanság" local optimum
 - 4 aktív DOF (nem 14): shoulder×3 + elbow; csukló+ujjak equality constrained (NaN-mentes)
 - obs_dim=18 (volt: 38), action_dim=4 (volt: 14)
+
+**2026-04-22 — Phase 025 LEZÁRVA:**
+- v3 eval (20 epizód, best_model.zip): 0% success, dist=1.654m konstans minden epizódban
+- A kar egyáltalán nem mozdult a termék felé — a policy nem konvergált
+- Diagnózis: valószínűleg a vec_normalize + az asztal geometria még mindig problémás
+- **Döntés: a manipulation Fázis C → Phase 030 F3-ba kerül**, ahol a unitree_rl_mjlab
+  és a VLA upper layer kontextusában újraépítjük (nem patch-elünk tovább)
+- Phase 025 összesítése: Loco ✅, Nav ✅, Manip ❌ → Phase 030-ba átkerül
 
 ---
 
