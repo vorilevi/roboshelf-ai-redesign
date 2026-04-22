@@ -46,4 +46,8 @@ data/logs/
 *confidential*
 *_private*
 roboshelf_strategic_*.md
+*.docx
+
+# MuJoCo debug log
+MUJOCO_LOG.TXT
 

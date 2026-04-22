@@ -58,7 +58,8 @@ from gymnasium import spaces
 _HERE      = Path(__file__).resolve()
 _REPO_ROOT = _HERE.parents[5]   # roboshelf-ai-redesign/
 
-_SCENE_XML = _REPO_ROOT / "src/envs/assets/scene_manip_sandbox.xml"
+# v2: az eredeti g1_29dof_with_hand.xml kinematikájából generált scene
+_SCENE_XML = _REPO_ROOT / "src/envs/assets/scene_manip_sandbox_v2.xml"
 
 # ---------------------------------------------------------------------------
 # Szimuláció paraméterei
@@ -68,46 +69,39 @@ SIM_DT      = 0.002    # 500 Hz (scene XML-ből)
 MANIP_HZ    = 20       # policy frekvencia
 DECIMATION  = int(500 / MANIP_HZ)   # 25 szimulációs lépés / policy lépés
 
-# Ízületi indexek a qpos-ban (freejoint után):
-# pelvis rögzített → nincs freejoint → qpos[0] = right_shoulder_pitch
-# (a scene XML-ben csak a jobb kar joint-ok vannak, sorrendben)
-N_ARM_DOF   = 14   # jobb kar + csukló + kéz
+# v2 scene: teljes G1 kinematika (43 hinge joint) + stock_1 freejoint
+# Aktív jointok: csak jobb váll(3) + könyök(1) = 4 DOF (kp=20, stabil)
+# Csukló + ujjak: equality constraint rögzíti (passzív)
+# Jobb kar qpos: [29:43], de csak [29:33] aktív (4 joint)
+# ctrl: nu=4, ctrl[0:4] = right_shoulder_pitch/roll/yaw + right_elbow
+N_TOTAL_DOF      = 43   # összes robot joint
+N_ARM_DOF        = 4    # aktív: shoulder(3) + elbow(1)
+ARM_QPOS_START   = 29   # qpos[29:33] = aktív jobb kar jointok
+ARM_CTRL_START   = 0    # ctrl[0:4]
+STOCK_QPOS_START = 43   # freejoint: 43..49
 
 # Ízületi határok (scene XML alapján, ugyanaz mint g1_29dof_with_hand.xml)
+# Csak az aktív 4 joint határai (váll×3 + könyök)
 _JOINT_RANGES = np.array([
     [-3.0892,  2.6704],  # right_shoulder_pitch
     [-2.2515,  1.5882],  # right_shoulder_roll
     [-2.6180,  2.6180],  # right_shoulder_yaw
     [-1.0472,  2.0944],  # right_elbow
-    [-1.9722,  1.9722],  # right_wrist_roll
-    [-1.6144,  1.6144],  # right_wrist_pitch
-    [-1.6144,  1.6144],  # right_wrist_yaw
-    [-1.0472,  1.0472],  # right_hand_thumb_0
-    [-1.0472,  0.7243],  # right_hand_thumb_1
-    [-1.7453,  0.0000],  # right_hand_thumb_2
-    [ 0.0000,  1.5708],  # right_hand_index_0
-    [ 0.0000,  1.7453],  # right_hand_index_1
-    [ 0.0000,  1.5708],  # right_hand_middle_0
-    [ 0.0000,  1.7453],  # right_hand_middle_1
 ], dtype=np.float32)
 
-# Alapértelmezett karállás (lazán leengedett jobb kar)
+# Alapértelmezett karállás: csak 4 aktív joint (váll×3 + könyök)
+# Robot +x irányba néz, asztal x=1.2-nél
+# shoulder_pitch pozitív → kar előre+felfelé emelkedik
 _DEFAULT_ARM_POS = np.array([
-    -0.3,   # right_shoulder_pitch — kicsit előre
-    -0.1,   # right_shoulder_roll
+     1.0,   # right_shoulder_pitch — előre emelve
+    -0.2,   # right_shoulder_roll  — kicsit oldalra
      0.0,   # right_shoulder_yaw
-     0.5,   # right_elbow — kissé hajlítva
-     0.0,   # right_wrist_roll
-     0.0,   # right_wrist_pitch
-     0.0,   # right_wrist_yaw
-     0.0,   # thumb_0
-     0.0,   # thumb_1
-     0.0,   # thumb_2
-     0.0,   # index_0
-     0.0,   # index_1
-     0.0,   # middle_0
-     0.0,   # middle_1
+     1.0,   # right_elbow          — hajlítva
 ], dtype=np.float32)
+
+# Ujjak nyitott / zárt állás — nem használt (ujjak rögzítve)
+_FINGERS_OPEN   = np.zeros(0, dtype=np.float32)
+_FINGERS_CLOSED = np.zeros(0, dtype=np.float32)
 
 # Ujjak nyitott / zárt állás (grasp)
 _FINGERS_OPEN   = np.zeros(7, dtype=np.float32)   # ujjak indexei: 7–13
@@ -244,20 +238,24 @@ class G1ShelfStockEnv(gym.Env):
 
         mujoco.mj_resetData(self._model, self._data)
 
+        # Passzív jointok (lábak, derék, bal kar): 0-ban maradnak (mj_resetData nulláz)
         # Jobb kar alapállásba + kis reset zaj
-        self._data.qpos[:N_ARM_DOF] = _DEFAULT_ARM_POS + rng.uniform(-0.05, 0.05, N_ARM_DOF).astype(np.float32)
+        self._data.qpos[ARM_QPOS_START:ARM_QPOS_START + N_ARM_DOF] = (
+            _DEFAULT_ARM_POS + rng.uniform(-0.05, 0.05, N_ARM_DOF).astype(np.float32)
+        )
         self._data.qvel[:] = 0.0
-        self._data.ctrl[:] = _DEFAULT_ARM_POS.copy()
+        # ctrl[0:14] = csak jobb kar (nu=14, passzív jointoknak nincs actuator)
+        self._data.ctrl[ARM_CTRL_START:ARM_CTRL_START + N_ARM_DOF] = _DEFAULT_ARM_POS.copy()
 
-        # Stock termék: asztalfelszínen, kis x-offset (véletlenszerű)
-        # stock_1 freejoint: qpos[N_ARM_DOF : N_ARM_DOF+7] = [x, y, z, qw, qx, qy, qz]
-        stock_qpos_idx = N_ARM_DOF
-        stock_x = float(rng.uniform(-0.15, 0.15))
-        self._data.qpos[stock_qpos_idx + 0] = stock_x
-        self._data.qpos[stock_qpos_idx + 1] = 3.2          # y: asztal közepe
-        self._data.qpos[stock_qpos_idx + 2] = 0.870        # z: asztalfelszín + doboz félmagasság
-        self._data.qpos[stock_qpos_idx + 3] = 1.0          # qw
-        self._data.qpos[stock_qpos_idx + 4:stock_qpos_idx + 7] = 0.0
+        # Stock termék: asztalfelszínen, kis y-offset (véletlenszerű)
+        # v2 scene: asztal x=1.2, stock world pos ~ (1.2, ±0.15, 0.870)
+        # stock_1 freejoint: qpos[STOCK_QPOS_START..+7] = [x, y, z, qw, qx, qy, qz]
+        stock_y = float(rng.uniform(-0.15, 0.15))
+        self._data.qpos[STOCK_QPOS_START + 0] = 1.2         # x: asztal közepe
+        self._data.qpos[STOCK_QPOS_START + 1] = stock_y     # y: kis véletlen eltérés
+        self._data.qpos[STOCK_QPOS_START + 2] = 0.870       # z: asztalfelszín + doboz félmagasság
+        self._data.qpos[STOCK_QPOS_START + 3] = 1.0         # qw
+        self._data.qpos[STOCK_QPOS_START + 4:STOCK_QPOS_START + 7] = 0.0
 
         mujoco.mj_forward(self._model, self._data)
 
@@ -283,8 +281,9 @@ class G1ShelfStockEnv(gym.Env):
         target_pos = self._denorm_action(action)
 
         # DECIMATION szimulációs lépés
+        # ctrl[0:14] = jobb kar position target (nu=14)
         for _ in range(DECIMATION):
-            self._data.ctrl[:] = target_pos
+            self._data.ctrl[ARM_CTRL_START:ARM_CTRL_START + N_ARM_DOF] = target_pos
             mujoco.mj_step(self._model, self._data)
 
         self._step_count += 1
@@ -344,8 +343,8 @@ class G1ShelfStockEnv(gym.Env):
         stock_xyz  = self._data.xpos[self._stock_body_id].astype(np.float32)
         target_xyz = self._data.site_xpos[self._target_site_id].astype(np.float32)
 
-        joint_pos = self._data.qpos[:N_ARM_DOF].astype(np.float32)
-        joint_vel = self._data.qvel[:N_ARM_DOF].astype(np.float32)
+        joint_pos = self._data.qpos[ARM_QPOS_START:ARM_QPOS_START + N_ARM_DOF].astype(np.float32)
+        joint_vel = self._data.qvel[ARM_QPOS_START:ARM_QPOS_START + N_ARM_DOF].astype(np.float32)
 
         # Normalizált ízületi pozíciók [-1, 1]
         mid   = (_JOINT_RANGES[:, 0] + _JOINT_RANGES[:, 1]) / 2.0
@@ -371,8 +370,9 @@ class G1ShelfStockEnv(gym.Env):
         stock_z    = float(self._data.xpos[self._stock_body_id][2])
         stock_rise = stock_z - self._stock_z0
 
-        # Reach reward: kéz közelít a termékhez
-        r_reach = self.w_reach * (self._prev_hand_dist - hand_dist)
+        # Reach reward: dense distance alapú (nem delta!)
+        # -w_reach * dist → mindig negatív, de kisebb ha közelebb; kényszeríti a mozgást
+        r_reach = -self.w_reach * hand_dist
 
         # Grasp reward: termék emelkedik
         r_grasp = self.w_grasp * max(0.0, stock_rise - 0.01) if self._phase >= ManipPhase.GRASP else 0.0
@@ -380,14 +380,14 @@ class G1ShelfStockEnv(gym.Env):
         # Lift reward: magasság növekedés
         r_lift = self.w_lift * max(0.0, stock_rise) if self._phase >= ManipPhase.LIFT else 0.0
 
-        # Place reward: termék közelít a targethez
-        r_place = self.w_place * (self._prev_stock_dist - stock_dist) if self._phase == ManipPhase.PLACE else 0.0
+        # Place reward: dense distance alapú
+        r_place = -self.w_place * stock_dist if self._phase == ManipPhase.PLACE else 0.0
 
         # Placed bónusz
         r_placed = self.w_placed if stock_dist < self.goal_radius else 0.0
 
         # Joint limit büntetés
-        joint_pos = self._data.qpos[:N_ARM_DOF]
+        joint_pos = self._data.qpos[ARM_QPOS_START:ARM_QPOS_START + N_ARM_DOF]
         limit_violation = np.sum(np.maximum(
             joint_pos - _JOINT_RANGES[:, 1] * 0.95,
             _JOINT_RANGES[:, 0] * 0.95 - joint_pos,

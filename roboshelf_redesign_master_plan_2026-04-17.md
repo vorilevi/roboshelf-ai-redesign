@@ -1,5 +1,14 @@
 # Roboshelf AI redesign master terv
 
+> **Dokumentumkezelési szabály (2026-04-20 óta):**
+> - **repo-ban marad (itt):** master_plan.md, schedule.md — technikai döntések, architektúra, futtatási környezet
+> - **Obsidian-ban:** fejlesztési naplók, tanítási eredmények, stratégia, cross-project összefüggések
+> - A két hely NEM duplikál. Az Obsidian `Index.md` linkeli ezt a fájlt, de nem írja felül.
+
+_Utoljára frissítve: 2026-04-20 (Fázis C javítások — workspace fix, dense reward, 4-DOF)_
+
+---
+
 Ez a dokumentum a 2026-04-17-ig közösen átbeszélt döntések, tanulságok és futtatási környezet alapján rögzíti a Roboshelf AI teljes redesign tervét. A cél nem a jelenlegi monolitikus Phase 2 PPO rendszer további foltozása, hanem egy új, moduláris, pretrain + imitációs tanulás + hierarchikus RL architektúra felépítése, amelyből később investor demo készülhet.
 
 ## Kiinduló helyzet

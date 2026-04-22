@@ -39,7 +39,8 @@
   <compiler angle="radian" autolimits="true"
             meshdir="../../../unitree_rl_gym/resources/robots/g1_description/meshes"/>
 
-  <option timestep="0.002" gravity="0 0 -9.81" integrator="implicit"/>
+  <!-- timestep=0.002 → 500 Hz, implicitfast integrátor + alacsony kp = stabil -->
+  <option timestep="0.002" gravity="0 0 -9.81" integrator="implicitfast"/>
 
   <visual>
     <headlight diffuse="0.8 0.8 0.8" ambient="0.3 0.3 0.3" specular="0.1 0.1 0.1"/>
@@ -50,17 +51,27 @@
 
   <default>
     <default class="product_box">
-      <geom friction="0.8 0.01 0.001" condim="4" solref="0.01 1" solimp="0.9 0.95 0.001"/>
+      <geom friction="0.8 0.01 0.001" condim="4" solref="0.02 1" solimp="0.9 0.95 0.001"/>
     </default>
-    <!-- Jobb kar: position actuator, mert a manipulációs policy pozíciót vezérel -->
+    <!-- Jobb kar joint default: damping + armature a numerikus stabilitáshoz -->
+    <default class="arm_joint">
+      <joint damping="2.0" armature="0.01"/>
+    </default>
+    <default class="wrist_joint">
+      <joint damping="0.5" armature="0.005"/>
+    </default>
+    <default class="finger_joint">
+      <joint damping="0.1" armature="0.001"/>
+    </default>
+    <!-- Position actuator — kp a max erőhöz igazítva (actuatorfrcrange alapján) -->
     <default class="arm_motor">
-      <position kp="100" kv="10" forcerange="-25 25"/>
+      <position kp="20" forcerange="-25 25"/>
     </default>
     <default class="wrist_motor">
-      <position kp="30" kv="5" forcerange="-5 5"/>
+      <position kp="5" forcerange="-5 5"/>
     </default>
     <default class="finger_motor">
-      <position kp="10" kv="2" forcerange="-2.45 2.45"/>
+      <position kp="2" forcerange="-2.45 2.45"/>
     </default>
   </default>
 
@@ -143,50 +154,50 @@
 
         <!-- JOBB KAR — aktív, position actuator-okkal -->
         <body name="right_shoulder_pitch_link" pos="-0.0035 -0.1205 0.2595">
-          <joint name="right_shoulder_pitch_joint" axis="0 1 0" range="-3.0892 2.6704"/>
+          <joint name="right_shoulder_pitch_joint" class="arm_joint" axis="0 1 0" range="-3.0892 2.6704"/>
           <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.7 0.7 0.7 1" mesh="right_shoulder_pitch_link"/>
           <geom type="mesh" rgba="0.7 0.7 0.7 1" mesh="right_shoulder_pitch_link" mass="1.5"/>
 
           <body name="right_shoulder_roll_link" pos="0 -0.0415 0">
-            <joint name="right_shoulder_roll_joint" axis="1 0 0" range="-2.2515 1.5882"/>
+            <joint name="right_shoulder_roll_joint" class="arm_joint" axis="1 0 0" range="-2.2515 1.5882"/>
             <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.7 0.7 0.7 1" mesh="right_shoulder_roll_link"/>
             <geom type="mesh" rgba="0.7 0.7 0.7 1" mesh="right_shoulder_roll_link" mass="1.5"/>
 
             <body name="right_shoulder_yaw_link" pos="0 -0.1233 0">
-              <joint name="right_shoulder_yaw_joint" axis="0 0 1" range="-2.618 2.618"/>
+              <joint name="right_shoulder_yaw_joint" class="arm_joint" axis="0 0 1" range="-2.618 2.618"/>
               <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.7 0.7 0.7 1" mesh="right_shoulder_yaw_link"/>
               <geom type="mesh" rgba="0.7 0.7 0.7 1" mesh="right_shoulder_yaw_link" mass="1.5"/>
 
               <body name="right_elbow_link" pos="0 0 -0.1838">
-                <joint name="right_elbow_joint" axis="0 1 0" range="-1.0472 2.0944"/>
+                <joint name="right_elbow_joint" class="arm_joint" axis="0 1 0" range="-1.0472 2.0944"/>
                 <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.7 0.7 0.7 1" mesh="right_elbow_link"/>
                 <geom type="mesh" rgba="0.7 0.7 0.7 1" mesh="right_elbow_link" mass="1.0"/>
 
                 <body name="right_wrist_roll_link" pos="0 0 -0.18">
-                  <joint name="right_wrist_roll_joint" axis="1 0 0" range="-1.97222 1.97222"/>
+                  <joint name="right_wrist_roll_joint" class="wrist_joint" axis="1 0 0" range="-1.97222 1.97222"/>
                   <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.7 0.7 0.7 1" mesh="right_wrist_roll_link"/>
                   <geom type="mesh" rgba="0.7 0.7 0.7 1" mesh="right_wrist_roll_link" mass="0.5"/>
 
                   <body name="right_wrist_pitch_link" pos="0 0 -0.0596">
-                    <joint name="right_wrist_pitch_joint" axis="0 1 0" range="-1.61443 1.61443"/>
+                    <joint name="right_wrist_pitch_joint" class="wrist_joint" axis="0 1 0" range="-1.61443 1.61443"/>
                     <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.7 0.7 0.7 1" mesh="right_wrist_pitch_link"/>
                     <geom type="mesh" rgba="0.7 0.7 0.7 1" mesh="right_wrist_pitch_link" mass="0.3"/>
 
                     <body name="right_hand_palm_link" pos="0 0 -0.07">
-                      <joint name="right_wrist_yaw_joint" axis="0 0 1" range="-1.61443 1.61443"/>
+                      <joint name="right_wrist_yaw_joint" class="wrist_joint" axis="0 0 1" range="-1.61443 1.61443"/>
                       <geom type="mesh" contype="0" conaffinity="0" group="1" density="0" rgba="0.7 0.7 0.7 1" mesh="right_hand_palm_link"/>
                       <geom type="mesh" rgba="0.7 0.7 0.7 1" mesh="right_hand_palm_link" mass="0.5"/>
                       <site name="right_hand_site" size="0.02" pos="0 0 -0.07" rgba="0 1 0 0.5"/>
 
                       <!-- Ujjak: thumb -->
                       <body name="right_hand_thumb_0_link" pos="0.0175 -0.012 -0.0446">
-                        <joint name="right_hand_thumb_0_joint" axis="0 1 0" range="-1.0472 1.0472"/>
+                        <joint name="right_hand_thumb_0_joint" class="finger_joint" axis="0 1 0" range="-1.0472 1.0472"/>
                         <geom type="mesh" rgba="0.6 0.6 0.6 1" mesh="right_hand_thumb_0_link" mass="0.05"/>
                         <body name="right_hand_thumb_1_link" pos="0 0 -0.0381">
-                          <joint name="right_hand_thumb_1_joint" axis="0 0 1" range="-1.0472 0.724312"/>
+                          <joint name="right_hand_thumb_1_joint" class="finger_joint" axis="0 0 1" range="-1.0472 0.724312"/>
                           <geom type="mesh" rgba="0.6 0.6 0.6 1" mesh="right_hand_thumb_1_link" mass="0.03"/>
                           <body name="right_hand_thumb_2_link" pos="0 0 -0.025">
-                            <joint name="right_hand_thumb_2_joint" axis="0 0 1" range="-1.74533 0"/>
+                            <joint name="right_hand_thumb_2_joint" class="finger_joint" axis="0 0 1" range="-1.74533 0"/>
                             <geom type="mesh" rgba="0.6 0.6 0.6 1" mesh="right_hand_thumb_2_link" mass="0.02"/>
                           </body>
                         </body>
@@ -194,20 +205,20 @@
 
                       <!-- Ujjak: index -->
                       <body name="right_hand_index_0_link" pos="-0.0075 -0.013 -0.1055">
-                        <joint name="right_hand_index_0_joint" axis="0 0 1" range="0 1.5708"/>
+                        <joint name="right_hand_index_0_joint" class="finger_joint" axis="0 0 1" range="0 1.5708"/>
                         <geom type="mesh" rgba="0.6 0.6 0.6 1" mesh="right_hand_index_0_link" mass="0.04"/>
                         <body name="right_hand_index_1_link" pos="0 0 -0.028">
-                          <joint name="right_hand_index_1_joint" axis="0 0 1" range="0 1.74533"/>
+                          <joint name="right_hand_index_1_joint" class="finger_joint" axis="0 0 1" range="0 1.74533"/>
                           <geom type="mesh" rgba="0.6 0.6 0.6 1" mesh="right_hand_index_1_link" mass="0.02"/>
                         </body>
                       </body>
 
                       <!-- Ujjak: middle -->
                       <body name="right_hand_middle_0_link" pos="0.0075 -0.013 -0.1055">
-                        <joint name="right_hand_middle_0_joint" axis="0 0 1" range="0 1.5708"/>
+                        <joint name="right_hand_middle_0_joint" class="finger_joint" axis="0 0 1" range="0 1.5708"/>
                         <geom type="mesh" rgba="0.6 0.6 0.6 1" mesh="right_hand_middle_0_link" mass="0.04"/>
                         <body name="right_hand_middle_1_link" pos="0 0 -0.028">
-                          <joint name="right_hand_middle_1_joint" axis="0 0 1" range="0 1.74533"/>
+                          <joint name="right_hand_middle_1_joint" class="finger_joint" axis="0 0 1" range="0 1.74533"/>
                           <geom type="mesh" rgba="0.6 0.6 0.6 1" mesh="right_hand_middle_1_link" mass="0.02"/>
                         </body>
                       </body>

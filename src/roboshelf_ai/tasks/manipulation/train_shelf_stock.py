@@ -117,7 +117,7 @@ def train(cfg: dict) -> None:
     if use_vec_norm:
         eval_env = make_vec_normalize(
             eval_env,
-            load_path=vec_norm_path if os.path.exists(vec_norm_path) else None,
+            load_path=vec_norm_path if (os.path.exists(vec_norm_path) and os.path.getsize(vec_norm_path) > 0) else None,
             norm_obs=norm_cfg.get("norm_obs", True),
             norm_reward=False,
             clip_obs=norm_cfg.get("clip_obs", 10.0),
@@ -214,7 +214,7 @@ def _run_final_eval(cfg, save_path, vec_norm_path, norm_cfg):
 
     env = DummyVecEnv([_init])
     env = VecMonitor(env)
-    if norm_cfg.get("enabled", True) and os.path.exists(vec_norm_path):
+    if norm_cfg.get("enabled", True) and os.path.exists(vec_norm_path) and os.path.getsize(vec_norm_path) > 0:
         env = make_vec_normalize(
             env,
             load_path=vec_norm_path,

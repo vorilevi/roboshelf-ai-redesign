@@ -17,9 +17,11 @@
 #   12-13: középső ujj (0,1)
 
 scene:
-  xml_path: src/envs/assets/scene_manip_sandbox.xml
-  # robot pozíció a scene-ben: x=0, y=2.2, z=0.793 (rögzített)
-  robot_pos: [0.0, 2.2, 0.793]
+  # v2: generált scene, eredeti G1 kinematikával (helyes body quat értékek)
+  xml_path: src/envs/assets/scene_manip_sandbox_v2.xml
+  # robot pelvis: world pos="0 0 0.793", robot +x irányba néz
+  # storage asztal: x=1.2 (robot előtt), gondola_A: x=-0.5 (robot mögött)
+  robot_pos: [0.0, 0.0, 0.793]
   stock_body: stock_1
   target_site: target_shelf
   right_hand_site: right_hand_site
@@ -31,25 +33,30 @@ env:
   # Fázis thresholdok
   grasp_dist_threshold: 0.06  # m — kéz-termék távolság alatt: "megfogta"
   lift_height: 0.15           # m — ennyit kell emelni megfogás után
-  # Obs dim: hand_xyz(3) + stock_xyz(3) + target_xyz(3) + joint_pos(14) + joint_vel(14) + grasp_flag(1) = 38
-  obs_dim: 38
-  # Action dim: 14 DoF pozíció target (normalizált [-1,1])
-  action_dim: 14
+  # Obs dim: hand_xyz(3) + stock_xyz(3) + target_xyz(3) + joint_pos(4) + joint_vel(4) + grasp_flag(1) = 18
+  # Csukló + ujjak rögzítve (equality constraint), csak váll×3 + könyök aktív
+  obs_dim: 18
+  # Action dim: 4 DoF (right_shoulder_pitch/roll/yaw + right_elbow)
+  action_dim: 4
 
 reward:
-  # Fázis 1 — Reach: kéz közelítsen a termékhez
-  w_reach:       2.0    # távolság csökkentés kéz→termék
-  # Fázis 2 — Grasp: termék mozdul a kézzel
-  w_grasp:      20.0    # bónusz ha a termék emelkedik
-  # Fázis 3 — Lift: termék z-magassága nő
-  w_lift:        5.0    # magasság-növekedés jutalma
-  # Fázis 4 — Place: termék közelítsen a targethez
-  w_place:      10.0    # távolság csökkentés termék→target
+  # Dense distance alapú reward (nem delta!):
+  #   r_reach = -w_reach * hand_dist  → kényszeríti a kart közelíteni
+  #   r_place = -w_place * stock_dist → kényszeríti a terméket a targethez
+  #
+  # Fázis 1 — Reach: -w_reach * kéz→termék távolság
+  w_reach:       1.0    # hand_dist ~1.6m → r_reach ~ -1.6/lépés; elfogadható skála
+  # Fázis 2 — Grasp: termék emelkedési bónusz
+  w_grasp:      20.0
+  # Fázis 3 — Lift: magasság növekedés
+  w_lift:        5.0
+  # Fázis 4 — Place: -w_place * termék→target távolság
+  w_place:       2.0
   w_placed:    100.0    # célba érés bónusz
-  # Büntetések
-  w_joint_limit: -1.0   # ízületi limit közelítés büntetése
-  w_smooth:      -0.01  # akció változás büntetése (simaság)
-  w_time:        -0.005 # időbüntetés
+  # Büntetések — minimálisak, ne versenyezzenek a reach-hel
+  w_joint_limit: -0.5
+  w_smooth:      -0.001 # nagyon alacsony: ne blokkolja a mozgást
+  w_time:         0.0   # időbüntetés kikapcsolva (ne büntessük a lassú közelítést)
 
 ppo:
   n_envs: 8
@@ -64,7 +71,7 @@ ppo:
   ent_coef: 0.01
   vf_coef: 0.5
   max_grad_norm: 0.5
-  total_timesteps: 5_000_000
+  total_timesteps: 10_000_000
   # Nagyobb háló — manipuláció komplexebb mint navigáció
   net_arch:
     pi: [256, 256, 128]

@@ -1,7 +1,12 @@
 # Roboshelf AI Redesign — Ütemezés
 
-_Utoljára frissítve: 2026-04-18 (Fázis B ✅ KÉSZ — mind a 4 curriculum szint elfogadva, 100% siker, 0% loco összeomlás)_  
+_Utoljára frissítve: 2026-04-20 (Fázis C aktív — javítások kész, holnap sanity + 10M tréning)_  
 _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokkolt_
+
+> **Dokumentumkezelési szabály (2026-04-20 óta):**
+> - **repo-ban marad:** schedule.md, master_plan.md — technikai, kódhoz kötött doksik
+> - **Obsidian-ban:** fejlesztési naplók, stratégia, cross-project összefüggések
+> - A két hely NEM duplikál — a schedule itt az igazság, az Obsidian Index linkeli.
 
 ---
 
@@ -14,7 +19,7 @@ _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokko
 | 2 | A | G1 Locomotion Command Env + tanítás | 5–8 nap | ✅ motion.pt átvéve | 2026-04-17 |
 | 3 | B | Hierarchikus navigációs env + tanítás | 5–7 nap | ✅ | 2026-04-18 |
 | 4 | — | Imitációs tanulás csatorna (BC) | 2–3 nap | ⬜ | — |
-| 5 | C | Manipulációs sandbox env + tanítás | 5–8 nap | ⬜ | — |
+| 5 | C | Manipulációs sandbox env + tanítás | 5–8 nap | 🔄 | 2026-04-20 (javítások kész) |
 | 6 | D+E | Integráció + investor demo | 3–5 nap | ⬜ | — |
 
 **Teljes becsült időtartam:** ~21–32 fejlesztési nap (a tanítási futások falióra-idejével együtt).
@@ -189,25 +194,42 @@ _ide kerülnek a demonstrációs adat minőségéről szerzett tapasztalatok_
 
 ### Feladatok
 
-- [x] `src/envs/assets/scene_manip_sandbox.xml` megírva (G1 with hand + padló + asztal + gondola + stock termék)
-- [x] `src/roboshelf_ai/mujoco/envs/manipulation/g1_shelf_stock_env.py` megírva (4 fázis: reach/grasp/lift/place)
-- [x] `configs/manipulation/shelf_stock_v1.yaml` létrehozva
-- [x] `src/roboshelf_ai/tasks/manipulation/train_shelf_stock.py` megírva
+- [x] `src/envs/assets/scene_manip_sandbox.xml` megírva (v1, deprecated — hibás kinematika)
+- [x] `src/envs/assets/gen_manip_sandbox.py` megírva (generátor script, eredeti G1 XML-ből)
+- [x] `src/envs/assets/scene_manip_sandbox_v2.xml` generálva (helyes body pos+quat)
+- [x] `src/roboshelf_ai/mujoco/envs/manipulation/g1_shelf_stock_env.py` — 4 fázis, 4-DOF, obs_dim=18, dense reward
+- [x] `configs/manipulation/shelf_stock_v1.yaml` — w_reach=1.0 (dense), action_dim=4, obs_dim=18
+- [x] `src/roboshelf_ai/tasks/manipulation/train_shelf_stock.py` — vec_normalize guard javítva
 - [x] `src/roboshelf_ai/tasks/manipulation/eval_shelf_stock.py` megírva
-- [ ] Sanity run crash nélkül
-- [ ] Teljes tanítási run (5M lépés)
+- [x] Workspace geometry fix: asztal x=1.2→**x=0.45m** (max reach ≈ 0.58m, volt teljesen elérhetetlen!)
+- [x] Dense reward fix: `-w*dist` nem delta (eliminált local optimum)
+- [x] 4-DOF fix: csak shoulder×3 + elbow aktív; csukló+ujjak equality constrained
+- [ ] **HOLNAP:** Git commit (parancs: `holnapi_utasitaskeszlet_2026-04-21.md` 1. lépés)
+- [ ] **HOLNAP:** Sanity run crash nélkül (r_reach ≈ -0.45 várható)
+- [ ] **HOLNAP:** Teljes tanítási run (10M lépés)
 - [ ] Komponens-szintű eval: reach/grasp/lift/place külön mérve
-- [ ] Git commit: `"feat: manipulation sandbox env v1 — shelf stocking"`
+- [ ] Git commit: `"feat: manipulation sandbox v2 — shelf stocking, 4-DOF, dense reward"`
 
 ### Tanítási futások naplója
 
 | Run | Dátum | Lépések | Reach % | Grasp % | Lift % | Place % | Megjegyzés |
 |---|---|---|---|---|---|---|---|
-| — | — | — | — | — | — | — | — |
+| v1 manip | 2026-04-20 | 10M | 0% | 0% | 0% | 0% | Hibás XML (v1), kar rossz irányba nézett |
+| v2a manip | 2026-04-20 | 10M | 0% | 0% | 0% | 0% | Generált XML (v2), de asztal x=1.2m — elérhetetlen |
+| v3 manip | holnap | 10M | ? | ? | ? | ? | x=0.45m + dense reward + 4-DOF — VÁRHATÓ ÁTTÖRÉS |
 
 ### Megjegyzések
 
-_ide kerülnek a gripper, kontakt fizika, reward shaping döntések_
+**2026-04-20 — Root cause azonosítva:**
+- G1 jobb váll world pozíciója: [0.004, -0.1, 1.104], max arm reach ≈ 0.58m
+- Az asztal x=1.2m-en volt → 1.22m-re a vállaktól → fizikailag elérhetetlen
+- Minden korábbi tanítás (20M lépés összesen) emiatt volt 0% sikeres
+- Fix: x=0.45m → ~0.50m elérendő távolság ✅
+
+**2026-04-20 — Egyéb javítások:**
+- Dense distance reward: `-w*dist` helyett delta → nincs "mozdulatlanság" local optimum
+- 4 aktív DOF (nem 14): shoulder×3 + elbow; csukló+ujjak equality constrained (NaN-mentes)
+- obs_dim=18 (volt: 38), action_dim=4 (volt: 14)
 
 ---
 
