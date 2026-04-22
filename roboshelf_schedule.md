@@ -312,12 +312,15 @@ _ide kerülnek a demonstrációs adat minőségéről szerzett tapasztalatok_
 - obs_dim=18 (volt: 38), action_dim=4 (volt: 14)
 
 **2026-04-22 — Phase 025 LEZÁRVA:**
-- v3 eval (20 epizód, best_model.zip): 0% success, dist=1.654m konstans minden epizódban
-- A kar egyáltalán nem mozdult a termék felé — a policy nem konvergált
-- Diagnózis: valószínűleg a vec_normalize + az asztal geometria még mindig problémás
-- **Döntés: a manipulation Fázis C → Phase 030 F3-ba kerül**, ahol a unitree_rl_mjlab
-  és a VLA upper layer kontextusában újraépítjük (nem patch-elünk tovább)
-- Phase 025 összesítése: Loco ✅, Nav ✅, Manip ❌ → Phase 030-ba átkerül
+- v3 eval: 0% success — vec_normalize.pkl üres (0 byte), eval torzított obs-sal futott
+- 500K sanity run diagnózis:
+  - `NaN/Inf in QACC` DOF 12 és 29 — equality constrained ujjak fizikailag instabilak
+  - `r_reach = -1.55` konstans 500K lépés után — policy befagyott (clip_fraction=4e-5)
+  - `explained_variance=0.931` — value fn tanul, de policy nem változik
+  - Root cause: equality constraint + akció skála kombó fizikai robbanást okoz
+- **Döntés: manipulation Fázis C → Phase 030 F3-ba kerül** — tiszta újraépítés
+  unitree_rl_mjlab keretrendszerben, equality constraint nélkül
+- Phase 025 összesítése: Loco ✅, Nav ✅, Manip ❌ → Phase 030 F3-ba átkerül
 
 ---
 
