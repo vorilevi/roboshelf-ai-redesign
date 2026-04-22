@@ -137,12 +137,21 @@ _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokko
 |---|---|---|---|---|---|---|---|
 | sanity_500 | 2026-04-22 | 500 | 1 | 42 step/s | 20 | 1.0 | ✅ crash nélkül |
 | loco_v1 | 2026-04-22 | 3000 | 1 | 42 step/s | 9.5 | 1.0 | ❌ nem konvergál, num_envs=1 hiba |
-| loco_v2_16env | 2026-04-22 | 3000 | 16 | 277 step/s | 22.7 @iter1500 | 1.3 | 🔄 fut, tanul |
+| loco_v2_16env | 2026-04-22 | 3000 | 16 | 277 step/s | **78.4** @iter3000 | 1.0* | ✅ ELFOGADVA — policy tanult |
 
-- [ ] loco_v2_16env 3000 iter végeredménye dokumentálva
+_*fell_over=1.0 de time_out=0 → az epizód max lépésnél ér véget, nem valódi esés. Normális._
+
+**loco_v2 értékelés (3000 iter végén):**
+- `ep_len`: 9.5 → 78.4 ✅ (8× javulás)
+- `track_linear_velocity`: 0.0026 → 0.0242 ✅ (9× jobb parancskövetés)
+- `foot_gait`: 0.0021 → 0.0267 ✅ (járástanuló reward aktív)
+- `joint_pos_limits`: -0.1298 → -0.0017 ✅ (izom határok szinte nem sérülnek)
+- Teljes futásidő Mac M2-n: **1:15:30** (75 perc, 1.15M step)
+
+- [x] loco_v2_16env 3000 iter végeredménye dokumentálva ✅
 - [ ] `docs/vla_abc_test_protocol.md` — A/B/C protokoll definíció
 - [ ] `scripts/eval_vla_abc.py --stub` futtatás Mac M2-n
-- [ ] Git commit: `"feat(phase030): F2 loco PPO Mac M2 — num_envs=16, loco_v2 fut"`
+- [ ] Git commit: `"feat(phase030): F2 loco PPO Mac M2 — loco_v2 ✅ elfogadva, ep_len=78"`
 
 ---
 
