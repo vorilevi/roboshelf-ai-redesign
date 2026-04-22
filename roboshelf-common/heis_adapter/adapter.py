@@ -116,9 +116,18 @@ class HEISAdapter:
         Returns:
             HEISObservation — HEIS-kompatibilis struktúra
         """
-        # TODO (Fázis 2): konkrét mezők leképezése track-specifikusan
-        # humanoid: joint_pos(12) + joint_vel(12) + imu(3) = 27 dim proprioceptive
-        # ean: manip_joint_pos(7) + grasp_force(3) + shelf_proximity(3) + ... = 27 dim
+        # unitree_rl_mjlab G1 Flat actor obs (F1 sanity check alapján, 2026-04-22):
+        #   base_ang_vel(3) + projected_gravity(3) + command(3) + phase(2)
+        #   + joint_pos(29) + joint_vel(29) + actions(29) = 98 dim total
+        #   Control freq: 50 Hz (0.005s * decimation=4 = 0.02s step)
+        #
+        # HEIS v1.0 leképezés:
+        #   proprioceptive_27dim ← joint_pos[:12] + joint_vel[:12] + base_ang_vel(3)
+        #                          (csak az alsó végtag 12 DoF-ja, HEIS minimum spec)
+        #   command_12dim        ← command(3) + phase(2) + padding(7)
+        #   sensor_3dim          ← projected_gravity(3)
+        #
+        # TODO (Fázis 2): teljes 98-dim → HEIS leképezés finomítása
 
         if not obs:
             warnings.warn(

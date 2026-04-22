@@ -1,0 +1,8 @@
+SHA: klónozva 2026-04-22
+repo: X-Square-Robot/wall-x
+fork: vorilevi/wallx_roboshelf (klón az eredetiből)
+pinned: 2026-04-22
+framework: CUDA 12.x, Ubuntu 22.04, flash-attn 2.7.4
+inference: device=cuda hardkódolt — Vast.ai GPU szükséges (nem Mac M2)
+proprioception_dim: 20, dof_mask_dim: 32, dataset: x2_normal
+models: wall-oss-flow, wall-oss-fast (HuggingFace: x-square-robot/)

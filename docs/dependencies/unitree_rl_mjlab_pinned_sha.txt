@@ -1,0 +1,11 @@
+1425b15f73bd4095f0df53709d7c389c3eb9e790 2026-04-13 21:44:03 +0800
+repo: unitreerobotics/unitree_rl_mjlab
+fork: vorilevi/unitree_rl_mjlab_roboshelf (klón az eredetiből)
+pinned: 2026-04-22
+framework: mjlab==1.2.0 (nem legged_gym, nem Isaac Lab)
+runner: scripts/train.py + scripts/play.py (tyro CLI)
+task_name: Unitree-G1-Flat
+actor_obs_dim: 98
+action_dim: 29
+control_freq_hz: 50
+platform: Mac M2 CPU — play OK, train → Vast.ai GPU szükséges

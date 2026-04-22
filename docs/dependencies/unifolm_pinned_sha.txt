@@ -1,0 +1,8 @@
+ff6c39aeb0454cfb95418c66aef40ca777f935c1 2026-01-29 17:35:48 +0800
+repo: unitreerobotics/unifolm-vla
+fork: vorilevi/unifolm_roboshelf (klón az eredetiből)
+pinned: 2026-04-22
+framework: CUDA 12.4, flash-attn 2.5.6, lerobot 0878c68
+checkpoints: UnifoLM-VLM-Base, UnifoLM-VLA-Base, UnifoLM-VLA-LIBERO (HuggingFace)
+g1_datasets: 12 kategória (Stack_Block, Bag_Insert, Erase_Board stb.)
+inference: Vast.ai GPU szükséges (nem Mac M2)
