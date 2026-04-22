@@ -1,6 +1,6 @@
 # Roboshelf AI Redesign — Ütemezés
 
-_Utoljára frissítve: 2026-04-22 (Phase 030 elindult — roboshelf-common scaffold kész)_  
+_Utoljára frissítve: 2026-04-22 (Phase 030 F0 kész — scaffold, HEIS/VLA/PIL stubok, sanity check scriptek, ABC eval script)_  
 _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokkolt_
 
 ---
@@ -15,7 +15,7 @@ _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokko
 
 | Fázis | Időszak | Fókusz | Állapot |
 |---|---|---|---|
-| **030-F0** | ápr. 22–25 | Scaffold, dokumentáció, repo prep | 🔄 folyamatban |
+| **030-F0** | ápr. 22–25 | Scaffold, dokumentáció, repo prep | ✅ kész |
 | **030-F1** | ápr. 26 – máj. 9 | unitree_rl_mjlab + WALL-OSS sanity check | ⬜ |
 | **030-F2** | máj. 10–23 | VLA A/B/C protokoll + loco fine-tune | ⬜ |
 | **030-F3** | máj. 24 – jún. 13 | EAN VLA stub + manip env v2 | ⬜ |
@@ -27,7 +27,7 @@ _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokko
 
 ### 030-F0 — Előkészítés (ápr. 22–25)
 
-**Állapot:** 🔄 folyamatban  
+**Állapot:** ✅ kész — 2026-04-22  
 **Elfogadási feltétel:** `roboshelf-common/` scaffold importálható, dependency docs létezik, Obsidian kereszthivatkozások frissítve.
 
 - [x] `roboshelf-common/` mappastruktúra (4 modul) létrehozva — 2026-04-22
@@ -40,13 +40,13 @@ _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokko
 - [x] `roboshelf-common/README.md` — modul leírás, PYTHONPATH használat
 - [x] `docs/dependencies/README.md` — SHA pin instrukciók, HF mirror leírás
 - [x] Obsidian: `roboshelf_execution_plan_2026-04-22 pharse 030.md` létrehozva
-- [ ] Import sanity check: `python -c "from roboshelf_common.heis_adapter import HEISAdapter; print('OK')"` ← saját Mac terminálból
-- [ ] Git commit + push ← **saját terminálból**:
-  ```bash
-  git add roboshelf-common/ docs/dependencies/ roboshelf_schedule.md
-  git commit -m "feat(phase030): roboshelf-common scaffold — HEIS adapter, VLA client, PIL DB (F0 kész)"
-  git push origin main
-  ```
+- [x] `roboshelf-common/setup.py` — editable install (`pip install -e roboshelf-common/`), package_dir fix
+- [x] `tools/f1_check_unitree_rl_mjlab.py` — G1 env sanity check script (F1-re előkészítve)
+- [x] `tools/f1_check_wallx.py` — WALL-OSS bfloat16 sanity check script
+- [x] `tools/f1_check_unifolm.py` — UnifoLM-VLA-0 sanity check script
+- [x] `scripts/eval_vla_abc.py` — VLA A/B/C kiértékelő (stub OK, valós F4-ben)
+- [x] Import sanity check: `from roboshelf_common.heis_adapter import HEISAdapter` ✅ — 2026-04-22
+- [x] Git commit + push ✅ — 2026-04-22
 
 ---
 
