@@ -93,20 +93,34 @@ _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokko
 - [x] **Döntés: inference futtatás → F4 Vast.ai (nem Mac M2)**
 - [x] Proprioception dim: **20**, DoF mask: **32**, dataset: `"x2_normal"`
 
-**UnifoLM-VLA-0 — ⬜**
-- [ ] Klón: `unitreerobotics/UnifoLM` → `~/roboshelf-ai-dev/unifolm_roboshelf`
-- [ ] README audit + SHA pin: `docs/dependencies/unifolm_pinned_sha.txt`
-- [ ] Inference futtatás → F4 Vast.ai
+**UnifoLM-VLA-0 — ✅ KÉSZ (2026-04-22, SHA pin)**
+- [x] Klón: `unitreerobotics/unifolm-vla` → `~/roboshelf-ai-dev/unifolm_roboshelf`
+- [x] SHA pin: `docs/dependencies/unifolm_pinned_sha.txt` — `ff6c39a`
+- [x] Inference futtatás → F4 Vast.ai (CUDA 12.4 + flash-attn 2.5.6 kell)
 
-- [ ] Git commit: `"feat(phase030): F1 SHA pinok — wallx+unitree_rl_mjlab, inference F4-re"`
+- [x] Git commit: `"docs(phase030): platform-szétválasztás — Mac M2 vs Vast.ai, F2-F3 blokkok"`
+
+**⚠️ Fontos tanulság — unitree_rl_mjlab Mac M2 CPU training:**
+- `--gpu-ids None` flag szükséges, különben `IndexError: list index out of range` (CUDA GPU-t keres)
+- CPU fallback: `device="cpu"`, torchrunx nélkül fut
+- Sebesség: ~42 steps/sec (CPU), elfogadható sanity run-hoz
+
+### 030-F1 lezárva — ✅ 2026-04-22
 
 ---
 
-### 030-F2 — VLA A/B/C protokoll + Locomotion PPO fine-tune (máj. 10–23) — Platform: Mac M2
+### 030-F2 — VLA A/B/C protokoll + Locomotion PPO fine-tune — Platform: Mac M2
 
-**Állapot:** ⬜ nem kezdett  
+**Állapot:** 🔄 folyamatban — loco tanítás fut (3000 iter, ~30 perc)  
 **Platform:** Mac M2 (CPU PPO) — VLA stub tesztek szintén Mac M2-n  
 **Elfogadási feltétel:** A/B/C protokoll dokumentálva, unitree_rl_mjlab locomotion PPO tanítás Mac M2-n elindul és stabil.
+
+**Locomotion PPO tanítási napló:**
+
+| Run | Dátum | Iterációk | Sebesség | Eredmény | Megjegyzés |
+|---|---|---|---|---|---|
+| sanity_500 | 2026-04-22 | 500 | 42 step/s | fell_over=1.0, ep_len=20 | ✅ crash nélkül, normális kezdeti állapot |
+| loco_v1 | 2026-04-22 | 3000 | ~42 step/s | 🔄 fut | `--gpu-ids None` flag, ~30 perc |
 
 - [ ] `docs/vla_abc_test_protocol.md` — A/B/C protokoll definíció (environment, metrikák, döntési szabály)
 - [ ] `scripts/eval_vla_abc.py --stub` futtatás Mac M2-n: mindhárom modell stub-ban kiértékelhető
