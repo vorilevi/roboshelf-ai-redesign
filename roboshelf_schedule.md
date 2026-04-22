@@ -117,22 +117,32 @@ _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokko
 
 **Locomotion PPO tanítási napló:**
 
-| Run | Dátum | Iterációk | Sebesség | Eredmény | Megjegyzés |
-|---|---|---|---|---|---|
-| sanity_500 | 2026-04-22 | 500 | 42 step/s | fell_over=1.0, ep_len=20 | ✅ crash nélkül, normális kezdeti állapot |
-| loco_v1 | 2026-04-22 | 3000 | ~42 step/s | 🔄 fut | `--gpu-ids None` flag, ~30 perc |
-
-- [ ] `docs/vla_abc_test_protocol.md` — A/B/C protokoll definíció (environment, metrikák, döntési szabály)
-- [ ] `scripts/eval_vla_abc.py --stub` futtatás Mac M2-n: mindhárom modell stub-ban kiértékelhető
-- [ ] Locomotion PPO fine-tune Mac M2-n:
+**⚠️ Tanulság — num_envs kritikus Mac M2-n:**
+- `num_envs=1` (default): 42 step/s, policy nem konvergál (ep_len csökkent 20→9!)
+- `num_envs=16`: 277 step/s, policy tanul (ep_len nő, penaltyk csökkennek)
+- **Helyes indítási parancs Mac M2-n:**
   ```bash
-  cd ~/roboshelf-ai-dev/unitree_rl_mjlab_roboshelf
-  python scripts/train.py --config configs/g1/locomotion_roboshelf_v1.yaml \
-    --total-timesteps 3_000_000
+  python scripts/train.py Unitree-G1-Flat \
+    --gpu-ids None \
+    --env.scene.num-envs 16 \
+    --agent.num-steps-per-env 24 \
+    --agent.max-iterations 3000 \
+    --agent.experiment-name roboshelf_loco_m2 \
+    --agent.run-name loco_v2_16env \
+    --agent.logger tensorboard \
+    --agent.upload-model False
   ```
-  _(3M lépés Mac M2-n ~2-4 óra, 5M lépés ha stabil)_
-- [ ] Tanítási futás eredményei dokumentálva (ep_len, reward)
-- [ ] Git commit: `"feat(phase030): F2 VLA ABC protokoll, loco PPO Mac M2-n"`
+
+| Run | Dátum | Iterációk | num_envs | Sebesség | ep_len végén | fell_over | Megjegyzés |
+|---|---|---|---|---|---|---|---|
+| sanity_500 | 2026-04-22 | 500 | 1 | 42 step/s | 20 | 1.0 | ✅ crash nélkül |
+| loco_v1 | 2026-04-22 | 3000 | 1 | 42 step/s | 9.5 | 1.0 | ❌ nem konvergál, num_envs=1 hiba |
+| loco_v2_16env | 2026-04-22 | 3000 | 16 | 277 step/s | 22.7 @iter1500 | 1.3 | 🔄 fut, tanul |
+
+- [ ] loco_v2_16env 3000 iter végeredménye dokumentálva
+- [ ] `docs/vla_abc_test_protocol.md` — A/B/C protokoll definíció
+- [ ] `scripts/eval_vla_abc.py --stub` futtatás Mac M2-n
+- [ ] Git commit: `"feat(phase030): F2 loco PPO Mac M2 — num_envs=16, loco_v2 fut"`
 
 ---
 
