@@ -1,7 +1,73 @@
 # Roboshelf AI Redesign — Ütemezés
 
-_Utoljára frissítve: 2026-04-20 (Fázis C aktív — javítások kész, holnap sanity + 10M tréning)_  
+_Utoljára frissítve: 2026-04-22 (Phase 030 elindult — roboshelf-common scaffold kész)_  
 _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokkolt_
+
+---
+
+## ★ PHASE 030 — Kétirányú redesign + kínai open-source felső réteg (2026 Q2)
+
+> **Stratégiai alapdokumentum:** `roboshelf_two_track_redesign_2026-04-22.md` (repo) + Obsidian: `roboshelf_two_track_redesign_2026-04-22`  
+> **Részletes execution plan:** Obsidian: `roboshelf_execution_plan_2026-04-22 pharse 030`  
+> **Céldátum:** 2026 nyár vége (befektetői roadshow)
+
+### Phase 030 fázisok összesítő
+
+| Fázis | Időszak | Fókusz | Állapot |
+|---|---|---|---|
+| **030-F0** | ápr. 22–25 | Scaffold, dokumentáció, repo prep | 🔄 folyamatban |
+| **030-F1** | ápr. 26 – máj. 9 | unitree_rl_mjlab + WALL-OSS sanity check | ⬜ |
+| **030-F2** | máj. 10–23 | VLA A/B/C protokoll + loco fine-tune | ⬜ |
+| **030-F3** | máj. 24 – jún. 13 | EAN VLA stub + manip env v2 | ⬜ |
+| **030-F4** | jún. 14 – júl. 4 | A/B/C teszt Vast.ai A100-on | ⬜ |
+| **030-F5** | júl. 5 – aug. 1 | Retail fine-tune + EIbench | ⬜ |
+| **030-F6** | aug. 2–31 | Befektetői demó, pitch deck, roadshow | ⬜ |
+
+---
+
+### 030-F0 — Előkészítés (ápr. 22–25)
+
+**Állapot:** 🔄 folyamatban  
+**Elfogadási feltétel:** `roboshelf-common/` scaffold importálható, dependency docs létezik, Obsidian kereszthivatkozások frissítve.
+
+- [x] `roboshelf-common/` mappastruktúra (4 modul) létrehozva — 2026-04-22
+- [x] `roboshelf-common/__init__.py` — v0.1.0
+- [x] `roboshelf-common/heis_adapter/adapter.py` — HEISAdapter, HEISObservation, EIBenchMetrics stub
+- [x] `roboshelf-common/vla_client/client.py` — VLAClient stub (wall-oss, unifolm-vla-0, groot-n1.6)
+- [x] `roboshelf-common/product_intelligence_layer/db.py` — ProductIntelligenceDB, 12 seed termék
+- [x] `roboshelf-common/product_intelligence_layer/schema.json` — HEIS-1.0 séma
+- [x] `roboshelf-common/lerobot_pipeline/__init__.py` — stub (implementáció F2-ben)
+- [x] `roboshelf-common/README.md` — modul leírás, PYTHONPATH használat
+- [x] `docs/dependencies/README.md` — SHA pin instrukciók, HF mirror leírás
+- [x] Obsidian: `roboshelf_execution_plan_2026-04-22 pharse 030.md` létrehozva
+- [ ] Import sanity check: `python -c "from roboshelf_common.heis_adapter import HEISAdapter; print('OK')"` ← saját Mac terminálból
+- [ ] Git commit + push ← **saját terminálból**:
+  ```bash
+  git add roboshelf-common/ docs/dependencies/ roboshelf_schedule.md
+  git commit -m "feat(phase030): roboshelf-common scaffold — HEIS adapter, VLA client, PIL DB (F0 kész)"
+  git push origin main
+  ```
+
+---
+
+### 030-F1 — Tooling sanity check (ápr. 26 – máj. 9)
+
+**Állapot:** ⬜ nem kezdett  
+**Elfogadási feltétel:** unitree_rl_mjlab G1 env fut Mac M2-n, WALL-OSS bfloat16 inference fut crash nélkül, mindkét SHA pin dokumentálva.
+
+- [ ] GitHub fork: `unitree-robotics/unitree_rl_mjlab` → `vorilevi/unitree_rl_mjlab_roboshelf`
+- [ ] Lokális klón, SHA pin: `docs/dependencies/unitree_rl_mjlab_pinned_sha.txt`
+- [ ] G1 env sanity run (100 lépés crash nélkül)
+- [ ] GitHub fork: `XSquareRobot/WallX` → `vorilevi/wallx_roboshelf`
+- [ ] `fake_inference.py` bfloat16 Mac M2-n (memória < 16 GB, kimenet: action tensor)
+- [ ] SHA pin: `docs/dependencies/wallx_pinned_sha.txt`
+- [ ] GitHub fork: `unitreerobotics/UnifoLM` → `vorilevi/unifolm_roboshelf`
+- [ ] UnifoLM-VLA-0 sanity check
+- [ ] SHA pin: `docs/dependencies/unifolm_pinned_sha.txt`
+- [ ] HuggingFace lokális mirror: WALL-OSS + UnifoLM-VLA-0 checkpoint
+- [ ] Git commit: `"feat(phase030): F1 done — SHA pins, sanity checks passed"`
+
+---
 
 > **Dokumentumkezelési szabály (2026-04-20 óta):**
 > - **repo-ban marad:** schedule.md, master_plan.md — technikai, kódhoz kötött doksik

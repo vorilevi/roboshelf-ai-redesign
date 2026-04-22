@@ -1,0 +1,63 @@
+{
+  "_comment": "Roboshelf AI — Product Intelligence Layer séma. HEIS 2026 Q1 v1.0 kompatibilis.",
+  "version": "HEIS-1.0",
+  "fields": {
+    "ean": {
+      "type": "string",
+      "description": "EAN-13 vonalkód",
+      "example": "5900617004284"
+    },
+    "sku": {
+      "type": "string",
+      "description": "Belső SKU azonosító (opcionális)",
+      "example": "MILK-1L-NATURJOY"
+    },
+    "name_hu": {
+      "type": "string",
+      "description": "Termék neve magyarul",
+      "example": "Naturjoy UHT tej 1L"
+    },
+    "mass_kg": {
+      "type": "float",
+      "description": "Termék tömege kilogrammban (teli)",
+      "example": 1.03
+    },
+    "center_of_mass_xyz": {
+      "type": "float[3]",
+      "description": "Súlypont pozíciója a termék saját koordinátarendszerében (m)",
+      "example": [0.0, 0.0, 0.065]
+    },
+    "bounding_box_xyz": {
+      "type": "float[3]",
+      "description": "Befoglaló téglatest mérete (szélesség, mélység, magasság) méterben",
+      "example": [0.072, 0.072, 0.195]
+    },
+    "grasp_zone": {
+      "type": "string",
+      "description": "Optimális megfogási zóna leírása",
+      "enum": ["upper_cylindrical", "lower_cylindrical", "flat_top", "side_grip", "custom"],
+      "example": "upper_cylindrical"
+    },
+    "compliance": {
+      "type": "float",
+      "description": "Termék rugalmassági faktora (0=merev, 1=puha). Megfogási erő skálázásához.",
+      "example": 0.15
+    },
+    "expiry_ocr_position": {
+      "type": "string",
+      "description": "Lejárati dátum helyzete a terméken (OCR pozíciótérkép)",
+      "enum": ["top_lid", "bottom", "side_left", "side_right", "front_bottom", "back_bottom"],
+      "example": "top_lid"
+    },
+    "planogram_slot": {
+      "type": "string",
+      "description": "Alapértelmezett planogram slot kód (bolt-agnosztikus)",
+      "example": "DAIRY-SHELF-A-TOP"
+    },
+    "fragile": {
+      "type": "boolean",
+      "description": "Törékeny termék jelölő — Human-Safe Nav extra óvatossági flag",
+      "example": false
+    }
+  }
+}
