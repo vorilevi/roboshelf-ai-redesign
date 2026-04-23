@@ -65,9 +65,9 @@ _SCENE_XML = _REPO_ROOT / "src/envs/assets/scene_manip_sandbox_v2.xml"
 # Szimuláció paraméterei
 # ---------------------------------------------------------------------------
 
-SIM_DT      = 0.002    # 500 Hz (scene XML-ből)
+SIM_DT      = 0.001    # 1000 Hz (scene XML-ből) — stabilabb integráció
 MANIP_HZ    = 20       # policy frekvencia
-DECIMATION  = int(500 / MANIP_HZ)   # 25 szimulációs lépés / policy lépés
+DECIMATION  = int(1000 / MANIP_HZ)  # 50 szimulációs lépés / policy lépés
 
 # v2 scene: teljes G1 kinematika (43 hinge joint) + stock_1 freejoint
 # Aktív jointok: csak jobb váll(3) + könyök(1) = 4 DOF (kp=20, stabil)
@@ -170,9 +170,9 @@ class G1ShelfStockEnv(gym.Env):
 
         self._load_model(xml)
 
-        # --- Spaces ---
-        obs_dim = env_cfg.get("obs_dim", 38)
-        act_dim = env_cfg.get("action_dim", 14)
+        # --- Spaces — a modellből olvassuk a valós nu-t (equality constraint eltávolítva → nu=4) ---
+        act_dim = env_cfg.get("action_dim", self._model.nu)   # valós aktuátor szám
+        obs_dim = env_cfg.get("obs_dim", 18)                  # 3+3+3+4+4+1 = 18 dim
 
         self.observation_space = spaces.Box(
             low=-np.inf, high=np.inf, shape=(obs_dim,), dtype=np.float32
