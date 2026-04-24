@@ -445,9 +445,13 @@
       <site name="stock_1_site" size="0.01" rgba="1 0 0 0.8"/>
     </body>
 
-    <!-- ===== TARGET (gondola b2, x=-0.41) ===== -->
+    <!-- ===== TARGET (asztal fölött, x=0.45, y=0, z=0.97) ===== -->
+    <!-- Feladat: termék asztalfelszínről (z=0.870) → z=0.97-re emelés -->
+    <!-- y=0: kar eléri (debug: best dist=0.025m @ y=0) -->
+    <!-- y=0.20-nál csak 0.103m volt elérhető → nem elég a 0.06m grasphoz -->
+    <!-- z=0.97: asztalfelszín + 0.10m emelés, egyszerűbb feladat -->
     <site name="target_shelf" type="box" size="0.065 0.045 0.002"
-          pos="-0.41 0.0 0.415" rgba="0 1 0 0.4"/>
+          pos="0.45 0.0 0.97" rgba="0 1 0 0.4"/>
 
   </worldbody>
 

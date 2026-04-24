@@ -198,10 +198,39 @@ tail -f ~/roboshelf-ai-dev/roboshelf-ai-redesign/results/manip_5m_v6.log
 
 ⚠️ known_issues.md #7: progress bar csak a Tab 2-ben látszik, Tab 1-ben a tee elnyeli.
 
-- [ ] 5M training futtatva — `results/manip_ppo_v6_5m` + `results/manip_vecnorm_v6_5m.pkl`
-- [ ] Eval: `python3 src/roboshelf_ai/tasks/manipulation/eval_shelf_stock.py --model results/manip_ppo_v6_5m`
-- [ ] Success rate ≥ 70%? → F3 ✅ | <70%? → reward tuning, további training
-- [ ] Git commit: `"feat(phase030): F3 manip v6 5M training results"`
+- [x] v6 5M training futtatva → 0% success (root cause: lineáris reward + rossz DEFAULT_ARM_POS + target mögötte)
+- [x] Root cause analízis: debug_hand_pos.py + debug_reach.py → azonosítva 3 hiba
+- [x] Kutatás: DeepMind PandaPickCube reward & obs design (Obsidian 03 Resources)
+
+**v7 javítások (2026-04-24):**
+- [x] Reward: `-w*dist` → `1-tanh(5*dist)` (PandaPickCube minta)
+- [x] Obs: `hand→stock` + `stock→target` relatív vektorok (obs_dim 18→24)
+- [x] Grasp: contact force flag az obs-ban
+- [x] DEFAULT_ARM_POS: `[0.5,0,0,0.3]` → `[-1.0,0.2,-0.2,1.2]` (debug optimum)
+- [x] Target: `x=-0.41` → `x=0.45, y=0, z=0.97` (robot előtt, elérhető)
+- [x] `configs/manipulation/shelf_stock_v7.yaml` létrehozva
+- [x] `docs/known_issues.md` #10-12 hozzáadva
+
+**Következő lépés — v7 training (két terminál tab):**
+
+Tab 1:
+```bash
+cd ~/roboshelf-ai-dev/roboshelf-ai-redesign
+python3 src/roboshelf_ai/tasks/manipulation/train_shelf_stock.py \
+  --config configs/manipulation/shelf_stock_v7.yaml \
+  2>&1 | tee results/manip_5m_v7.log
+```
+
+Tab 2:
+```bash
+tail -f ~/roboshelf-ai-dev/roboshelf-ai-redesign/results/manip_5m_v7.log
+```
+
+- [ ] Sanity check ELŐBB: `python3 tools/debug_hand_pos.py` → hand→stock < 0.10m reset után?
+- [ ] v7 5M training futtatva
+- [ ] Eval: `eval_shelf_stock.py --model results/manip_checkpoints_v7/best_model --config configs/manipulation/shelf_stock_v7.yaml`
+- [ ] Success rate ≥ 70%? → F3 ✅ | <70%? → reward tuning
+- [ ] Git commit: `"feat(phase030): F3 manip v7 — tanh reward, relatív obs, contact flag"`
 
 ---
 

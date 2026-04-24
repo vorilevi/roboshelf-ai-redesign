@@ -116,3 +116,45 @@ WARNING: Nan, Inf or huge value in QACC at DOF 12/29
 **Root cause:** Training megszakadt mielőtt a `vec_env.save()` lefutott.
 
 **Megoldás:** `CheckpointCallback(save_vecnormalize=True)` — minden N lépésnél automatikusan ment.
+
+---
+
+## 10. Manip env — lineáris reward nem konvergál 5M lépésen
+
+**Tünet:** `dist=0.932m konstans` 5M lépés után is, 0% success rate.
+
+**Root cause:** `-w * dist` lineáris reward túl gyenge signal. 0.3m-nél a gradiens azonos mint 1m-nél — a PPO nem tanul. Ráadásul az obs-ból hiányzott a relatív `hand→stock` vektor.
+
+**Megoldás (v7 env):**
+- Reward: `1 - tanh(5 * dist)` — bounded [0,1], erős gradiens közel (DeepMind PandaPickCube minta)
+- Obs: `hand→stock` és `stock→target` relatív vektorok hozzáadva (obs_dim 18 → 24)
+- Grasp: contact force alapú flag az obs-ban (nem magassági heurisztika)
+- Ref: `Obsidian: [[Panda-szerű reward-függvényt és obs-designt]]`
+
+---
+
+## 11. Manip env — DEFAULT_ARM_POS rossz, kéz nem éri el a terméket
+
+**Tünet:** Reset után `hand→stock dist=0.39m`, 5M training után sem csökken.
+
+**Root cause:** `shoulder_pitch=+0.5` a kart felfelé-hátrafelé viszi (z=0.685m), a termék z=0.870m → 0.185m vertikális különbség, amit a policy nem tud kompenzálni.
+
+**Megoldás:** Grid search 12^4=20736 kombináción megtalálta az optimumot:
+```python
+_DEFAULT_ARM_POS = [-1.0, 0.2, -0.2, 1.2]
+# → hand→stock dist reset után: 0.025m ✅ (volt 0.39m)
+```
+
+---
+
+## 12. Manip env — target a robot mögött (x negatív)
+
+**Tünet:** `stock_target_dist=0.976m konstans`, termék soha nem kerül a targethez.
+
+**Root cause:** `target_shelf pos="-0.41 0 0.415"` — a robot mögött és derék alatt. A 4-DOF kar nem tud 180°-os forgást csinálni.
+
+**Megoldás:** Target a robot előtt, elérhető magasságban:
+```xml
+<site name="target_shelf" pos="0.45 0.0 0.97" .../>
+```
+Debug igazolta: `hand→target dist = 0.025m` (elérhető).
