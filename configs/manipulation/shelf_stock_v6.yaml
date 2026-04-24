@@ -1,0 +1,75 @@
+# Shelf Stocking Manipulációs Policy — v6 konfiguráció
+# Phase 030 F3 — equality constraint eltávolítva, stock x=0.45, arm=[0.5,0,0,0.3]
+#
+# Változások v1-hez képest:
+#   - save_path: results/manip_checkpoints_v6/ (nem roboshelf-results)
+#   - checkpoint_freq: 500_000 (volt: 100_000)
+#   - total_timesteps: 5_000_000 (volt: 10_000_000)
+#   - save_vecnormalize: true (known_issues #9)
+
+scene:
+  xml_path: src/envs/assets/scene_manip_sandbox_v2.xml
+  robot_pos: [0.0, 0.0, 0.793]
+  stock_body: stock_1
+  target_site: target_shelf
+  right_hand_site: right_hand_site
+
+env:
+  max_episode_steps: 500
+  goal_radius: 0.08
+  grasp_dist_threshold: 0.06
+  lift_height: 0.15
+  obs_dim: 18
+  action_dim: 4
+
+reward:
+  w_reach:       1.0
+  w_grasp:      20.0
+  w_lift:        5.0
+  w_place:       2.0
+  w_placed:    100.0
+  w_joint_limit: -0.5
+  w_smooth:      -0.001
+  w_time:         0.0
+
+ppo:
+  n_envs: 8
+  n_steps: 2048
+  batch_size: 512
+  n_epochs: 10
+  learning_rate: 3.0e-4
+  lr_schedule: linear
+  gamma: 0.99
+  gae_lambda: 0.95
+  clip_range: 0.2
+  ent_coef: 0.01
+  vf_coef: 0.5
+  max_grad_norm: 0.5
+  total_timesteps: 5_000_000
+  net_arch:
+    pi: [256, 256, 128]
+    vf: [256, 256, 128]
+
+eval:
+  n_eval_episodes: 10
+  eval_freq: 50_000
+  deterministic: true
+
+checkpoint:
+  save_freq: 500_000
+  save_path: results/manip_checkpoints_v6/
+
+logging:
+  tensorboard_log: data/logs/manip_shelf_stock_v6/
+  verbose: 1
+
+vec_normalize:
+  enabled: true
+  norm_obs: true
+  norm_reward: true
+  clip_obs: 10.0
+
+acceptance:
+  min_success_rate: 0.7
+  phase_reach_min: 0.85
+  phase_grasp_min: 0.75

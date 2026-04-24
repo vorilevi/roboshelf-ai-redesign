@@ -144,6 +144,7 @@ def train(cfg: dict) -> None:
             save_freq=max(ckpt_cfg.get("save_freq", 100_000) // n_envs, 1),
             save_path=save_path,
             name_prefix="manip_shelf_stock",
+            save_vecnormalize=True,
             verbose=1,
         )
         callbacks += [eval_callback, checkpoint_callback]

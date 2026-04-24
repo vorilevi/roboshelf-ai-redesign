@@ -111,7 +111,7 @@ _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokko
 
 ### 030-F2 — VLA A/B/C protokoll + Locomotion PPO fine-tune — Platform: Mac M2
 
-**Állapot:** 🔄 folyamatban — loco tanítás fut (3000 iter, ~30 perc)  
+**Állapot:** ✅ kész — 2026-04-22  
 **Platform:** Mac M2 (CPU PPO) — VLA stub tesztek szintén Mac M2-n  
 **Elfogadási feltétel:** A/B/C protokoll dokumentálva, unitree_rl_mjlab locomotion PPO tanítás Mac M2-n elindul és stabil.
 
@@ -149,37 +149,59 @@ _*fell_over=1.0 de time_out=0 → az epizód max lépésnél ér véget, nem val
 - Teljes futásidő Mac M2-n: **1:15:30** (75 perc, 1.15M step)
 
 - [x] loco_v2_16env 3000 iter végeredménye dokumentálva ✅
-- [ ] `docs/vla_abc_test_protocol.md` — A/B/C protokoll definíció
-- [ ] `scripts/eval_vla_abc.py --stub` futtatás Mac M2-n
+- [x] `docs/vla_abc_test_protocol.md` — A/B/C protokoll definíció ✅ (létrehozva)
+- [x] `scripts/eval_vla_abc.py --stub` futtatás Mac M2-n ✅ (smoke test passed)
 - [ ] Git commit: `"feat(phase030): F2 loco PPO Mac M2 — loco_v2 ✅ elfogadva, ep_len=78"`
 
 ---
 
-### 030-F3 — Manipulation env rebuild (máj. 24 – jún. 13) — Platform: Mac M2
+### 030-F3 — Manipulation env rebuild — Platform: Mac M2
 
-**Állapot:** ⬜ nem kezdett  
-**Platform:** Mac M2 (MuJoCo + SB3 PPO) — Phase 025 precedens: loco ✅, nav ✅  
-**Elfogadási feltétel:** `g1_shelf_stock_env_v2.py` fut equality constraint nélkül, NaN/Inf-mentes, PPO training indul.
+**Állapot:** 🔄 folyamatban — env kész, 100K eval kész, 5M training SZÜKSÉGES  
+**Platform:** Mac M2 (MuJoCo + SB3 PPO)  
+**Elfogadási feltétel:** ≥70% success rate 20 epizódon.
 
 **Kontextus — Phase 025 manip failure root cause:**
-- Equality constraint a csukló/ujj DoF 12, 29-es pozíciókon → QACC NaN/Inf → fizikai instabilitás
-- 3 tanítási futás, mind 0% success rate → Fázis C lezárva
+- Equality constraint → QACC NaN/Inf DOF 12, 29 → fizikai instabilitás → 0% success
 - **Fix: equality constraint teljes eltávolítása az MJCF-ből**
 
-- [ ] `src/roboshelf_ai/mujoco/envs/manipulation/g1_shelf_stock_env_v2.py` megírva:
-  - Equality constraint-ek eltávolítva (csak actuator + joint limit marad)
-  - HEIS-kompatibilis reward exportálás
-  - PIL metaadat beolvasása
-- [ ] 100 lépés sanity check: NaN/Inf = 0 ellenőrzés
-- [ ] PPO training indítás Mac M2-n:
-  ```bash
-  python src/roboshelf_ai/tasks/manipulation/train_pickplace_v2.py \
-    --config configs/manipulation/pickplace_v2_no_eq_constraint.yaml \
-    --total-timesteps 500_000
-  ```
-  _(500K sanity run először, majd 5M ha stabil)_
-- [ ] VLA stub bekötése: `vla_client.predict()` hívás az env high-level planning rétegéből
-- [ ] Git commit: `"feat(phase030): F3 manip env v2 (no equality constraint), PPO Mac M2-n"`
+**Elvégzett javítások (2026-04-23/24):**
+- [x] `scene_manip_sandbox_v2.xml` — equality blokk eltávolítva, timestep=0.001, damping=200, armature=0.5
+- [x] `g1_shelf_stock_env.py` — act_dim=model.nu=4, obs_dim=18, SIM_DT=0.001, stock x=0.45, arm=[0.5,0,0,0.3]
+- [x] NaN/Inf check: **count=0** ✅
+- [x] mjpython vizuális ellenőrzés: G1 robot, kar a termék felé mutat ✅
+- [x] 100K training futtatva → dist=0.932m (volt: 1.654m), 0% success (várható 100K-nál)
+- [x] `docs/known_issues.md` létrehozva (#1–#9)
+
+**Tanítási napló — F3:**
+
+| Run | Dátum | Lépések | Reach% | Place% | Átlag dist | Megjegyzés |
+|---|---|---|---|---|---|---|
+| v5 | 2026-04-23 | 5M | 0% | 0% | 1.654m konstans | ❌ stock x=1.2 → elérhetetlen, equality constraint NaN |
+| v6_100k | 2026-04-24 | 100K | 0% | 0% | 0.932m | ✅ env javított, dist javult, 100K nem elég |
+| **v6_5m** | **KÖVETKEZŐ** | **5M** | **?** | **?** | **?** | **⬅️ EZÉRT KELL TRAINING** |
+
+**Következő lépés — 5M training (két terminál tab szükséges!):**
+
+Tab 1 (training + log):
+```bash
+cd ~/roboshelf-ai-dev/roboshelf-ai-redesign
+python3 src/roboshelf_ai/tasks/manipulation/train_shelf_stock.py \
+  --config configs/manipulation/shelf_stock_v6.yaml \
+  2>&1 | tee results/manip_5m_v6.log
+```
+
+Tab 2 (progress követés):
+```bash
+tail -f ~/roboshelf-ai-dev/roboshelf-ai-redesign/results/manip_5m_v6.log
+```
+
+⚠️ known_issues.md #7: progress bar csak a Tab 2-ben látszik, Tab 1-ben a tee elnyeli.
+
+- [ ] 5M training futtatva — `results/manip_ppo_v6_5m` + `results/manip_vecnorm_v6_5m.pkl`
+- [ ] Eval: `python3 src/roboshelf_ai/tasks/manipulation/eval_shelf_stock.py --model results/manip_ppo_v6_5m`
+- [ ] Success rate ≥ 70%? → F3 ✅ | <70%? → reward tuning, további training
+- [ ] Git commit: `"feat(phase030): F3 manip v6 5M training results"`
 
 ---
 
