@@ -1,10 +1,15 @@
 """
-G1 Shelf Stocking Manipulációs Env — v7 (Phase 030 F3).
+G1 Shelf Stocking Manipulációs Env — v8 (Phase 030 F3).
+
+Változások v7-hez képest (2026-04-25, policy collapse fix):
+  - lift_trigger_threshold: 0.03m — lift reward csak valódi emelkedésnél számít
+  - w_lift: 1.0 → 3.0 config-ból (erősebb lift signal)
+  - ent_coef: 0.01 → 0.05 config-ból (policy collapse ellen)
 
 Változások v6-hoz képest (2026-04-24, Panda-szerű reward & obs):
   - Reward: -w*dist → 1 - tanh(5*dist)  (DeepMind PandaPickCube minta)
   - Obs: hand→stock és stock→target relatív vektorok hozzáadva (obs_dim: 18 → 24)
-  - Grasp: contact force alapú flag (nem csak magassági heurika)
+  - Grasp: contact force alapú flag (nem csak magassági heurisztika)
   - DEFAULT_ARM_POS: debug-igazolt optimum [-1.0, 0.2, -0.2, 1.2]
   - Target: robot előtt (x=0.45, y=0, z=0.97) — kar eléri (debug: 0.025m)
 
@@ -168,10 +173,11 @@ class G1ShelfStockEnv(gym.Env):
         self.tanh_scale_place = rew_cfg.get("tanh_scale_place", TANH_SCALE_PLACE)
 
         # --- Env paraméterek ---
-        self.max_episode_steps    = env_cfg.get("max_episode_steps", 500)
-        self.goal_radius          = env_cfg.get("goal_radius", 0.08)
-        self.grasp_dist_threshold = env_cfg.get("grasp_dist_threshold", 0.10)  # kéz→stock
-        self.lift_height          = env_cfg.get("lift_height", 0.10)
+        self.max_episode_steps      = env_cfg.get("max_episode_steps", 500)
+        self.goal_radius            = env_cfg.get("goal_radius", 0.08)
+        self.grasp_dist_threshold   = env_cfg.get("grasp_dist_threshold", 0.10)  # kéz→stock
+        self.lift_height            = env_cfg.get("lift_height", 0.10)
+        self.lift_trigger_threshold = env_cfg.get("lift_trigger_threshold", 0.03)  # v8: küszöb
 
         # --- Scene XML ---
         scene_path = cfg.get("scene", {}).get("xml_path", None)
@@ -433,9 +439,11 @@ class G1ShelfStockEnv(gym.Env):
                   if self._phase >= ManipPhase.GRASP else \
                   self.w_grasp * 0.1 * near_for_grasp  # kis előjelzés REACH-ben is
 
-        # --- LIFT: emelési magasság ---
-        r_lift = self.w_lift * np.clip(stock_rise / self.lift_height, 0.0, 1.0) \
-                 if self._phase >= ManipPhase.LIFT else 0.0
+        # --- LIFT: emelési magasság — v8: trigger küszöb alatt 0 (nem csak rezgés) ---
+        if self._phase >= ManipPhase.LIFT and stock_rise >= self.lift_trigger_threshold:
+            r_lift = self.w_lift * np.clip(stock_rise / self.lift_height, 0.0, 1.0)
+        else:
+            r_lift = 0.0
 
         # --- PLACE: tanh alapú, gating: csak ha már elérte a dobozt ---
         place_raw = smooth_dist_reward(stock_dist, self.tanh_scale_place)

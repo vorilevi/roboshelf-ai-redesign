@@ -179,7 +179,10 @@ _*fell_over=1.0 de time_out=0 → az epizód max lépésnél ér véget, nem val
 |---|---|---|---|---|---|---|
 | v5 | 2026-04-23 | 5M | 0% | 0% | 1.654m konstans | ❌ stock x=1.2 → elérhetetlen, equality constraint NaN |
 | v6_100k | 2026-04-24 | 100K | 0% | 0% | 0.932m | ✅ env javított, dist javult, 100K nem elég |
-| **v6_5m** | **KÖVETKEZŐ** | **5M** | **?** | **?** | **?** | **⬅️ EZÉRT KELL TRAINING** |
+| v6_5m | 2026-04-24 | 5M | 0% | 0% | 0.932m konstans | ❌ lineáris reward + rossz DEFAULT_ARM_POS + target mögött |
+| v7_500k | 2026-04-25 | 500K | GRASP 60% | 0% | 0.225m | ✅ tanul! REACH+GRASP megy, LIFT nem indul el |
+| v7_5m | 2026-04-25 | 5M | GRASP 80% | 0% | 0.444m | ❌ policy collapse — ent_coef=0.01 túl alacsony |
+| **v8_5m** | **KÖVETKEZŐ** | **5M** | **?** | **?** | **?** | **⬅️ ent_coef=0.05, w_lift=3.0, lift_trigger=0.03m** |
 
 **Következő lépés — 5M training (két terminál tab szükséges!):**
 
@@ -226,11 +229,33 @@ Tab 2:
 tail -f ~/roboshelf-ai-dev/roboshelf-ai-redesign/results/manip_5m_v7.log
 ```
 
-- [ ] Sanity check ELŐBB: `python3 tools/debug_hand_pos.py` → hand→stock < 0.10m reset után?
-- [ ] v7 5M training futtatva
-- [ ] Eval: `eval_shelf_stock.py --model results/manip_checkpoints_v7/best_model --config configs/manipulation/shelf_stock_v7.yaml`
-- [ ] Success rate ≥ 70%? → F3 ✅ | <70%? → reward tuning
-- [ ] Git commit: `"feat(phase030): F3 manip v7 — tanh reward, relatív obs, contact flag"`
+- [x] Sanity check: `python3 tools/debug_hand_pos.py` → hand→stock=0.086m reset után ✅
+- [x] v7 500K smoke test → GRASP 60%, dist=0.225m ✅ (tanul!)
+- [x] v7 5M training → GRASP 80%, dist=0.444m ❌ policy collapse (known_issue #14)
+- [x] Root cause: `ent_coef=0.01` + `w_lift=1.0` → policy exploit-olja a grasp-ot, soha nem próbálja a lift-et
+- [x] `configs/manipulation/shelf_stock_v8.yaml` létrehozva (ent_coef=0.05, w_lift=3.0, lift_trigger=0.03m)
+- [x] `g1_shelf_stock_env.py` v8 lift trigger logika hozzáadva
+- [x] `docs/known_issues.md` #13–14 hozzáadva
+- [x] Git commit: `"feat(phase030-f3): manipulation env v7 — tanh reward, 24-dim obs, target fix"` ✅
+
+**Következő lépés — v8 5M training:**
+
+Tab 1:
+```bash
+cd ~/roboshelf-ai-dev/roboshelf-ai-redesign
+python3 src/roboshelf_ai/tasks/manipulation/train_shelf_stock.py \
+  --config configs/manipulation/shelf_stock_v8.yaml \
+  2>&1 | tee results/manip_5m_v8.log
+```
+
+Tab 2:
+```bash
+tail -f ~/roboshelf-ai-dev/roboshelf-ai-redesign/results/manip_5m_v8.log
+```
+
+- [ ] v8 5M training futtatva
+- [ ] Success rate ≥ 70%? → F3 ✅ | <70%? → v9 reward tuning
+- [ ] Git commit: `"feat(phase030): F3 manip v8 — ent_coef=0.05, w_lift=3.0, lift trigger"`
 
 ---
 

@@ -158,3 +158,42 @@ _DEFAULT_ARM_POS = [-1.0, 0.2, -0.2, 1.2]
 <site name="target_shelf" pos="0.45 0.0 0.97" .../>
 ```
 Debug igazolta: `hand→target dist = 0.025m` (elérhető).
+
+---
+
+## 13. train_shelf_stock.py — `--override` flag nem létezik
+
+**Hiba:**
+```
+train_shelf_stock.py: error: unrecognized arguments: --override ppo.total_timesteps=500000
+```
+
+**Root cause:** A script nem támogat generikus `--override` flaget.
+
+**Megoldás:** A `total_timesteps` felülírásához a dedikált flag kell:
+```bash
+python3 src/roboshelf_ai/tasks/manipulation/train_shelf_stock.py \
+  --config configs/manipulation/shelf_stock_v7.yaml \
+  --total-timesteps 500000
+```
+
+Elérhető flagek: `--config`, `--total-timesteps`, `--n-envs`, `--no-save`.
+
+---
+
+## 14. Manip env — policy collapse 5M lépésen (ent_coef túl alacsony)
+
+**Tünet:** 500k smoke test után `GRASP 60%`, de 5M végén `dist=0.444m` (rosszabb), `LIFT 0%`.
+
+**Root cause:** `ent_coef=0.01` → a policy túl hamar "magabiztos" lett a grasp stratégiában, exploit-olta a grasp reward-ot és soha nem próbálta ki a lift fázist. A lift reward (`w_lift=1.0`) elveszett a grasp zajában.
+
+**Megoldás (v8 config):**
+- `ent_coef: 0.01 → 0.05` — több exploráció a teljes training során
+- `w_lift: 1.0 → 3.0` — erősebb lift signal
+- `lift_trigger_threshold: 0.03m` — lift reward csak valódi emelkedésnél (nem rezgés)
+- `w_grasp: 2.0` — marad (grasp már működik, ne erősítsük tovább)
+
+```bash
+python3 src/roboshelf_ai/tasks/manipulation/train_shelf_stock.py \
+  --config configs/manipulation/shelf_stock_v8.yaml 2>&1 | tee results/manip_5m_v8.log
+```
