@@ -1,5 +1,12 @@
 """
-G1 Shelf Stocking Manipulációs Env — v8 (Phase 030 F3).
+G1 Shelf Stocking Manipulációs Env — v9 (Phase 030 F3).
+
+Változások v8-hoz képest (2026-04-25, gripper actuator):
+  - action_dim: 4 → 5 (5. DOF = gripper nyit/zár)
+  - XML: 7 finger position actuator hozzáadva (ctrl[4..10])
+  - _apply_gripper(): 1 gripper signal → 7 ujj joint target
+  - gripper=+1 → zárva, gripper=-1 → nyitva
+  - obs: contact_flag már megvan → policy látja a fogást
 
 Változások v7-hez képest (2026-04-25, policy collapse fix):
   - lift_trigger_threshold: 0.03m — lift reward csak valódi emelkedésnél számít
@@ -77,9 +84,19 @@ MANIP_HZ   = 20             # policy frekvencia
 DECIMATION = int(1000 / MANIP_HZ)  # 50 sim lépés / policy lépés
 
 N_ARM_DOF        = 4    # shoulder(3) + elbow(1)
+N_GRIPPER_DOF    = 7    # thumb(3) + middle(2) + index(2)
 ARM_QPOS_START   = 29   # qpos[29:33]
 ARM_CTRL_START   = 0    # ctrl[0:4]
+GRIPPER_CTRL_START = 4  # ctrl[4:11]
 STOCK_QPOS_START = 43   # freejoint: [43:50]
+
+# Gripper célpozíciók (zárva / nyitva) — ujjanként
+# thumb_0: nyitva=0, zárva=-0.8 (negatív = befelé)
+# thumb_1: nyitva=0, zárva=0.5
+# thumb_2: nyitva=0, zárva=-1.2
+# middle_0,1 + index_0,1: nyitva=0, zárva=max range
+_GRIPPER_CLOSED = np.array([-0.8,  0.5, -1.2,  1.3,  1.5,  1.3,  1.5], dtype=np.float32)
+_GRIPPER_OPEN   = np.array([ 0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0], dtype=np.float32)
 
 # Ízületi határok
 _JOINT_RANGES = np.array([
@@ -185,7 +202,7 @@ class G1ShelfStockEnv(gym.Env):
         self._load_model(xml)
 
         # --- Spaces ---
-        act_dim = env_cfg.get("action_dim", self._model.nu)
+        act_dim = env_cfg.get("action_dim", 5)  # 4 kar + 1 gripper
         obs_dim = env_cfg.get("obs_dim", OBS_DIM)
 
         self.observation_space = spaces.Box(
@@ -252,16 +269,24 @@ class G1ShelfStockEnv(gym.Env):
         )
         self._data.qvel[:] = 0.0
         self._data.ctrl[ARM_CTRL_START:ARM_CTRL_START + N_ARM_DOF] = _DEFAULT_ARM_POS.copy()
+        self._data.ctrl[GRIPPER_CTRL_START:GRIPPER_CTRL_START + N_GRIPPER_DOF] = _GRIPPER_OPEN.copy()
 
-        # Stock pozíció: asztalfelszínen, kis y-offset
-        stock_y = float(rng.uniform(-0.10, 0.10))
-        self._data.qpos[STOCK_QPOS_START + 0] = 0.45
-        self._data.qpos[STOCK_QPOS_START + 1] = stock_y
-        self._data.qpos[STOCK_QPOS_START + 2] = 0.870
-        self._data.qpos[STOCK_QPOS_START + 3] = 1.0
-        self._data.qpos[STOCK_QPOS_START + 4:STOCK_QPOS_START + 7] = 0.0
-
-        mujoco.mj_forward(self._model, self._data)
+        # Stock pozíció: asztalfelszínen, min 20cm távolság a kéztől
+        # (kizárja az 1-lépéses véletlenszerű sikereket)
+        MIN_START_DIST = 0.15
+        for _ in range(50):
+            stock_x = float(rng.uniform(0.35, 0.55))
+            stock_y = float(rng.uniform(-0.15, 0.15))
+            self._data.qpos[STOCK_QPOS_START + 0] = stock_x
+            self._data.qpos[STOCK_QPOS_START + 1] = stock_y
+            self._data.qpos[STOCK_QPOS_START + 2] = 0.870
+            self._data.qpos[STOCK_QPOS_START + 3] = 1.0
+            self._data.qpos[STOCK_QPOS_START + 4:STOCK_QPOS_START + 7] = 0.0
+            mujoco.mj_forward(self._model, self._data)
+            hand_pos  = self._data.site_xpos[self._hand_site_id]
+            stock_pos = self._data.xpos[self._stock_body_id]
+            if np.linalg.norm(hand_pos - stock_pos) >= MIN_START_DIST:
+                break
 
         # Belső állapot reset
         self._step_count   = 0
@@ -280,10 +305,12 @@ class G1ShelfStockEnv(gym.Env):
     def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, bool, dict]:
         import mujoco
 
-        target_pos = self._denorm_action(action)
+        target_pos = self._denorm_action(action[:4])
+        gripper_signal = float(np.clip(action[4], -1.0, 1.0)) if len(action) > 4 else -1.0
 
         for _ in range(DECIMATION):
             self._data.ctrl[ARM_CTRL_START:ARM_CTRL_START + N_ARM_DOF] = target_pos
+            self._apply_gripper(gripper_signal)
             mujoco.mj_step(self._model, self._data)
 
         self._step_count += 1
@@ -329,12 +356,27 @@ class G1ShelfStockEnv(gym.Env):
 
         elif self._phase == ManipPhase.GRASP:
             # Contact force VAGY magassági emelkedés → LIFT
-            if self._contact_flag > 0.5 and stock_rise > 0.01:
+            if self._contact_flag > 0.5 and stock_rise > 0.005:
                 self._phase = ManipPhase.LIFT
 
         elif self._phase == ManipPhase.LIFT:
             if stock_rise > self.lift_height:
                 self._phase = ManipPhase.PLACE
+
+    # -----------------------------------------------------------------------
+    # Gripper vezérlés — 1 signal → 7 ujj joint
+    # -----------------------------------------------------------------------
+
+    def _apply_gripper(self, signal: float) -> None:
+        """
+        signal ∈ [-1, 1]:
+          -1.0 = teljesen nyitva (_GRIPPER_OPEN)
+          +1.0 = teljesen zárva (_GRIPPER_CLOSED)
+        Lineárisan interpolál a két végállás között.
+        """
+        t = (signal + 1.0) / 2.0  # [-1,1] → [0,1]
+        targets = (1.0 - t) * _GRIPPER_OPEN + t * _GRIPPER_CLOSED
+        self._data.ctrl[GRIPPER_CTRL_START:GRIPPER_CTRL_START + N_GRIPPER_DOF] = targets
 
     # -----------------------------------------------------------------------
     # Contact flag — MuJoCo contact force alapú
@@ -463,7 +505,7 @@ class G1ShelfStockEnv(gym.Env):
         ).clip(0))
         r_limit = self.w_joint_limit * limit_viol
 
-        target_pos = self._denorm_action(action)
+        target_pos = self._denorm_action(action[:4])
         r_smooth = self.w_smooth * float(np.sum((target_pos - self._prev_action) ** 2))
 
         total = r_reach + r_grasp + r_lift + r_place + r_placed + r_limit + r_smooth

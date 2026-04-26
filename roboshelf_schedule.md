@@ -182,7 +182,11 @@ _*fell_over=1.0 de time_out=0 → az epizód max lépésnél ér véget, nem val
 | v6_5m | 2026-04-24 | 5M | 0% | 0% | 0.932m konstans | ❌ lineáris reward + rossz DEFAULT_ARM_POS + target mögött |
 | v7_500k | 2026-04-25 | 500K | GRASP 60% | 0% | 0.225m | ✅ tanul! REACH+GRASP megy, LIFT nem indul el |
 | v7_5m | 2026-04-25 | 5M | GRASP 80% | 0% | 0.444m | ❌ policy collapse — ent_coef=0.01 túl alacsony |
-| **v8_5m** | **KÖVETKEZŐ** | **5M** | **?** | **?** | **?** | **⬅️ ent_coef=0.05, w_lift=3.0, lift_trigger=0.03m** |
+| v8_5m | 2026-04-25 | 5M | GRASP 60% | 0% | 1.239m | ❌ ent_coef=0.05 túl random, nincs gripper fizikailag |
+| v9_500k | 2026-04-26 | 500K | GRASP 70% | 10% | 0.314m | ✅ gripper működik! Első valaha sikeres elhelyezés |
+| v9_5m | 2026-04-26 | 5M | GRASP 90% | 10% | 0.726m | ❌ GRASP plateau, LIFT fázisba sosem jut |
+| v10_2m | 2026-04-27 | 2M | REACH 100% | 0% | 0.522m | ❌ w_smooth=-0.01 → mozdulatlanság local optimum |
+| **v11_3m** | **2026-04-27** | **3M** | **?** | **?** | **?** | **⬅️ folyamatban: w_smooth=-0.001, w_lift=5.0** |
 
 **Következő lépés — 5M training (két terminál tab szükséges!):**
 

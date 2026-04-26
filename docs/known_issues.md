@@ -18,6 +18,25 @@ mjpython -c "..."
 mjpython script.py
 ```
 
+**Manip sandbox scene interaktív megjelenítése** (repo gyökeréből):
+```bash
+mjpython -c "
+import mujoco, mujoco.viewer, time
+m = mujoco.MjModel.from_xml_path('src/envs/assets/scene_manip_sandbox_v2.xml')
+d = mujoco.MjData(m)
+with mujoco.viewer.launch_passive(m, d) as v:
+    while v.is_running():
+        step_start = time.time()
+        mujoco.mj_step(m, d)
+        v.sync()
+        elapsed = time.time() - step_start
+        remaining = m.opt.timestep - elapsed
+        if remaining > 0:
+            time.sleep(remaining)
+"
+```
+✅ Működik — interaktív viewer nyílik, realtime sebességgel fut, körbe lehet járni a scene-t.
+
 ---
 
 ## 2. unitree_rl_mjlab train.py — Mac M2 GPU hiba
@@ -193,7 +212,84 @@ Elérhető flagek: `--config`, `--total-timesteps`, `--n-envs`, `--no-save`.
 - `lift_trigger_threshold: 0.03m` — lift reward csak valódi emelkedésnél (nem rezgés)
 - `w_grasp: 2.0` — marad (grasp már működik, ne erősítsük tovább)
 
+**Tapasztalat:** v8 ent_coef=0.05 is rossz volt (túl random). Az optimum: **ent_coef=0.03**.
+
+---
+
+## 15. Manip env — ujjak nem mozognak (passive_joint damping)
+
+**Tünet:** `viz_gripper_test.py` futtatásakor az ujjak egyáltalán nem hajlanak, ctrl target ellenére.
+
+**Root cause:** Az ujj jointek `class="passive_joint"` (damping=200, armature=0.5) — a position actuator ereje (kp=50, forcerange=±5N) nem győzi le a csillapítást. qpos alig változik.
+
+**Megoldás:** A 7 jobb kéz ujj joint class-át `"finger_joint"`-ra kell változtatni (damping=0.1, armature=0.001):
+```xml
+<!-- ELŐTTE: -->
+<joint name="right_hand_thumb_0_joint" class="passive_joint" .../>
+<!-- UTÁNA: -->
+<joint name="right_hand_thumb_0_joint" class="finger_joint" .../>
+```
+Érintett jointek: `right_hand_thumb_0/1/2`, `right_hand_middle_0/1`, `right_hand_index_0/1`.
+
+**Ellenőrzés:**
 ```bash
-python3 src/roboshelf_ai/tasks/manipulation/train_shelf_stock.py \
-  --config configs/manipulation/shelf_stock_v8.yaml 2>&1 | tee results/manip_5m_v8.log
+python3 -c "
+import sys; sys.path.insert(0, 'src')
+import mujoco, numpy as np
+m = mujoco.MjModel.from_xml_path('src/envs/assets/scene_manip_sandbox_v2.xml')
+d = mujoco.MjData(m)
+mujoco.mj_resetData(m, d)
+d.ctrl[4:11] = [-0.8, 0.5, -1.2, 1.3, 1.5, 1.3, 1.5]
+for _ in range(2000): mujoco.mj_step(m, d)
+jid = mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_JOINT, 'right_hand_thumb_0_joint')
+print('qpos:', d.qpos[m.jnt_qposadr[jid]])  # kell: ~-0.80
+"
+```
+
+---
+
+## 16. Manip env — _denorm_action shape mismatch (v9+)
+
+**Hiba:**
+```
+ValueError: operands could not be broadcast together with shapes (5,) (4,)
+```
+
+**Root cause:** `_denorm_action(action)` az egész 5-dimenziós action vektort kapja, de `_JOINT_RANGES` csak 4 sort tartalmaz (csak a kar DOF-ok).
+
+**Megoldás:** Mindig csak a kar slice-t adjuk át:
+```python
+# step()-ben és _compute_reward()-ban:
+target_pos = self._denorm_action(action[:4])   # NEM action!
+gripper_signal = float(np.clip(action[4], -1.0, 1.0))
+```
+
+---
+
+## 17. Manip env — w_smooth túl erős → mozdulatlanság
+
+**Tünet:** Training ep_rew_mean -120-ról indul (v9-nél -17 volt), policy REACH fázisban ragad, 0% siker.
+
+**Root cause:** `w_smooth=-0.01` — minden lépésben tízszeres büntetés az akcióváltásra. A policy megtanulta, hogy a legkisebb büntetés = mozdulatlanság. A kéz nem közelít a dobozhoz.
+
+**Megoldás:** `w_smooth` max értéke: **-0.001**. Ennél erősebb nem alkalmazható ebben a reward struktúrában.
+
+---
+
+## 18. Manip env — 1-lépéses sikerek reset véletlenből
+
+**Tünet:** Eval-ban `lépés=1 | dist=0.044m | ✅ ELHELYEZVE` — a policy semmit nem csinált, a reset véletlenül jó pozícióba tette a dobozt.
+
+**Root cause:** A reset nem ellenőrizte a kéz-doboz kezdeti távolságot.
+
+**Megoldás:** Min 15cm távolság garantálása reset-kor (50 próbán belül mindig található érvényes pozíció):
+```python
+MIN_START_DIST = 0.15
+for _ in range(50):
+    stock_x = float(rng.uniform(0.35, 0.55))
+    stock_y = float(rng.uniform(-0.15, 0.15))
+    # ... pozíció beállítása ...
+    mujoco.mj_forward(self._model, self._data)
+    if np.linalg.norm(hand_pos - stock_pos) >= MIN_START_DIST:
+        break
 ```
