@@ -2,8 +2,8 @@
 # Phase 030 F3a — utolsó PPO kísérlet (2026-04-29)
 #
 # Változások v11-hez képest:
-#   - action_dim: 5 → 6 (+ wrist_roll DOF)
 #   - Phase-agnosztikus reward: minden komponens mindig aktív (nincs fázis-plateau)
+#   - wrist DOF kihagyva (env módosítás nélkül futtatható)
 #   - w_contact_force: folytonos contact force reward (nem bináris flag)
 #   - n_envs: 8 (SubprocVecEnv — M2 párhuzamos)
 #   - total_timesteps: 5M
@@ -24,8 +24,8 @@ env:
   goal_radius: 0.08
   grasp_dist_threshold: 0.10
   lift_height: 0.10
-  obs_dim: 25          # +1: wrist_roll joint_pos/vel pár → +2 összesen, de obs_dim=25 az 5. DOF-al
-  action_dim: 6        # 4 kar + 1 wrist_roll + 1 gripper
+  obs_dim: 24          # változatlan (wrist DOF kihagyva — phase-agnostic reward az érdemi változás)
+  action_dim: 5        # 4 kar + 1 gripper (wrist nélkül)
 
   # Curriculum: stock pozíció tartomány lineárisan bővül a training során
   curriculum:
@@ -93,11 +93,16 @@ vec_normalize:
   clip_obs: 10.0
 
 acceptance:
-  min_success_rate: 0.70   # pivot döntés küszöb
+  # F3a küszöb: 50% (NEM 70%!) — pivot terv 2.1 szekció szerint
+  # ≥ 50% → PPO-baseline rögzítve, befektetői pitch slide
+  # < 50% → szintén jó: a BC pivot szükségessége még erősebb
+  # (A 70% a teljes F3 elfogadási feltétel — F3d BC+PPO PPF után)
+  min_success_rate: 0.50
   phase_reach_min: 0.85
   phase_grasp_min: 0.75
 
-# --- F3a döntési fa ---
-# v12 eredmény ≥ 70% success → F3 KÉSZ, pivot nem kell
-# v12 eredmény < 70% success → F3b: scripted_expert.py → LeRobot demo gyűjtés
+# --- F3a döntési fa (pivot terv 5. szekció alapján) ---
+# v12 eredmény ≥ 50% → PPO-baseline dokumentálva, F3b indul párhuzamosan
+# v12 eredmény < 50% → szintén: F3b indul, a BC pivot indoklása erősebb
+# F3b → F3c (ACT BC) → F3d (BC+PPO, ha F3c < 80%) → F3e (UnifoLM-VLA-0, Kaggle T4)
 # (tools/scripted_expert.py, tools/lerobot_export.py)

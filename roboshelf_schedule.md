@@ -1,6 +1,6 @@
 # Roboshelf AI Redesign — Ütemezés
 
-_Utoljára frissítve: 2026-04-27 (F3 pivot: scratch PPO → demonstráció-alapú pipeline, $0 compute)_  
+_Utoljára frissítve: 2026-04-28 (F3a lezárva: v12 0% → pivot megerősítve, F3b indul)_  
 _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokkolt_
 
 ---
@@ -158,7 +158,7 @@ _*fell_over=1.0 de time_out=0 → az epizód max lépésnél ér véget, nem val
 
 ### 030-F3 — Manipulation — PIVOT: Demonstráció-alapú pipeline (M2-primary)
 
-**Állapot:** 🔄 F3a folyamatban (v11 fut, v12-final következő)
+**Állapot:** 🔄 F3b folyamatban (F3a lezárva: v12 0% — pivot megerősítve)
 **Platform:** Mac M2 primary (CPU PPO + MPS BC) + Kaggle T4 free tier (VLA LoRA)
 **Elfogadási feltétel:** ≥75% success rate (F3d: BC+PPO) vagy ≥70% (F3e: UnifoLM-VLA-0)
 **Compute budget:** $0 (M2 + Kaggle T4 ingyenes kvóta)
@@ -172,7 +172,7 @@ _*fell_over=1.0 de time_out=0 → az epizód max lépésnél ér véget, nem val
 
 | Fázis | Platform | Idő | Elfogadás | Állapot |
 |---|---|---|---|---|
-| **F3a** — PPO sandbox lezárása (v12-final) | M2 CPU, n_envs=8 | 1 hét | ≥50% siker (PPO felső határ) | 🔄 v11 fut |
+| **F3a** — PPO sandbox lezárása (v12-final) | M2 CPU, n_envs=8 | 1 hét | ≥50% siker (PPO felső határ) | ✅ lezárva — 0% (12/12 PPO kísérlet) |
 | **F3b** — Scripted expert + 500 demo | M2 CPU | 1.5 hét | 500 sikeres demo, LeRobot v3.0 | ⬜ |
 | **F3c** — ACT BC baseline | M2 MPS, bfloat16 | 1.5 hét | ≥60% siker | ⬜ |
 | **F3d** — BC + PPO PPF fine-tune | M2 CPU+MPS | 3-5 nap | ≥75% siker | ⬜ |
@@ -192,12 +192,14 @@ _*fell_over=1.0 de time_out=0 → az epizód max lépésnél ér véget, nem val
 | v9_500k | 2026-04-26 | 500K | 10% | 0.314m | ✅ első siker! |
 | v9_5m | 2026-04-26 | 5M | 10% | 0.726m | ❌ GRASP plateau |
 | v10_2m | 2026-04-27 | 2M | 0% | 0.522m | ❌ w_smooth mozdulatlanság |
-| v11_3m | 2026-04-27 | 3M | — | — | ⬅️ fut/befejezve |
+| v11_3m | 2026-04-27 | 3M | — | — | ❌ nem futott (v12 váltotta) |
+| v12_5m | 2026-04-28 | 5M | 0% | 0.348m | ❌ REACH/GRASP plateau — **F3a LEZÁRVA** |
 
-**F3a — PPO-final (v12-final) feladatlista:**
-- [ ] v11 eredmény dokumentálása (schedule + Obsidian [[manipulation_training_retrospective]])
-- [ ] `configs/manipulation/shelf_stock_v12_final.yaml` — csuklórotáció + phase-agnosztikus reward + SubprocVecEnv n_envs=8
-- [ ] v12-final 5M training: `python src/roboshelf_ai/tasks/manipulation/train_shelf_stock.py --config configs/manipulation/shelf_stock_v12_final.yaml --total-timesteps 5000000 2>&1 | tee data/logs/v12_final_5m.log`
+**F3a — PPO-final (v12-final) feladatlista: ✅ LEZÁRVA 2026-04-28**
+- [x] v11 nem futott (v12 váltotta — azonos célok, kisebb scope)
+- [x] `configs/manipulation/shelf_stock_v12_final.yaml` — phase-agnosztikus reward + SubprocVecEnv n_envs=8 (wrist nélkül)
+- [x] v12-final 5M training: 0% siker, átlag dist=0.348m, REACH/GRASP plateau
+- [x] F3a eredmény dokumentálva — **scratch PPO sandbox 12 verzión át, ~49h, max 10%, $0 cost — LEZÁRVA**
 - [ ] Acceptance ellenőrzés: ≥50%? → PPO-baseline rögzítve | <50% → még jobb, BC-pivot indoklása erősebb
 - [ ] Git commit: `"feat(phase030-f3a): v12-final PPO sandbox lezárva"`
 
@@ -228,10 +230,10 @@ _*fell_over=1.0 de time_out=0 → az epizód max lépésnél ér véget, nem val
 - [ ] Checkpoint letöltés M2-re + eval: 50 epizód a sandbox env-en
 - [ ] Acceptance: ≥70%? → UnifoLM-VLA-0 a Phase 030 fő manipulációs ágens
 
-**Következő konkrét lépések (a héten):**
-1. v11 lefut → eredmény dokumentálva
-2. v12-final config + training (F3a befejezése)
-3. `tools/scripted_expert.py` IK-validáció (F3b kezdete)
+**Következő konkrét lépések (F3b — scripted expert):**
+1. `python3 tools/scripted_expert.py --n-demos 50 --out-dir data/demos/scripted_v1 --save-raw` — IK-validáció (50 demo)
+2. Ha ≥ 80% sikerességi arány: `python3 tools/scripted_expert.py --n-demos 500 ...` — teljes gyűjtés
+3. `python3 tools/lerobot_export.py --in-dir data/demos/scripted_v1 --out-dir data/lerobot/scripted_v1` — LeRobot v3.0 export
 4. 500 demo generálás + LeRobot push_to_hub
 5. Kaggle account setup (F3e előkészítés)
 
