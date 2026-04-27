@@ -1,0 +1,102 @@
+# ACT (Action Chunking Transformer) — Shelf Stock BC Config v1
+# Phase 030 F3c — Behavioral Cloning (2026-04-29)
+#
+# Architektúra: ACT (Zhao et al., 2023) — "Learning Fine-Grained Bimanual..."
+# Backend: Apple MPS (M2) bfloat16
+# Betanítási adatok: data/lerobot/scripted_v1/ (LeRobotDataset v3.0)
+#
+# Elfogadási feltétel: ≥ 70% success rate 20 epizódon (azonos mint PPO)
+# Ha nem teljesül: F3d (BC + PPO PPF fine-tune)
+
+# --- Dataset ---
+dataset:
+  path: data/lerobot/scripted_v1
+  obs_dim:    24
+  action_dim: 5
+  fps:        20
+  train_split: 0.9    # 90% train, 10% val
+  seed: 42
+
+# --- Model ---
+model:
+  type: ACT
+
+  # Encoder (observation → latent)
+  obs_encoder:
+    type: mlp
+    hidden_dims: [256, 256]
+    activation: relu
+    layer_norm: true
+
+  # Transformer (action chunking)
+  transformer:
+    d_model: 256
+    nhead: 8
+    num_encoder_layers: 4
+    num_decoder_layers: 7
+    dim_feedforward: 3200
+    dropout: 0.1
+    activation: relu
+    normalize_before: true
+
+  # Action chunk
+  chunk_size: 20         # 20 lépés = 1 másodperc @ 20Hz (ACT paper: 100 for 50Hz)
+  action_dim: 5
+
+  # VAE a latent action prior-hoz (ACT eredeti architektúra)
+  vae:
+    enabled: true
+    latent_dim: 32
+    kl_weight: 10.0       # β-VAE súly (ACT paper: 10)
+
+# --- Training ---
+training:
+  # Apple MPS backend
+  device: mps            # "mps" (M2), "cpu" (fallback), "cuda" (Kaggle)
+  dtype: bfloat16        # M2 MPS optimális
+
+  batch_size: 32         # M2 8GB VRAM-hoz igazítva
+  num_epochs: 100
+  learning_rate: 1.0e-4
+  weight_decay: 1.0e-4
+  lr_schedule: cosine
+  warmup_steps: 500
+  grad_clip: 10.0
+
+  # Checkpoint
+  save_every_n_epochs: 10
+  checkpoint_dir: results/bc_checkpoints_act_v1/
+  keep_last_n: 3
+
+  # Logging
+  tensorboard_log: data/logs/bc_act_v1/
+  log_every_n_steps: 50
+
+# --- Evaluation ---
+eval:
+  n_eval_episodes: 20
+  eval_every_n_epochs: 10
+  deterministic: true
+  env:
+    xml_path: src/envs/assets/scene_manip_sandbox_v2.xml
+    max_episode_steps: 500
+    goal_radius: 0.08
+
+# --- Normalization ---
+# Stats automatikusan betöltődnek: dataset.path/meta/stats.json
+normalization:
+  obs:    zscore     # (obs - mean) / std
+  action: minmax     # → [-1, 1]
+
+# --- Elfogadás ---
+acceptance:
+  min_success_rate: 0.70
+  # Ha nem teljesül → F3d: BC + PPO PPF (configs/bc_ppo/preservative_finetune_v1.yaml)
+
+# --- Futtatás (repo gyökeréből) ---
+# python3 tools/train_act.py \
+#   --config configs/bc/act_shelf_stock_v1.yaml \
+#   --dataset data/lerobot/scripted_v1
+#
+# M2 várható idő: ~6-8h (100 epoch, 50 demo × ~300 lépés = ~15k frame)
+# Kaggle T4-en: ~1-2h (ha szükséges)

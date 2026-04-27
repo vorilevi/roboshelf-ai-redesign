@@ -1,6 +1,6 @@
 # Roboshelf AI Redesign — Ütemezés
 
-_Utoljára frissítve: 2026-04-22 (Platform-szétválasztás hozzáadva: Mac M2 vs Vast.ai)_  
+_Utoljára frissítve: 2026-04-27 (F3 pivot: scratch PPO → demonstráció-alapú pipeline, $0 compute)_  
 _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokkolt_
 
 ---
@@ -13,13 +13,14 @@ _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokko
 | Locomotion PPO fine-tune (unitree_rl_mjlab) | **Mac M2** | Lassabb CPU-n, de fut — nem kell Vast.ai |
 | Manipulation env rebuild (MuJoCo + SB3 PPO) | **Mac M2** | Phase 025 precedens: loco ✅, nav ✅ |
 | HEIS adapter, PIL DB, stub tesztek, eval_vla_abc stub | **Mac M2** | Pure Python |
-| WALL-OSS inference (valós) | **Vast.ai A100** | `device="cuda"` hardcoded, CUDA 12.x kell |
-| UnifoLM-VLA-0 inference (valós) | **Vast.ai A100** | CUDA 12.4 + flash-attn 2.5.6 kell |
-| GR00T N1.6 inference (valós) | **Vast.ai A100** | Diffúziós transzformer, GPU kötelező |
-| VLA A/B/C teszt — 50 epizód/modell (F4) | **Vast.ai A100** | Első GPU-igényes mérföldkő |
-| Retail fine-tune (F5) | **Vast.ai A100** | ~500 epizód, több epoch |
+| ACT BC baseline tréning | **Mac M2 MPS** | bfloat16, ~6-8h, F3c |
+| BC + PPO PPF fine-tune | **Mac M2 CPU+MPS** | ~2h, F3d |
+| UnifoLM-VLA-0 LoRA fine-tune | **Kaggle T4 (ingyenes)** | ~10-12h, heti 30h kvótából, F3e |
+| WALL-OSS / GR00T / UnifoLM teljes A/B/C teszt | **Vast.ai A100** | Phase 040, finanszírozás után |
+| Retail fine-tune (F5) | **Vast.ai A100** | Phase 040, finanszírozás után |
 
-**Ökölszabály:** MuJoCo + PPO → Mac M2. VLA inference → Vast.ai. Vast.ai csak F4-től kell.
+**⚠️ 2026-04-27 pivot:** Vast.ai budget: $25-30 → $0. F3 teljes egészében M2 + Kaggle T4 ingyenes kvóta.
+**Ökölszabály:** MuJoCo PPO + BC → Mac M2. VLA LoRA burst → Kaggle T4 free. Vast.ai → Phase 040 (finanszírozás után).
 
 ---
 
@@ -155,111 +156,84 @@ _*fell_over=1.0 de time_out=0 → az epizód max lépésnél ér véget, nem val
 
 ---
 
-### 030-F3 — Manipulation env rebuild — Platform: Mac M2
+### 030-F3 — Manipulation — PIVOT: Demonstráció-alapú pipeline (M2-primary)
 
-**Állapot:** 🔄 folyamatban — env kész, 100K eval kész, 5M training SZÜKSÉGES  
-**Platform:** Mac M2 (MuJoCo + SB3 PPO)  
-**Elfogadási feltétel:** ≥70% success rate 20 epizódon.
+**Állapot:** 🔄 F3a folyamatban (v11 fut, v12-final következő)
+**Platform:** Mac M2 primary (CPU PPO + MPS BC) + Kaggle T4 free tier (VLA LoRA)
+**Elfogadási feltétel:** ≥75% success rate (F3d: BC+PPO) vagy ≥70% (F3e: UnifoLM-VLA-0)
+**Compute budget:** $0 (M2 + Kaggle T4 ingyenes kvóta)
+**Timeline:** 5-6 hét (2026-04-27 – 2026-06-07)
 
-**Kontextus — Phase 025 manip failure root cause:**
-- Equality constraint → QACC NaN/Inf DOF 12, 29 → fizikai instabilitás → 0% success
-- **Fix: equality constraint teljes eltávolítása az MJCF-ből**
+> ⚠️ **2026-04-27 PIVOT:** A scratch PPO sandbox (v1-v11, 11 kísérlet, ~44h futtatás, 10% max siker)
+> lezárva. Átállás: LeRobotDataset v3.0 demonstráció → ACT BC baseline → BC+PPO PPF fine-tune
+> → UnifoLM-VLA-0 LoRA. Részletes indoklás: Obsidian [[roboshelf_F3_manipulation_pivot_2026-04-27]]
 
-**Elvégzett javítások (2026-04-23/24):**
-- [x] `scene_manip_sandbox_v2.xml` — equality blokk eltávolítva, timestep=0.001, damping=200, armature=0.5
-- [x] `g1_shelf_stock_env.py` — act_dim=model.nu=4, obs_dim=18, SIM_DT=0.001, stock x=0.45, arm=[0.5,0,0,0.3]
-- [x] NaN/Inf check: **count=0** ✅
-- [x] mjpython vizuális ellenőrzés: G1 robot, kar a termék felé mutat ✅
-- [x] 100K training futtatva → dist=0.932m (volt: 1.654m), 0% success (várható 100K-nál)
-- [x] `docs/known_issues.md` létrehozva (#1–#9)
+**F3 alszakaszok:**
 
-**Tanítási napló — F3:**
+| Fázis | Platform | Idő | Elfogadás | Állapot |
+|---|---|---|---|---|
+| **F3a** — PPO sandbox lezárása (v12-final) | M2 CPU, n_envs=8 | 1 hét | ≥50% siker (PPO felső határ) | 🔄 v11 fut |
+| **F3b** — Scripted expert + 500 demo | M2 CPU | 1.5 hét | 500 sikeres demo, LeRobot v3.0 | ⬜ |
+| **F3c** — ACT BC baseline | M2 MPS, bfloat16 | 1.5 hét | ≥60% siker | ⬜ |
+| **F3d** — BC + PPO PPF fine-tune | M2 CPU+MPS | 3-5 nap | ≥75% siker | ⬜ |
+| **F3e** — UnifoLM-VLA-0 LoRA | Kaggle T4 (~10-12h) | 1 hét | ≥70% siker | ⬜ |
 
-| Run | Dátum | Lépések | Reach% | Place% | Átlag dist | Megjegyzés |
-|---|---|---|---|---|---|---|
-| v5 | 2026-04-23 | 5M | 0% | 0% | 1.654m konstans | ❌ stock x=1.2 → elérhetetlen, equality constraint NaN |
-| v6_100k | 2026-04-24 | 100K | 0% | 0% | 0.932m | ✅ env javított, dist javult, 100K nem elég |
-| v6_5m | 2026-04-24 | 5M | 0% | 0% | 0.932m konstans | ❌ lineáris reward + rossz DEFAULT_ARM_POS + target mögött |
-| v7_500k | 2026-04-25 | 500K | GRASP 60% | 0% | 0.225m | ✅ tanul! REACH+GRASP megy, LIFT nem indul el |
-| v7_5m | 2026-04-25 | 5M | GRASP 80% | 0% | 0.444m | ❌ policy collapse — ent_coef=0.01 túl alacsony |
-| v8_5m | 2026-04-25 | 5M | GRASP 60% | 0% | 1.239m | ❌ ent_coef=0.05 túl random, nincs gripper fizikailag |
-| v9_500k | 2026-04-26 | 500K | GRASP 70% | 10% | 0.314m | ✅ gripper működik! Első valaha sikeres elhelyezés |
-| v9_5m | 2026-04-26 | 5M | GRASP 90% | 10% | 0.726m | ❌ GRASP plateau, LIFT fázisba sosem jut |
-| v10_2m | 2026-04-27 | 2M | REACH 100% | 0% | 0.522m | ❌ w_smooth=-0.01 → mozdulatlanság local optimum |
-| **v11_3m** | **2026-04-27** | **3M** | **?** | **?** | **?** | **⬅️ folyamatban: w_smooth=-0.001, w_lift=5.0** |
+**PPO sandbox lezárva (v1-v11 retrospektív):** Részletes technikai tanulságok: Obsidian [[manipulation_training_retrospective]]
 
-**Következő lépés — 5M training (két terminál tab szükséges!):**
+**PPO sandbox tanítási napló (LEZÁRVA — v1-v11):**
 
-Tab 1 (training + log):
-```bash
-cd ~/roboshelf-ai-dev/roboshelf-ai-redesign
-python3 src/roboshelf_ai/tasks/manipulation/train_shelf_stock.py \
-  --config configs/manipulation/shelf_stock_v6.yaml \
-  2>&1 | tee results/manip_5m_v6.log
-```
+| Run | Dátum | Lépések | Siker | Átlag dist | Eredmény |
+|---|---|---|---|---|---|
+| v5 | 2026-04-23 | 5M | 0% | 1.654m | ❌ elérhetetlen target |
+| v6_5m | 2026-04-24 | 5M | 0% | 0.932m | ❌ lineáris reward |
+| v7_500k | 2026-04-25 | 500K | 0% | 0.225m | ✅ tanh reward tanul |
+| v7_5m | 2026-04-25 | 5M | 0% | 0.444m | ❌ ent_coef collapse |
+| v8_5m | 2026-04-25 | 5M | 0% | 1.239m | ❌ nincs gripper |
+| v9_500k | 2026-04-26 | 500K | 10% | 0.314m | ✅ első siker! |
+| v9_5m | 2026-04-26 | 5M | 10% | 0.726m | ❌ GRASP plateau |
+| v10_2m | 2026-04-27 | 2M | 0% | 0.522m | ❌ w_smooth mozdulatlanság |
+| v11_3m | 2026-04-27 | 3M | — | — | ⬅️ fut/befejezve |
 
-Tab 2 (progress követés):
-```bash
-tail -f ~/roboshelf-ai-dev/roboshelf-ai-redesign/results/manip_5m_v6.log
-```
+**F3a — PPO-final (v12-final) feladatlista:**
+- [ ] v11 eredmény dokumentálása (schedule + Obsidian [[manipulation_training_retrospective]])
+- [ ] `configs/manipulation/shelf_stock_v12_final.yaml` — csuklórotáció + phase-agnosztikus reward + SubprocVecEnv n_envs=8
+- [ ] v12-final 5M training: `python src/roboshelf_ai/tasks/manipulation/train_shelf_stock.py --config configs/manipulation/shelf_stock_v12_final.yaml --total-timesteps 5000000 2>&1 | tee data/logs/v12_final_5m.log`
+- [ ] Acceptance ellenőrzés: ≥50%? → PPO-baseline rögzítve | <50% → még jobb, BC-pivot indoklása erősebb
+- [ ] Git commit: `"feat(phase030-f3a): v12-final PPO sandbox lezárva"`
 
-⚠️ known_issues.md #7: progress bar csak a Tab 2-ben látszik, Tab 1-ben a tee elnyeli.
+**F3b — Scripted expert + demo gyűjtés feladatlista:**
+- [ ] `tools/scripted_expert.py` megírva — IK-alapú reach→grasp→lift→place szekvencia
+- [ ] IK-validáció M2-n: `python tools/scripted_expert.py --validate --episodes 10`
+- [ ] 500 epizód generálás: `python tools/scripted_expert.py --episodes 500 --output data/demos/shelf_stock_scripted/`
+- [ ] `tools/lerobot_export.py` — trajektória → LeRobotDataset v3.0 konverzió
+- [ ] `dataset.finalize()` + replay-validáció (mind az 500 sikeres?)
+- [ ] `push_to_hub` → privát Hugging Face repo
 
-- [x] v6 5M training futtatva → 0% success (root cause: lineáris reward + rossz DEFAULT_ARM_POS + target mögötte)
-- [x] Root cause analízis: debug_hand_pos.py + debug_reach.py → azonosítva 3 hiba
-- [x] Kutatás: DeepMind PandaPickCube reward & obs design (Obsidian 03 Resources)
+**F3c — ACT BC baseline feladatlista:**
+- [ ] `configs/bc/act_shelf_stock_v1.yaml` — M2 MPS-optimalizált (4×4×256 decoder, batch=32, bfloat16)
+- [ ] `lerobot.scripts.train` futtatás M2 MPS-en: ~6-8h
+- [ ] Eval: 50 epizód, placed=True arány mérés
+- [ ] Acceptance: ≥60%? → F3d | ≥80%? → F3d kihagyható, közvetlenül F3e
 
-**v7 javítások (2026-04-24):**
-- [x] Reward: `-w*dist` → `1-tanh(5*dist)` (PandaPickCube minta)
-- [x] Obs: `hand→stock` + `stock→target` relatív vektorok (obs_dim 18→24)
-- [x] Grasp: contact force flag az obs-ban
-- [x] DEFAULT_ARM_POS: `[0.5,0,0,0.3]` → `[-1.0,0.2,-0.2,1.2]` (debug optimum)
-- [x] Target: `x=-0.41` → `x=0.45, y=0, z=0.97` (robot előtt, elérhető)
-- [x] `configs/manipulation/shelf_stock_v7.yaml` létrehozva
-- [x] `docs/known_issues.md` #10-12 hozzáadva
+**F3d — BC + PPO PPF fine-tune feladatlista:**
+- [ ] `configs/bc_ppo/preservative_finetune_v1.yaml` — BC súlyokból induló PPO, KL-constraint
+- [ ] 2M lépés, n_envs=8, ~1.5-2h M2-n
+- [ ] Acceptance: ≥75%? → ✅ **F3 SANDBOX ELFOGADVA**
 
-**Következő lépés — v7 training (két terminál tab):**
+**F3e — UnifoLM-VLA-0 LoRA fine-tune feladatlista:**
+- [ ] Kaggle account setup, heti T4 kvóta ellenőrzés (30h/hét)
+- [ ] UnifoLM-VLA-0 pretrained checkpoint lokális mirror
+- [ ] `notebooks/kaggle_unifolm_vla_lora_v1.ipynb` megírva
+- [ ] LoRA fine-tune: rank=64, alpha=128, ~3h GPU-idő / iteráció, max 3 iteráció (~10-12h total)
+- [ ] Checkpoint letöltés M2-re + eval: 50 epizód a sandbox env-en
+- [ ] Acceptance: ≥70%? → UnifoLM-VLA-0 a Phase 030 fő manipulációs ágens
 
-Tab 1:
-```bash
-cd ~/roboshelf-ai-dev/roboshelf-ai-redesign
-python3 src/roboshelf_ai/tasks/manipulation/train_shelf_stock.py \
-  --config configs/manipulation/shelf_stock_v7.yaml \
-  2>&1 | tee results/manip_5m_v7.log
-```
-
-Tab 2:
-```bash
-tail -f ~/roboshelf-ai-dev/roboshelf-ai-redesign/results/manip_5m_v7.log
-```
-
-- [x] Sanity check: `python3 tools/debug_hand_pos.py` → hand→stock=0.086m reset után ✅
-- [x] v7 500K smoke test → GRASP 60%, dist=0.225m ✅ (tanul!)
-- [x] v7 5M training → GRASP 80%, dist=0.444m ❌ policy collapse (known_issue #14)
-- [x] Root cause: `ent_coef=0.01` + `w_lift=1.0` → policy exploit-olja a grasp-ot, soha nem próbálja a lift-et
-- [x] `configs/manipulation/shelf_stock_v8.yaml` létrehozva (ent_coef=0.05, w_lift=3.0, lift_trigger=0.03m)
-- [x] `g1_shelf_stock_env.py` v8 lift trigger logika hozzáadva
-- [x] `docs/known_issues.md` #13–14 hozzáadva
-- [x] Git commit: `"feat(phase030-f3): manipulation env v7 — tanh reward, 24-dim obs, target fix"` ✅
-
-**Következő lépés — v8 5M training:**
-
-Tab 1:
-```bash
-cd ~/roboshelf-ai-dev/roboshelf-ai-redesign
-python3 src/roboshelf_ai/tasks/manipulation/train_shelf_stock.py \
-  --config configs/manipulation/shelf_stock_v8.yaml \
-  2>&1 | tee results/manip_5m_v8.log
-```
-
-Tab 2:
-```bash
-tail -f ~/roboshelf-ai-dev/roboshelf-ai-redesign/results/manip_5m_v8.log
-```
-
-- [ ] v8 5M training futtatva
-- [ ] Success rate ≥ 70%? → F3 ✅ | <70%? → v9 reward tuning
-- [ ] Git commit: `"feat(phase030): F3 manip v8 — ent_coef=0.05, w_lift=3.0, lift trigger"`
+**Következő konkrét lépések (a héten):**
+1. v11 lefut → eredmény dokumentálva
+2. v12-final config + training (F3a befejezése)
+3. `tools/scripted_expert.py` IK-validáció (F3b kezdete)
+4. 500 demo generálás + LeRobot push_to_hub
+5. Kaggle account setup (F3e előkészítés)
 
 ---
 
