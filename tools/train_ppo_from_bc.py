@@ -127,6 +127,39 @@ class PPOActorCritic(nn.Module):
         return log_prob, entropy, val
 
 
+# ─── Dense reward (obs-ból számítható, nem kell env módosítás) ───────────────
+
+def compute_dense_reward(obs_raw: np.ndarray, info: dict) -> float:
+    """
+    Phase-guided dense reward — az egyszerű dist-reward helyett.
+    Komponensek:
+      approach_rew : kar közel a 'stock mögötti' pozícióhoz (APPROACH fázis)
+      dist_rew     : stock közel a targethez (PUSH fázis)
+      contact_rew  : érintkezési bónusz
+      success_rew  : siker bónusz
+    """
+    hand_pos   = obs_raw[0:3]
+    stock_pos  = obs_raw[3:6]
+    target_pos = obs_raw[6:9]
+    contact_f  = obs_raw[23]
+
+    push_vec = target_pos[:2] - stock_pos[:2]
+    push_len = float(np.linalg.norm(push_vec)) + 1e-8
+    push_dir = push_vec / push_len
+
+    # APPROACH: kar a stock 'mögötti' ponthoz (push iránnyal ellentétes irány, 15cm)
+    behind_xy      = stock_pos[:2] - push_dir * 0.15
+    hand_to_behind = float(np.linalg.norm(hand_pos[:2] - behind_xy))
+    approach_rew   = 1.5 * (1.0 - np.tanh(5.0 * hand_to_behind))
+
+    # PUSH: stock→target közelség
+    dist_rew    = 3.0 * (1.0 - np.tanh(5.0 * push_len))
+    contact_rew = float(contact_f) * 1.5
+    success_rew = 15.0 if info.get("success", False) else 0.0
+
+    return approach_rew + dist_rew + contact_rew + success_rew
+
+
 # ─── Rollout Buffer ───────────────────────────────────────────────────────────
 
 class RolloutBuffer:
@@ -303,6 +336,18 @@ def train(args):
                 print(f"Optimizer state nem kompatibilis, friss init ({e})")
 
     # ── Env ──
+    # Fix pozíció override: module-szintű konstansok felülírása
+    if args.fixed_pos_x is not None:
+        x = args.fixed_pos_x
+        eps = 1e-6   # nulla szélességű range → mindig ugyanaz a pozíció
+        _exp.STOCK_RESET_X_RANGE = (x - eps, x + eps)
+        y_str = f"{args.fixed_pos_y:.3f}" if args.fixed_pos_y is not None else "free"
+        print(f"Fix stock pozíció: x={x:.3f}, y={y_str}")
+    if args.fixed_pos_y is not None:
+        y = args.fixed_pos_y
+        eps = 1e-6
+        _exp.STOCK_RESET_Y_RANGE = (y - eps, y + eps)
+
     env = ScriptedExpert(seed=args.seed)
 
     # ── Buffer ──
@@ -360,6 +405,10 @@ def train(args):
                 action_np = action_t.squeeze(0).cpu().numpy()
 
                 next_obs_np, reward, done, info = env.step(action_np)
+
+                # Dense reward override (phase-guided, obs-ból számítható)
+                if args.dense_reward:
+                    reward = compute_dense_reward(next_obs_np, info)
 
                 buf.add(
                     obs_t.squeeze(0),
@@ -499,6 +548,14 @@ Futtatás (repo gyökeréből):
                    help="Checkpoint útvonal a folytatáshoz (pl. results/ppo_from_bc_v1/ppo_final.pt)")
     p.add_argument("--eval-only", action="store_true",
                    help="Csak 50 epizód eval, nincs tréning")
+
+    # Fix pozíció + dense reward (4 órás F3e teszt)
+    p.add_argument("--fixed-pos-x", type=float, default=None,
+                   help="Fix stock x pozíció (pl. 0.28) — mindig ugyanaz a reset")
+    p.add_argument("--fixed-pos-y", type=float, default=None,
+                   help="Fix stock y pozíció (pl. 0.0) — mindig ugyanaz a reset")
+    p.add_argument("--dense-reward", action="store_true",
+                   help="Phase-guided dense reward: approach+dist+contact+success")
 
     args = p.parse_args()
 
