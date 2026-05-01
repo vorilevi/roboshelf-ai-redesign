@@ -92,20 +92,32 @@ STOCK_RESET_Z           = 0.870 # m — kinematikai reset z (env-vel azonos)
 APPROACH_BEHIND_DIST = 0.15  # m — ennyivel megy a stock mögé (push iránnyal ellentétesen)
 APPROACH_HEIGHT      = 0.90  # m — APPROACH fázis z (stock tető 0.81m fölé biztonsággal)
 PUSH_HEIGHT          = 0.79  # m — PUSH fázis z (stock center 0.77m ≈ laterális kontakt)
-PUSH_THROUGH         = 0.06  # m — ennyivel megy túl a target-en a push során
+PUSH_THROUGH         = 0.05  # m — dinamikus push: stock_pos + push_dir * 0.05 (nem fixált target+offset)
 APPROACH_XY_THRESH   = 0.10  # m — APPROACH→PUSH átmenet laterális távolság küszöb
-APPROACH_TIMEOUT     = 60    # lépés — fallback PUSH-ra ha APPROACH nem konvergál
+APPROACH_TIMEOUT     = 120   # lépés — fallback PUSH-ra ha APPROACH nem konvergál (volt: 60)
 
-# F3c reset tartomány — szélesített (nem triviális push szükséges legtöbbször):
-# x∈[0.25, 0.65] → Δx_max=±0.20m, y∈[-0.15, 0.15] → Δy_max=±0.15m
-# Max Δxy=sqrt(0.20²+0.15²)=0.25m >> GOAL_RADIUS=0.08m → push szükséges
-STOCK_RESET_X_RANGE = (0.25, 0.65)
-STOCK_RESET_Y_RANGE = (-0.15, 0.15)
+# F3c v2 reset tartomány — FIX PUSH IRÁNY redesign (2026-05-01):
+#
+# Probléma (v1, 7.1% SR): széles range → stock néha a target "túloldalán" →
+#   az arm APPROACH behind-pozíciója x>0.60 → workspace-en kívül → fail.
+#
+# Megoldás: stock MINDIG a target robot-oldali részén (x < target_x=0.45):
+#   - Push irány: mindig közel +x (robot→target irány)
+#   - APPROACH behind = stock_x − 0.15 → mindig x<0.22 → workspace garantált
+#   - MIN távolság: stock_x_max=0.36 → place_dist_min=0.09m > GOAL_RADIUS → nem triviális
+#
+# Range: x∈[0.20, 0.36], y∈[-0.08, 0.08]
+#   Max push: sqrt(0.25²+0.08²)=0.26m | Min push: sqrt(0.09²+0.08²)=0.12m
+STOCK_RESET_X_RANGE = (0.20, 0.36)
+STOCK_RESET_Y_RANGE = (-0.08, 0.08)
 
-# Minimális lépésszám a sikerhez (known issue #18/#21 guard):
-# Stock kinematikai z=0.870 → settled z=0.770 (esik steps 0-25-ben).
-# Target z=0.770 → esés közben áthalad a target z-n → MIN_SUCCESS_STEP blokkolja.
-MIN_SUCCESS_STEP = 25
+# Minimális lépésszám a sikerhez:
+# - 25 (eredeti): stock z-esés guard (z=0.870→0.770, steps 0-25)
+# - 50 (v2): stock + arm-deflection guard. A stock a reset utáni esés közben
+#   nekiütközhet az arm alapállású kezének (z≈0.75m) → kis lateral push →
+#   beesik targetbe, anélkül hogy az expert valóban tolna (triviális siker).
+#   50 lépés = 2.5s → az arm-deflection sikerek kiszűrve, valódi tolások megmaradnak.
+MIN_SUCCESS_STEP = 50
 
 
 # ---------------------------------------------------------------------------
@@ -429,10 +441,12 @@ class ScriptedExpert:
             gripper  = -1.0   # nyitva
 
         elif self._phase == ExpertPhase.PUSH:
-            # Keresztülsöpör: target + push_dir * PUSH_THROUGH, stock center magasságán
+            # Fix push-through: target mögött PUSH_THROUGH-val, stock center magasságán.
+            # A stock mindig robot-oldalon van (x < target_x) → push-through pont mindig
+            # elérhető workspace-ben (target_x + 0.10 ≈ 0.55, ami az arm számára OK).
             push_through_xy = target_pos[:2] + push_dir * PUSH_THROUGH
             goal_xyz = np.array([push_through_xy[0], push_through_xy[1], PUSH_HEIGHT])
-            gripper  = -1.0   # nyitva (kevesebb ütközés)
+            gripper  = -1.0   # nyitva
 
         else:  # DONE
             goal_xyz = hand_pos.copy()
