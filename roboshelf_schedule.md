@@ -1,6 +1,6 @@
 # Roboshelf AI Redesign — Ütemezés
 
-_Utoljára frissítve: 2026-04-28 (F3a lezárva: v12 0% → pivot megerősítve, F3b indul)_  
+_Utoljára frissítve: 2026-05-01 (F3d: v2=2% SR CVAE gap megerősítve → v3 plain BC (VAE disabled) fut)_  
 _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokkolt_
 
 ---
@@ -173,8 +173,9 @@ _*fell_over=1.0 de time_out=0 → az epizód max lépésnél ér véget, nem val
 | Fázis | Platform | Idő | Elfogadás | Állapot |
 |---|---|---|---|---|
 | **F3a** — PPO sandbox lezárása (v12-final) | M2 CPU, n_envs=8 | 1 hét | ≥50% siker (PPO felső határ) | ✅ lezárva — 0% (12/12 PPO kísérlet) |
-| **F3b** — Scripted expert + 500 demo | M2 CPU | 1.5 hét | 500 sikeres demo, LeRobot v3.0 | ⬜ |
-| **F3c** — ACT BC baseline | M2 MPS, bfloat16 | 1.5 hét | ≥60% siker | ⬜ |
+| **F3b** — Scripted expert + 500 demo (pick-and-place) | M2 CPU | 1.5 hét | 500 sikeres demo | ❌ blokkolt — geometriai deadlock (arm felülről nyomja le a stock-ot, nem emeli) |
+| **F3c** — Push task pivot + demo gyűjtés | M2 CPU | 1 hét | 200+ demo, LeRobot v3.0 | 🔄 folyamatban — 11% SR ✅ |
+| **F3d** — ACT BC baseline | M2 MPS, bfloat16 | 1.5 hét | ≥60% siker | ⬜ |
 | **F3d** — BC + PPO PPF fine-tune | M2 CPU+MPS | 3-5 nap | ≥75% siker | ⬜ |
 | **F3e** — UnifoLM-VLA-0 LoRA | Kaggle T4 (~10-12h) | 1 hét | ≥70% siker | ⬜ |
 
@@ -203,39 +204,93 @@ _*fell_over=1.0 de time_out=0 → az epizód max lépésnél ér véget, nem val
 - [ ] Acceptance ellenőrzés: ≥50%? → PPO-baseline rögzítve | <50% → még jobb, BC-pivot indoklása erősebb
 - [ ] Git commit: `"feat(phase030-f3a): v12-final PPO sandbox lezárva"`
 
-**F3b — Scripted expert + demo gyűjtés feladatlista:**
-- [ ] `tools/scripted_expert.py` megírva — IK-alapú reach→grasp→lift→place szekvencia
-- [ ] IK-validáció M2-n: `python tools/scripted_expert.py --validate --episodes 10`
-- [ ] 500 epizód generálás: `python tools/scripted_expert.py --episodes 500 --output data/demos/shelf_stock_scripted/`
-- [ ] `tools/lerobot_export.py` — trajektória → LeRobotDataset v3.0 konverzió
-- [ ] `dataset.finalize()` + replay-validáció (mind az 500 sikeres?)
-- [ ] `push_to_hub` → privát Hugging Face repo
+**F3b — Scripted expert pick-and-place: ❌ LEZÁRVA — geometriai deadlock (2026-04-29)**
 
-**F3c — ACT BC baseline feladatlista:**
-- [ ] `configs/bc/act_shelf_stock_v1.yaml` — M2 MPS-optimalizált (4×4×256 decoder, batch=32, bfloat16)
-- [ ] `lerobot.scripts.train` futtatás M2 MPS-en: ~6-8h
-- [ ] Eval: 50 epizód, placed=True arány mérés
-- [ ] Acceptance: ≥60%? → F3d | ≥80%? → F3d kihagyható, közvetlenül F3e
+**Root cause:** A kar felülről közelít → pálmával lenyomja a stock-ot, nem emeli. Fizikailag nem kivitelezhető a pick-and-place ezzel a 4-DOF kar setuppal. Részletes analízis: `docs/known_issues.md#20`, `#23`.
 
-**F3d — BC + PPO PPF fine-tune feladatlista:**
+**Elvégzett munka:**
+- [x] `tools/scripted_expert.py` megírva — Jacobian IK-alapú GRASP→LIFT→DONE
+- [x] `tools/policy_demo_collector.py` — PPO rollout gyűjtő (v9 config bugfix + MIN_SUCCESS_STEP guard)
+- [x] PPO v9 "10% success" audit: valódi SR=0% (evaluations.npz ep_len artifact)
+- [x] `src/envs/assets/scene_manip_sandbox_v2.xml` — target_shelf z: 0.97→0.85m, arm kp: 10→150
+- [x] `docs/known_issues.md` — #19, #20, #21, #21a, #22 felvéve
+- [x] `tools/diag_kp_sweep.py` — kp sweep diagnosztika (kp=150 igazolva)
+- [x] `tools/eval_with_metrics.py` — sr_valid metrika (MIN_SUCCESS_STEP guard)
+
+**F3c — Push task pivot: 🔄 folyamatban (2026-05-01)**
+
+> **Pivot döntés (2026-05-01):** pick-and-place → push task. Target z: 0.85→0.77m (settled level).
+> Stock laterálisan tolható a target pozícióba emelés nélkül. `docs/known_issues.md#23`
+
+**Elvégzett munka:**
+- [x] `scene_manip_sandbox_v2.xml` — target_shelf z: 0.85→0.77m (push task)
+- [x] `tools/scripted_expert.py` — APPROACH→PUSH→DONE stratégia újraírva
+- [x] Reset range: x∈[0.25,0.65], y∈[-0.15,0.15] — szélesített (push szükséges)
+- [x] Sanity check: **11% SR** (91 epizódból 10 siker, 110s) ✅
+
+**Kimért értékek (push task, 2026-05-01):**
+
+| Jelenség | Mért érték |
+|---|---|
+| Stock settled z | 0.770m (asztal 0.730 + félmagasság 0.040) |
+| Push task SR — sanity (91 ep) | **11%** (kis minta, torzított felső becslés) |
+| Push task SR — teljes gyűjtés (2000 ep) | **7.1%** (142/2000) ← igaz SR |
+| Demo gyűjtési sebesség | ~18s/sikeres demo, ~1.3s/epizód |
+| Gyűjtött demók | **142** (cél: 200, 2000 retry kimerült) |
+| Gyűjtési idő | 2552s (~42 perc) |
+
+⚠️ **SR megjegyzés:** A 11% kis mintán mért, torzított érték volt. Az igaz SR 7.1%.
+142 demo elfogadható BC tréninghez (~21k frame, chunk_size=20 → ~1050 ablak/epizód).
+
+**F3c maradék feladatok:**
+- [x] `python3 tools/scripted_expert.py --n-demos 200 --max-retries 2000` — **142/200 demo, 7.1% SR, 2552s** — 2026-05-01
+- [x] `python3 tools/lerobot_export.py --in-dir data/demos/scripted_v1 --out-dir data/lerobot/scripted_v1` — **142 ep, 6150 frame, ~43 lép/ep** — 2026-05-01
+- [ ] `push_to_hub` → privát Hugging Face repo (opcionális, F3e előtt)
+- [x] `docs/known_issues.md` #23 felvéve — 2026-05-01
+- [x] `tools/scripted_expert.py` --save-raw bug javítva → alapból ment pkl-t — 2026-05-01
+- [x] `tools/train_act.py` létrehozva — önálló ACT BC training (MPS/CPU, nincs lerobot.scripts.train dependency) — 2026-05-01
+
+**F3d — ACT BC baseline feladatlista:**
+- [x] `configs/bc/act_shelf_stock_v1.yaml` — M2 MPS-optimalizált (d=256, nhead=8, batch=32) — 2026-04-29
+- [x] `tools/train_act.py` — önálló ACT implementáció (nem lerobot.scripts.train!) — 2026-05-01
+- [x] `train_act.py --config act_shelf_stock_v1.yaml` — **4% SR** — SIKERTELEN (overfit: 25M param / 6k frame; kl_weight=10 collapse; eval norm bug) — 2026-05-01
+- [x] Root cause diagnózis + javítás: eval norm bug (denormalize_action hiányzott), v2 config (tiny modell d=64, kl=0.5)
+- [x] `train_act.py --config act_shelf_stock_v2.yaml` — **val_mse=0.0095 ✅, KL=443 ⚠️** (CVAE posterior messze N(0,1)-től → train/inference gap várható) — 2026-05-01
+- [x] eval v2 → **2% SR** (place_dist 0.335m, jobb mint v1 0.594m → norm fix ✅, CVAE gap ❌) — 2026-05-01
+- [ ] `python3 tools/train_act.py --config configs/bc/act_shelf_stock_v3.yaml` — plain BC, VAE disabled (~20-30 perc)
+- [ ] eval v3 → `eval_act.py --ckpt results/bc_checkpoints_act_v3 ... --exec-horizon 5`
+- [ ] Acceptance: ≥40%? → F3e PPF | <40%? → BC elfogadhatatlan → pivot: F3e PPF from scratch (BC init nélkül)
+
+**F3e — BC + PPO PPF fine-tune feladatlista:**
 - [ ] `configs/bc_ppo/preservative_finetune_v1.yaml` — BC súlyokból induló PPO, KL-constraint
 - [ ] 2M lépés, n_envs=8, ~1.5-2h M2-n
 - [ ] Acceptance: ≥75%? → ✅ **F3 SANDBOX ELFOGADVA**
 
-**F3e — UnifoLM-VLA-0 LoRA fine-tune feladatlista:**
+**F3f — UnifoLM-VLA-0 LoRA fine-tune feladatlista:**
 - [ ] Kaggle account setup, heti T4 kvóta ellenőrzés (30h/hét)
 - [ ] UnifoLM-VLA-0 pretrained checkpoint lokális mirror
 - [ ] `notebooks/kaggle_unifolm_vla_lora_v1.ipynb` megírva
-- [ ] LoRA fine-tune: rank=64, alpha=128, ~3h GPU-idő / iteráció, max 3 iteráció (~10-12h total)
-- [ ] Checkpoint letöltés M2-re + eval: 50 epizód a sandbox env-en
+- [ ] LoRA fine-tune: rank=64, alpha=128, ~10-12h total
 - [ ] Acceptance: ≥70%? → UnifoLM-VLA-0 a Phase 030 fő manipulációs ágens
 
-**Következő konkrét lépések (F3b — scripted expert):**
-1. `python3 tools/scripted_expert.py --n-demos 50 --out-dir data/demos/scripted_v1 --save-raw` — IK-validáció (50 demo)
-2. Ha ≥ 80% sikerességi arány: `python3 tools/scripted_expert.py --n-demos 500 ...` — teljes gyűjtés
-3. `python3 tools/lerobot_export.py --in-dir data/demos/scripted_v1 --out-dir data/lerobot/scripted_v1` — LeRobot v3.0 export
-4. 500 demo generálás + LeRobot push_to_hub
-5. Kaggle account setup (F3e előkészítés)
+**Következő konkrét lépések:**
+```bash
+# 1. Teljes dataset gyűjtés (~35 perc, Mac terminalból)
+cd ~/roboshelf-ai-dev/roboshelf-ai-redesign
+python3 tools/scripted_expert.py --n-demos 200 --max-retries 2000
+# → data/demos/scripted_v1/raw_demos.pkl (automatikusan ment)
+
+# 2. LeRobot v3.0 export (parquet + stats.json)
+python3 tools/lerobot_export.py \
+  --in-dir  data/demos/scripted_v1 \
+  --out-dir data/lerobot/scripted_v1
+
+# 3. ACT BC tréning (F3d) — ~6-8h M2 MPS-en
+# ⚠️  NEM lerobot.scripts.train (Hydra inkompatibilis) — saját train_act.py:
+python3 tools/train_act.py \
+  --config  configs/bc/act_shelf_stock_v1.yaml \
+  --dataset data/lerobot/scripted_v1
+```
 
 ---
 

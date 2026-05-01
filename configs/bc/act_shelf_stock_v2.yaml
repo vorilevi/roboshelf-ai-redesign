@@ -1,0 +1,110 @@
+# ACT BC Config v2 — Tiny modell, alacsony KL weight
+# Phase 030 F3d — 2026-05-01 diagnosztika alapján
+#
+# v1 post-mortem:
+#   - d_model=256, 7 dec layer → ~25M param, 6k frame → 4500x szorzó → overfit
+#   - kl_weight=10.0 → posterior collapse, MSE reconstruction ignorálva
+#   - eval normalizáció bug (javítva eval_act.py-ban)
+#
+# v2 változtatások:
+#   - d_model: 256 → 64   (paraméterszám: ~25M → ~600k)
+#   - nhead:   8   → 4    (d_model/nhead=16, stabil)
+#   - encoder: 4L  → 2L
+#   - decoder: 7L  → 3L
+#   - d_ff:    3200→ 256
+#   - kl_weight: 10.0 → 0.5  (rekonstrukció dominál)
+#   - chunk_size: 20 → 10    (push task ~43 lépés → 4 re-query/ep)
+#   - num_epochs: 100 → 400  (kis modell, több epoch kell a konvergenciához)
+#   - batch_size: 32 → 16    (kisebb batch → több gradient step/epoch)
+#
+# Acceptance: ≥ 40% SR után F3e PPF; ≥ 60% SR → F3e kihagyható
+
+# --- Dataset ---
+dataset:
+  path: data/lerobot/scripted_v1
+  obs_dim:    24
+  action_dim: 5
+  fps:        20
+  train_split: 0.9
+  seed: 42
+
+# --- Model ---
+model:
+  type: ACT
+
+  obs_encoder:
+    type: mlp
+    hidden_dims: [64]        # egyszerűbb encoder a kis modellhez
+    activation: relu
+    layer_norm: true
+
+  transformer:
+    d_model: 64
+    nhead: 4
+    num_encoder_layers: 2
+    num_decoder_layers: 3
+    dim_feedforward: 256
+    dropout: 0.1
+    activation: relu
+    normalize_before: true
+
+  chunk_size: 10             # 0.5 másodperc @ 20Hz
+  action_dim: 5
+
+  vae:
+    enabled: true
+    latent_dim: 16           # kisebb latent (volt: 32)
+    kl_weight: 0.5           # volt: 10.0 → posterior collapse; 0.5 → rekonstrukció dominál
+
+# --- Training ---
+training:
+  device: mps
+  dtype: float32             # MPS bfloat16 néha instabil tiny modellnél
+
+  batch_size: 16             # kisebb batch → több gradient step/epoch
+  num_epochs: 400            # kis modell gyorsan konvergál/epoch, több kell
+  learning_rate: 3.0e-4      # kicsit magasabb LR a kis modellhez
+  weight_decay: 1.0e-4
+  lr_schedule: cosine
+  warmup_steps: 200          # kevesebb warmup (kevesebb total step)
+  grad_clip: 1.0             # szigorúbb clip (volt: 10.0)
+
+  save_every_n_epochs: 50
+  checkpoint_dir: results/bc_checkpoints_act_v2/
+  keep_last_n: 3
+
+  tensorboard_log: data/logs/bc_act_v2/
+  log_every_n_steps: 50
+
+# --- Evaluation ---
+eval:
+  n_eval_episodes: 50
+  eval_every_n_epochs: 50
+  deterministic: true
+  env:
+    xml_path: src/envs/assets/scene_manip_sandbox_v2.xml
+    max_episode_steps: 300
+    goal_radius: 0.08
+
+# --- Normalization ---
+normalization:
+  obs:    zscore
+  action: minmax
+
+# --- Elfogadás ---
+acceptance:
+  min_success_rate: 0.40
+  # ≥40% → F3e PPF (BC+PPO preservative fine-tune)
+  # ≥60% → F3e kihagyható
+
+# --- Futtatás ---
+# python3 tools/train_act.py \
+#   --config configs/bc/act_shelf_stock_v2.yaml
+#
+# M2 MPS várható idő: ~20-40 perc (tiny modell, 400 epoch)
+# eval:
+# python3 tools/eval_act.py \
+#   --ckpt    results/bc_checkpoints_act_v2 \
+#   --stats   data/lerobot/scripted_v1/meta/stats.json \
+#   --n-eval  50 \
+#   --exec-horizon 5

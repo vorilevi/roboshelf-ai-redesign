@@ -45,7 +45,7 @@ from __future__ import annotations
 import argparse
 import json
 import pickle
-from dataclasses import asdict
+import sys
 from pathlib import Path
 from typing import List
 
@@ -59,6 +59,32 @@ except ImportError:
     _HAS_ARROW = False
     print("⚠️  pyarrow nem elérhető — Parquet mentés nem lehetséges.")
     print("   Telepítés: pip install pyarrow --break-system-packages")
+
+# ---------------------------------------------------------------------------
+# Pickle kompatibilitás
+#
+# A scripted_expert.py __main__-ként fut, ezért a pkl-ben az osztályok
+# "__main__.EpisodeBuffer" és "__main__.StepData" névvel vannak elmentve.
+# Ha lerobot_export.py-ból töltjük be, a pickle nem találja ezeket.
+# Megoldás: egyéni Unpickler, ami átirányít a scripted_expert modulra.
+# ---------------------------------------------------------------------------
+
+_TOOLS_DIR = Path(__file__).resolve().parent
+if str(_TOOLS_DIR) not in sys.path:
+    sys.path.insert(0, str(_TOOLS_DIR))
+
+import scripted_expert as _expert_mod   # noqa: E402
+
+
+class _ExpertUnpickler(pickle.Unpickler):
+    """Redirecteli __main__.EpisodeBuffer / StepData → scripted_expert.*"""
+
+    _REMAP = {"EpisodeBuffer", "StepData"}
+
+    def find_class(self, module: str, name: str):
+        if module == "__main__" and name in self._REMAP:
+            return getattr(_expert_mod, name)
+        return super().find_class(module, name)
 
 # ---------------------------------------------------------------------------
 # Konstansok
@@ -219,7 +245,7 @@ def main():
 
     print(f"Betöltés: {raw_path}")
     with open(raw_path, "rb") as f:
-        demos = pickle.load(f)
+        demos = _ExpertUnpickler(f).load()
 
     print(f"Betöltött demonstrációk: {len(demos)}")
     export_to_lerobot(demos, out_dir, verbose=not args.quiet)
