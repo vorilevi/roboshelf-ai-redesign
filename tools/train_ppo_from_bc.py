@@ -413,8 +413,8 @@ def train(args):
                 buf.add(
                     obs_t.squeeze(0),
                     action_t.squeeze(0),
-                    torch.tensor(reward,       device=device),
-                    torch.tensor(float(done),  device=device),
+                    torch.tensor(float(reward), dtype=torch.float32, device=device),
+                    torch.tensor(float(done),   dtype=torch.float32, device=device),
                     val_t.squeeze(0),
                     lp_t.squeeze(0),
                 )
