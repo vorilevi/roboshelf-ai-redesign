@@ -1,6 +1,6 @@
 # Roboshelf AI Redesign — Ütemezés
 
-_Utoljára frissítve: 2026-05-01 (F3d: v2=2% SR CVAE gap megerősítve → v3 plain BC (VAE disabled) fut)_  
+_Utoljára frissítve: 2026-05-23 (F3d LEZÁRVA: ACT v3 + BC+PPO v2 mindkettő 2% SR → 4-DOF fizikai korlát. F3e Kaggle notebook kész, futtatásra vár.)_  
 _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokkolt_
 
 ---
@@ -35,9 +35,9 @@ _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokko
 | Fázis | Időszak | Fókusz | Platform | Állapot |
 |---|---|---|---|---|
 | **030-F0** | ápr. 22–25 | Scaffold, dokumentáció, repo prep | Mac M2 | ✅ kész |
-| **030-F1** | ápr. 26 – máj. 9 | unitree_rl_mjlab + WALL-OSS sanity check | Mac M2 | 🔄 folyamatban |
-| **030-F2** | máj. 10–23 | VLA A/B/C protokoll + **loco PPO fine-tune** | **Mac M2** | ⬜ |
-| **030-F3** | máj. 24 – jún. 13 | **Manip env rebuild (equality constraint nélkül) + PPO** | **Mac M2** | ⬜ |
+| **030-F1** | ápr. 26 – máj. 9 | unitree_rl_mjlab + WALL-OSS sanity check | Mac M2 | ✅ kész |
+| **030-F2** | máj. 10–23 | VLA A/B/C protokoll + **loco PPO fine-tune** | **Mac M2** | ✅ kész |
+| **030-F3** | máj. 24 – jún. 13 | **Manip env rebuild + BC + VLA fine-tune** | **Mac M2 + Kaggle T4** | 🔄 folyamatban (F3e vár) |
 | **030-F4** | jún. 14 – júl. 4 | A/B/C teszt — VLA inference | **Vast.ai A100** | ⬜ |
 | **030-F5** | júl. 5 – aug. 1 | Retail fine-tune + EIbench | **Vast.ai A100** | ⬜ |
 | **030-F6** | aug. 2–31 | Befektetői demó, pitch deck, roadshow | Mac M2 + Vast.ai | ⬜ |
@@ -250,46 +250,44 @@ _*fell_over=1.0 de time_out=0 → az epizód max lépésnél ér véget, nem val
 - [x] `tools/scripted_expert.py` --save-raw bug javítva → alapból ment pkl-t — 2026-05-01
 - [x] `tools/train_act.py` létrehozva — önálló ACT BC training (MPS/CPU, nincs lerobot.scripts.train dependency) — 2026-05-01
 
-**F3d — ACT BC baseline feladatlista:**
-- [x] `configs/bc/act_shelf_stock_v1.yaml` — M2 MPS-optimalizált (d=256, nhead=8, batch=32) — 2026-04-29
-- [x] `tools/train_act.py` — önálló ACT implementáció (nem lerobot.scripts.train!) — 2026-05-01
-- [x] `train_act.py --config act_shelf_stock_v1.yaml` — **4% SR** — SIKERTELEN (overfit: 25M param / 6k frame; kl_weight=10 collapse; eval norm bug) — 2026-05-01
-- [x] Root cause diagnózis + javítás: eval norm bug (denormalize_action hiányzott), v2 config (tiny modell d=64, kl=0.5)
-- [x] `train_act.py --config act_shelf_stock_v2.yaml` — **val_mse=0.0095 ✅, KL=443 ⚠️** (CVAE posterior messze N(0,1)-től → train/inference gap várható) — 2026-05-01
-- [x] eval v2 → **2% SR** (place_dist 0.335m, jobb mint v1 0.594m → norm fix ✅, CVAE gap ❌) — 2026-05-01
-- [ ] `python3 tools/train_act.py --config configs/bc/act_shelf_stock_v3.yaml` — plain BC, VAE disabled (~20-30 perc)
-- [ ] eval v3 → `eval_act.py --ckpt results/bc_checkpoints_act_v3 ... --exec-horizon 5`
-- [ ] Acceptance: ≥40%? → F3e PPF | <40%? → BC elfogadhatatlan → pivot: F3e PPF from scratch (BC init nélkül)
+**F3d — ACT BC baseline feladatlista: ✅ LEZÁRVA 2026-05-02**
 
-**F3e — BC + PPO PPF fine-tune feladatlista:**
-- [ ] `configs/bc_ppo/preservative_finetune_v1.yaml` — BC súlyokból induló PPO, KL-constraint
-- [ ] 2M lépés, n_envs=8, ~1.5-2h M2-n
-- [ ] Acceptance: ≥75%? → ✅ **F3 SANDBOX ELFOGADVA**
+| Run | Eredmény | Megjegyzés |
+|---|---|---|
+| ACT v1 | **4% SR** | overfit (25M param / 6k frame), kl_weight=10 collapse, eval norm bug |
+| ACT v2 | **2% SR** | CVAE posterior gap (KL=443), place_dist 0.335m (jobb mint v1 0.594m) |
+| ACT v3 | **~2% SR** | plain BC, VAE disabled — checkpoint: `results/bc_checkpoints_act_v3/` |
 
-**F3f — UnifoLM-VLA-0 LoRA fine-tune feladatlista:**
-- [ ] Kaggle account setup, heti T4 kvóta ellenőrzés (30h/hét)
-- [ ] UnifoLM-VLA-0 pretrained checkpoint lokális mirror
-- [ ] `notebooks/kaggle_unifolm_vla_lora_v1.ipynb` megírva
-- [ ] LoRA fine-tune: rank=64, alpha=128, ~10-12h total
+- [x] `configs/bc/act_shelf_stock_v1.yaml` — 2026-04-29
+- [x] `tools/train_act.py`, `eval_act.py`, `viz_act_policy.py` — 2026-05-01
+- [x] ACT v1 → 4% SR, v2 → 2% SR (CVAE gap), v3 → ~2% SR (plain BC) — 2026-05-01
+- [x] Root cause: denormalize_action bug javítva (place_dist: 0.594→0.335m)
+
+**F3d — BC + PPO PPF fine-tune feladatlista: ✅ LEZÁRVA 2026-05-02**
+
+| Run | Lépések | SR (stochasztikus) | SR (determinisztikus) | Megjegyzés |
+|---|---|---|---|---|
+| ppo_from_bc_v1 | ~500k | — | — | pilot futás |
+| ppo_from_bc_v2 | ~2M | **9%** | **2%** | float32 MPS fix, dense reward |
+
+- [x] `tools/train_ppo_from_bc.py` — BC obs_encoder betölt, frozen 50k lépésig
+- [x] ppo_from_bc_v2: 2M lépés, 9% stoch SR → 2% det. SR — 2026-05-02
+- [x] **Konklúzió: 4-DOF kar fizikai korlát.** BC+PPO nem tud áttörni ezen az architektúrán.
+
+**F3e — UnifoLM-VLA-0 LoRA fine-tune: 🔄 KÖVETKEZŐ LÉPÉS**
+- [x] `notebooks/kaggle_vla_train.py` — önálló, self-contained Kaggle notebook — 2026-05-23
+- [x] Három rétegű ACTION_DIM fix implementálva (fájl patch + runtime patch + layer csere)
+- [ ] Kaggle-on futtatás: T4 x1, Internet ON, `roboshelf-vla-v1` dataset hozzáadva
+- [ ] LoRA fine-tune: ~10-12h, 2000 lépés, batch=2
+- [ ] Checkpoint letöltés + eval
 - [ ] Acceptance: ≥70%? → UnifoLM-VLA-0 a Phase 030 fő manipulációs ágens
 
-**Következő konkrét lépések:**
-```bash
-# 1. Teljes dataset gyűjtés (~35 perc, Mac terminalból)
-cd ~/roboshelf-ai-dev/roboshelf-ai-redesign
-python3 tools/scripted_expert.py --n-demos 200 --max-retries 2000
-# → data/demos/scripted_v1/raw_demos.pkl (automatikusan ment)
-
-# 2. LeRobot v3.0 export (parquet + stats.json)
-python3 tools/lerobot_export.py \
-  --in-dir  data/demos/scripted_v1 \
-  --out-dir data/lerobot/scripted_v1
-
-# 3. ACT BC tréning (F3d) — ~6-8h M2 MPS-en
-# ⚠️  NEM lerobot.scripts.train (Hydra inkompatibilis) — saját train_act.py:
-python3 tools/train_act.py \
-  --config  configs/bc/act_shelf_stock_v1.yaml \
-  --dataset data/lerobot/scripted_v1
+**Következő konkrét lépés:**
+```
+Kaggle → New Notebook → Import → kaggle_vla_train.py feltöltés
+Add data: roboshelf-vla-v1
+Settings: GPU=T4 x1, Internet=ON
+Runtime → Run All
 ```
 
 ---
