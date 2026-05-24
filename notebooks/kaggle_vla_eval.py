@@ -203,12 +203,15 @@ _CAMERA_PATCH = """
 """
 
 def _load_model_patched(xml_path) -> mujoco.MjModel:
-    """XML betöltés — ha nincs front_cam, patcheli a stringbe."""
-    xml_str = Path(xml_path).read_text()
+    """XML betöltés — ha nincs front_cam, patcheli a FÁJLT, majd from_xml_path()-szal tölti be.
+    (from_xml_string() nem kezeli a relatív mesh útvonalakat.)"""
+    xml_path = Path(xml_path)
+    xml_str  = xml_path.read_text()
     if 'name="front_cam"' not in xml_str:
-        print("  ⚠️ front_cam nem volt az XML-ben — patchelés...")
+        print("  ⚠️ front_cam nem volt az XML-ben — patchelés a fájlba...")
         xml_str = xml_str.replace("</worldbody>", _CAMERA_PATCH + "\n  </worldbody>")
-    return mujoco.MjModel.from_xml_string(xml_str)
+        xml_path.write_text(xml_str)
+    return mujoco.MjModel.from_xml_path(str(xml_path))
 
 # Ellenőrzés
 _test_model = _load_model_patched(XML_PATH)
