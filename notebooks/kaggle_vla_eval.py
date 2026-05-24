@@ -433,32 +433,21 @@ def build_input(image: Image.Image, state: np.ndarray) -> dict:
     return {k: v.to(DEVICE) if isinstance(v, torch.Tensor) else v for k, v in out.items()}
 
 
-@torch.no_grad()
 def predict_chunk(image: Image.Image, state: np.ndarray) -> np.ndarray:
     """
     VLA inference: (CHUNK_SIZE, ACTION_DIM) normalizált akció visszaadása.
 
-    Inference módban (nincs 'action' kulcs az inputban) a flow matching
-    ODE-t futtatja és predicted action chunk-ot ad vissza.
+    model.predict_action() — belső ODE (num_inference_timesteps=4 Euler lépés):
+      1. Zajból indul: x_1 = randn(CHUNK_SIZE, ACTION_DIM)
+      2. 4× Euler lépés: x_t → x_{t-dt} a DiT által prediktált velocity alapján
+      3. Visszaadja a "tiszta" prediktált akciót (x_0)
+
+    NB: forward() training-only (action_loss); predict_action() az inference API.
     """
     inputs = build_input(image, state)
-    output = model(qwen_inputs=inputs)
-
-    # Output kulcs keresése
-    if isinstance(output, dict):
-        for key in ("action_pred", "actions", "pred_actions", "action", "output"):
-            if key in output and isinstance(output[key], torch.Tensor):
-                return output[key][0].cpu().float().numpy()   # (CHUNK_SIZE, ACTION_DIM)
-        # Ha nem ismerjük a kulcsot — debug info
-        print(f"\n⚠️ Ismeretlen output kulcsok: {list(output.keys())}")
-        print("   Tartalmak:")
-        for k, v in output.items():
-            print(f"     {k}: {type(v)} {getattr(v, 'shape', '')}")
-        raise RuntimeError("Ismeretlen VLA output — lásd fent")
-    elif isinstance(output, torch.Tensor):
-        return output[0].cpu().float().numpy()
-    else:
-        raise RuntimeError(f"Ismeretlen output típus: {type(output)}")
+    output = model.predict_action(qwen_inputs=inputs)
+    # output: {"normalized_actions": np.ndarray (B, CHUNK_SIZE, ACTION_DIM)}
+    return output["normalized_actions"][0]   # (CHUNK_SIZE, ACTION_DIM)
 
 
 # Teszt: egy üres inference
