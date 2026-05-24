@@ -1,6 +1,6 @@
 # Roboshelf AI Redesign — Ütemezés
 
-_Utoljára frissítve: 2026-05-23 (F3d LEZÁRVA: ACT v3 + BC+PPO v2 mindkettő 2% SR → 4-DOF fizikai korlát. F3e Kaggle notebook kész, futtatásra vár.)_  
+_Utoljára frissítve: 2026-05-24 (F3e LEZÁRVA: UnifoLM-VLA-0 LoRA fine-tune 2000 lépés, final loss=0.0524, ~90 perc, Kaggle T4 commit módban. Checkpoint megvan. Következő: eval → acceptance.)_  
 _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokkolt_
 
 ---
@@ -37,7 +37,7 @@ _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokko
 | **030-F0** | ápr. 22–25 | Scaffold, dokumentáció, repo prep | Mac M2 | ✅ kész |
 | **030-F1** | ápr. 26 – máj. 9 | unitree_rl_mjlab + WALL-OSS sanity check | Mac M2 | ✅ kész |
 | **030-F2** | máj. 10–23 | VLA A/B/C protokoll + **loco PPO fine-tune** | **Mac M2** | ✅ kész |
-| **030-F3** | máj. 24 – jún. 13 | **Manip env rebuild + BC + VLA fine-tune** | **Mac M2 + Kaggle T4** | 🔄 folyamatban (F3e vár) |
+| **030-F3** | máj. 24 – jún. 13 | **Manip env rebuild + BC + VLA fine-tune** | **Mac M2 + Kaggle T4** | 🔄 folyamatban (F3e ✅ — eval következik) |
 | **030-F4** | jún. 14 – júl. 4 | A/B/C teszt — VLA inference | **Vast.ai A100** | ⬜ |
 | **030-F5** | júl. 5 – aug. 1 | Retail fine-tune + EIbench | **Vast.ai A100** | ⬜ |
 | **030-F6** | aug. 2–31 | Befektetői demó, pitch deck, roadshow | Mac M2 + Vast.ai | ⬜ |
@@ -177,7 +177,7 @@ _*fell_over=1.0 de time_out=0 → az epizód max lépésnél ér véget, nem val
 | **F3c** — Push task pivot + demo gyűjtés | M2 CPU | 1 hét | 200+ demo, LeRobot v3.0 | 🔄 folyamatban — 11% SR ✅ |
 | **F3d** — ACT BC baseline | M2 MPS, bfloat16 | 1.5 hét | ≥60% siker | ⬜ |
 | **F3d** — BC + PPO PPF fine-tune | M2 CPU+MPS | 3-5 nap | ≥75% siker | ⬜ |
-| **F3e** — UnifoLM-VLA-0 LoRA | Kaggle T4 (~10-12h) | 1 hét | ≥70% siker | ⬜ |
+| **F3e** — UnifoLM-VLA-0 LoRA | Kaggle T4 (~10-12h) | 1 hét | ≥70% siker | ✅ fine-tune kész — eval következik |
 
 **PPO sandbox lezárva (v1-v11 retrospektív):** Részletes technikai tanulságok: Obsidian [[manipulation_training_retrospective]]
 
@@ -274,20 +274,29 @@ _*fell_over=1.0 de time_out=0 → az epizód max lépésnél ér véget, nem val
 - [x] ppo_from_bc_v2: 2M lépés, 9% stoch SR → 2% det. SR — 2026-05-02
 - [x] **Konklúzió: 4-DOF kar fizikai korlát.** BC+PPO nem tud áttörni ezen az architektúrán.
 
-**F3e — UnifoLM-VLA-0 LoRA fine-tune: 🔄 KÖVETKEZŐ LÉPÉS**
+**F3e — UnifoLM-VLA-0 LoRA fine-tune: ✅ LEZÁRVA 2026-05-24**
+
+| Metrika | Érték |
+|---|---|
+| Lépések | 2000/2000 |
+| Final loss | 0.0524 |
+| Futásidő | ~90 perc |
+| Platform | Kaggle T4 (commit mód) |
+| Optimizer | AdamW8bit (4.7 GB → 1.2 GB, T4-en elfér) |
+| Checkpoint | `roboshelf_vla_ckpt/final.pt` + `lora_final/` |
+
 - [x] `notebooks/kaggle_vla_train.py` — önálló, self-contained Kaggle notebook — 2026-05-23
 - [x] Három rétegű ACTION_DIM fix implementálva (fájl patch + runtime patch + layer csere)
-- [ ] Kaggle-on futtatás: T4 x1, Internet ON, `roboshelf-vla-v1` dataset hozzáadva
-- [ ] LoRA fine-tune: ~10-12h, 2000 lépés, batch=2
-- [ ] Checkpoint letöltés + eval
+- [x] Kaggle commit módban lefutott — 2000 lépés, loss=0.0524 — 2026-05-24
+- [x] Checkpoint megvan a Kaggle Output panelben
+- [ ] Checkpoint letöltés + eval (MuJoCo, push task, 50 epizód)
 - [ ] Acceptance: ≥70%? → UnifoLM-VLA-0 a Phase 030 fő manipulációs ágens
 
 **Következő konkrét lépés:**
 ```
-Kaggle → New Notebook → Import → kaggle_vla_train.py feltöltés
-Add data: roboshelf-vla-v1
-Settings: GPU=T4 x1, Internet=ON
-Runtime → Run All
+1. Kaggle Output → final.pt + lora_final/ letöltése
+2. python tools/eval_vla.py --checkpoint results/vla_ckpt/final.pt --lora results/vla_ckpt/lora_final
+3. 50 epizód eval → SR mérés
 ```
 
 ---
