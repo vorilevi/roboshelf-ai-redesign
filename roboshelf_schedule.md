@@ -1,6 +1,6 @@
 # Roboshelf AI Redesign — Ütemezés
 
-_Utoljára frissítve: 2026-05-24 (F3e LEZÁRVA: UnifoLM-VLA-0 LoRA fine-tune 2000 lépés, final loss=0.0524, ~90 perc, Kaggle T4 commit módban. Checkpoint megvan. Következő: eval → acceptance.)_  
+_Utoljára frissítve: 2026-05-24 (F3e eval KÉSZ: 8% SR (4/50), ❌ SIKERTELEN — 70% küszöb alatt. 200 demo + 2000 lépés nem elég. Döntés szükséges: több demo + több lépés, vagy más megközelítés.)_  
 _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokkolt_
 
 ---
@@ -37,7 +37,7 @@ _Állapotjelzők: ⬜ nem kezdett · 🔄 folyamatban · ✅ kész · ❌ blokko
 | **030-F0** | ápr. 22–25 | Scaffold, dokumentáció, repo prep | Mac M2 | ✅ kész |
 | **030-F1** | ápr. 26 – máj. 9 | unitree_rl_mjlab + WALL-OSS sanity check | Mac M2 | ✅ kész |
 | **030-F2** | máj. 10–23 | VLA A/B/C protokoll + **loco PPO fine-tune** | **Mac M2** | ✅ kész |
-| **030-F3** | máj. 24 – jún. 13 | **Manip env rebuild + BC + VLA fine-tune** | **Mac M2 + Kaggle T4** | 🔄 folyamatban (F3e ✅ — eval következik) |
+| **030-F3** | máj. 24 – jún. 13 | **Manip env rebuild + BC + VLA fine-tune** | **Mac M2 + Kaggle T4** | 🔄 folyamatban (F3e ❌ — 8% SR, döntés szükséges) |
 | **030-F4** | jún. 14 – júl. 4 | A/B/C teszt — VLA inference | **Vast.ai A100** | ⬜ |
 | **030-F5** | júl. 5 – aug. 1 | Retail fine-tune + EIbench | **Vast.ai A100** | ⬜ |
 | **030-F6** | aug. 2–31 | Befektetői demó, pitch deck, roadshow | Mac M2 + Vast.ai | ⬜ |
@@ -177,7 +177,7 @@ _*fell_over=1.0 de time_out=0 → az epizód max lépésnél ér véget, nem val
 | **F3c** — Push task pivot + demo gyűjtés | M2 CPU | 1 hét | 200+ demo, LeRobot v3.0 | 🔄 folyamatban — 11% SR ✅ |
 | **F3d** — ACT BC baseline | M2 MPS, bfloat16 | 1.5 hét | ≥60% siker | ⬜ |
 | **F3d** — BC + PPO PPF fine-tune | M2 CPU+MPS | 3-5 nap | ≥75% siker | ⬜ |
-| **F3e** — UnifoLM-VLA-0 LoRA | Kaggle T4 (~10-12h) | 1 hét | ≥70% siker | ✅ fine-tune kész — eval következik |
+| **F3e** — UnifoLM-VLA-0 LoRA | Kaggle T4 (~10-12h) | 1 hét | ≥70% siker | ❌ SIKERTELEN — 8% SR (4/50) |
 
 **PPO sandbox lezárva (v1-v11 retrospektív):** Részletes technikai tanulságok: Obsidian [[manipulation_training_retrospective]]
 
@@ -274,7 +274,9 @@ _*fell_over=1.0 de time_out=0 → az epizód max lépésnél ér véget, nem val
 - [x] ppo_from_bc_v2: 2M lépés, 9% stoch SR → 2% det. SR — 2026-05-02
 - [x] **Konklúzió: 4-DOF kar fizikai korlát.** BC+PPO nem tud áttörni ezen az architektúrán.
 
-**F3e — UnifoLM-VLA-0 LoRA fine-tune: ✅ LEZÁRVA 2026-05-24**
+**F3e — UnifoLM-VLA-0 LoRA fine-tune + eval: ❌ LEZÁRVA 2026-05-24**
+
+**Fine-tune:**
 
 | Metrika | Érték |
 |---|---|
@@ -285,18 +287,31 @@ _*fell_over=1.0 de time_out=0 → az epizód max lépésnél ér véget, nem val
 | Optimizer | AdamW8bit (4.7 GB → 1.2 GB, T4-en elfér) |
 | Checkpoint | `roboshelf_vla_ckpt/final.pt` + `lora_final/` |
 
+**Eval (MuJoCo, push task, 50 epizód):**
+
+| Metrika | Érték |
+|---|---|
+| **Success Rate** | **8% (4/50)** |
+| Átlag place_dist | 0.702m |
+| Timeout (46/50) | ~205 perc összesen |
+| Sikeres epizódok | ep 11, 12, 41, 50 |
+| Verdict | ❌ SIKERTELEN — 70% küszöb alatt |
+
+**Root cause:** 200 demo + 2000 lépés nem elég a 7B VLA generalizálásához a teljes reset range-en. A modell tanult valamit (nem 0%), de csak a tréning-distribuciós pozíciók közelében generalizál.
+
 - [x] `notebooks/kaggle_vla_train.py` — önálló, self-contained Kaggle notebook — 2026-05-23
 - [x] Három rétegű ACTION_DIM fix implementálva (fájl patch + runtime patch + layer csere)
 - [x] Kaggle commit módban lefutott — 2000 lépés, loss=0.0524 — 2026-05-24
 - [x] Checkpoint megvan a Kaggle Output panelben
-- [ ] Checkpoint letöltés + eval (MuJoCo, push task, 50 epizód)
-- [ ] Acceptance: ≥70%? → UnifoLM-VLA-0 a Phase 030 fő manipulációs ágens
+- [x] `notebooks/kaggle_vla_eval.py` — self-contained eval notebook, `predict_action()` fix — 2026-05-24
+- [x] 50 epizód eval: SR=8% (4/50) — 2026-05-24
+- [x] Verdict: ❌ SIKERTELEN — 8% < 70% küszöb
 
-**Következő konkrét lépés:**
+**Döntés szükséges:**
 ```
-1. Kaggle Output → final.pt + lora_final/ letöltése
-2. python tools/eval_vla.py --checkpoint results/vla_ckpt/final.pt --lora results/vla_ckpt/lora_final
-3. 50 epizód eval → SR mérés
+Opció A: Több demo (500+) + több lépés (10k+) → újra train + eval
+Opció B: F3d (BC+PPO PPF) marad fő ágens, UnifoLM due-diligence eredményként a pitchben
+Opció C: Más VLA architektúra / fine-tune stratégia
 ```
 
 ---
