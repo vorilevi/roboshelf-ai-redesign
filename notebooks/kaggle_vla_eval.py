@@ -3,9 +3,9 @@
 # **Kaggle T4 | MuJoCo push task | 50 epizód | SR ≥ 70% = elfogadva**
 #
 # **Előfeltételek:**
-# - Input 1: `roboshelf-vla-v1` dataset (ugyanaz mint tréningnél)
-# - Input 2: előző tréning notebook outputja (roboshelf_vla_ckpt/ — final.pt + lora_final/)
+# - Input: előző tréning notebook outputja (roboshelf_vla_ckpt/ — final.pt + lora_final/)
 # - GPU: T4 x1 | Internet: ON
+# - A roboshelf-vla-v1 dataset NEM kell — az env futásidőben jön létre
 #
 # **Hogyan add hozzá a checkpoint inputot Kaggle-on:**
 # 1. Nyisd meg ezt a notebookot Kaggle-on
