@@ -46,7 +46,10 @@
       <joint damping="2.0" armature="0.01"/>
     </default>
     <default class="arm_motor">
-      <position kp="10" forcerange="-15 15" ctrlrange="-3.14 3.14"/>
+      <!-- kp 10→150 (2026-04-30): diag_kp_sweep alapján.
+           Steady-state QACC=1-15 (rendben). pos#0/1/2/4 mind eléri z≥0.87m-t, osc<0.005m.
+           forcerange változatlan (±15N) — elegendő a stock tartásához. -->
+      <position kp="150" forcerange="-15 15" ctrlrange="-3.14 3.14"/>
     </default>
     <!-- Csukló -->
     <default class="wrist_joint">
@@ -448,10 +451,24 @@
     <!-- ===== TARGET (asztal fölött, x=0.45, y=0, z=0.97) ===== -->
     <!-- Feladat: termék asztalfelszínről (z=0.870) → z=0.97-re emelés -->
     <!-- y=0: kar eléri (debug: best dist=0.025m @ y=0) -->
-    <!-- y=0.20-nál csak 0.103m volt elérhető → nem elég a 0.06m grasphoz -->
-    <!-- z=0.97: asztalfelszín + 0.10m emelés, egyszerűbb feladat -->
+    <!-- z=0.77: Phase 030 F3c PUSH TASK — target z = stock settled z (0.730+0.040=0.770m). -->
+    <!-- Nincs emelés szükséges: kar oldalról tolja a stock-ot a target x,y pozícióba.     -->
+    <!-- Korábbi z-ek: 0.97 (F3a) → 0.85 (F3b pick-and-place, blokkolt) → 0.77 (F3c push). -->
     <site name="target_shelf" type="box" size="0.065 0.045 0.002"
-          pos="0.45 0.0 0.97" rgba="0 1 0 0.4"/>
+          pos="0.45 0.0 0.77" rgba="0 1 0 0.4"/>
+
+    <!-- ===== KAMERÁK (F3e VLA dataset gyűjtéshez) ===== -->
+    <!-- front_cam: jobbról néz +y irányba, stock+kar+target mind látható.
+         pos: x=0.35 (scene közepe), y=-1.4 (jobb oldal), z=0.9 (kar magassága)
+         xyaxes: cam_x=world_x, cam_y=world_z → cam néz +y irányba. -->
+    <camera name="front_cam"
+            pos="0.35 -1.4 0.9"
+            xyaxes="1 0 0  0 0 1"/>
+
+    <!-- top_cam: felülről néz le a teljes scene-re (xy síkból látható a stock→target mozgás). -->
+    <camera name="top_cam"
+            pos="0.35 0.0 2.2"
+            xyaxes="1 0 0  0 1 0"/>
 
   </worldbody>
 
