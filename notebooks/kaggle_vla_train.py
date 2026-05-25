@@ -1,10 +1,11 @@
 # %% [markdown]
-# # Roboshelf — UnifoLM-VLA-0 Fine-tune
+# # Roboshelf — UnifoLM-VLA-0 Fine-tune v2
 # **Kaggle T4 | LeRobot parquet+MP4 | flow-matching action head**
 #
 # **Előfeltételek:**
-# - Dataset: `roboshelf-vla-v1` hozzáadva input-ként
+# - Dataset: `roboshelf-vla-v2` hozzáadva input-ként (1000 demo, ~8.7% SR)
 # - GPU: T4 x1 | Internet: ON
+# - Becsült futásidő: ~4 óra (10 000 lépés)
 #
 # **Futtatás:** Runtime → Run All
 
@@ -357,7 +358,7 @@ print(f"  layer1: ({ACTION_DIM} → {layer1.out_features}) ✓")
 # %%
 from peft import get_peft_model, LoraConfig
 
-lora_cfg = LoraConfig(r=16, lora_alpha=32, lora_dropout=0.05,
+lora_cfg = LoraConfig(r=32, lora_alpha=64, lora_dropout=0.05,
     target_modules=["q_proj", "v_proj"], bias="none", task_type="CAUSAL_LM")
 model.qwen_vl_interface.model = get_peft_model(
     model.qwen_vl_interface.model, lora_cfg)
@@ -374,7 +375,7 @@ optimizer = bnb.optim.AdamW8bit([
     {"params": model.qwen_vl_interface.model.parameters(), "lr": 1e-5},
 ], weight_decay=0.01)
 
-MAX_STEPS = 2000
+MAX_STEPS = 10000
 scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
     optimizer, T_max=MAX_STEPS, eta_min=1e-6)
 
@@ -388,7 +389,7 @@ if DEVICE == "cuda":
 print(f"\n✅ LoRA + optimizer kész | {len(dataloader)} batch/epoch")
 
 # %% [markdown]
-# ## Cella 7 — Training (~1h)
+# ## Cella 7 — Training (~4h)
 
 # %%
 import time
@@ -397,8 +398,8 @@ from pathlib import Path
 
 CKPT_DIR  = Path("/kaggle/working/roboshelf_vla_ckpt")
 CKPT_DIR.mkdir(exist_ok=True)
-LOG_EVERY  = 50
-SAVE_EVERY = 2000  # csak a végén ment — disk full elkerülése
+LOG_EVERY  = 100
+SAVE_EVERY = 2000  # köztes checkpoint minden 2000 lépésnél (session crash ellen)
 
 model.train()
 loss_buf  = deque(maxlen=50)
