@@ -1,0 +1,11 @@
+{
+  "model": "wall-oss",
+  "n_episodes": 5,
+  "success_rate": 0.8,
+  "avg_completion_time_s": 9.22888433960624,
+  "avg_energy_efficiency": 1.393095296647465,
+  "avg_inference_latency_ms": 40.97015083594157,
+  "composite_score": 1.952641090347635,
+  "heis_version": "1.0",
+  "timestamp": "2026-04-23T11:57:23"
+}

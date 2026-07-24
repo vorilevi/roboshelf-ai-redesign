@@ -1,0 +1,11 @@
+{
+  "model": "groot-n1.6",
+  "n_episodes": 5,
+  "success_rate": 0.8,
+  "avg_completion_time_s": 7.826164702493953,
+  "avg_energy_efficiency": 1.2689765689583472,
+  "avg_inference_latency_ms": 76.74766203783388,
+  "composite_score": 1.0423770298118378,
+  "heis_version": "1.0",
+  "timestamp": "2026-04-23T11:57:23"
+}

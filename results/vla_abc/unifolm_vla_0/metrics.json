@@ -1,0 +1,11 @@
+{
+  "model": "unifolm-vla-0",
+  "n_episodes": 5,
+  "success_rate": 0.6,
+  "avg_completion_time_s": 8.703501122503328,
+  "avg_energy_efficiency": 1.6510387239419582,
+  "avg_inference_latency_ms": 56.78986549074949,
+  "composite_score": 1.0565265383446525,
+  "heis_version": "1.0",
+  "timestamp": "2026-04-23T11:57:23"
+}
