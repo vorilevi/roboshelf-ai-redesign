@@ -555,16 +555,27 @@ def train(
         if step % save_every == 0:
             ckpt_path = ckpt_dir / f"step_{step:05d}.pt"
             import torch as _torch
+            # Csak trainable paraméterek (LoRA + action model) — ~200MB vs 14GB full state
+            # AI-9: full model.state_dict() → disk full a Kaggle /kaggle/working limitén
+            trainable = {
+                k: v.detach().cpu()
+                for k, v in model.named_parameters()
+                if v.requires_grad
+            }
             _torch.save({
-                "step":        step,
-                "model_state": model.state_dict(),
-                "optimizer_state": optimizer.state_dict(),
-                "loss":        sum(loss_buf) / len(loss_buf),
-                "action_dim":  ACTION_DIM,
-                "state_dim":   STATE_DIM,
-                "chunk_size":  CHUNK_SIZE,
-                "robot":       "booster_t1",
+                "step":            step,
+                "trainable_state": trainable,
+                "loss":            sum(loss_buf) / len(loss_buf),
+                "action_dim":      ACTION_DIM,
+                "state_dim":       STATE_DIM,
+                "chunk_size":      CHUNK_SIZE,
+                "robot":           "booster_t1",
             }, ckpt_path)
+            # Előző checkpoint törlése — csak az utolsó marad (disk takarékosság)
+            prev_ckpt = ckpt_dir / f"step_{step - save_every:05d}.pt"
+            if prev_ckpt.exists():
+                prev_ckpt.unlink()
+                print(f"  🗑  Előző checkpoint törölve: {prev_ckpt.name}")
             print(f"  💾 Checkpoint → {ckpt_path.name}")
 
     elapsed    = time.time() - t0
