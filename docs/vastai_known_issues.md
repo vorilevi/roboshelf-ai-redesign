@@ -176,6 +176,16 @@ Tanulság: hogyan kell helyesen
 
 ---
 
+## AI-9. [2026-07-24] Checkpoint full model state_dict → disk full Kaggle-en
+
+**Kontextus:** T1 UnifoLM-VLA-0 fine-tune, step 2000 checkpoint mentése.
+
+**Hiba:** A `train()` függvény `model.state_dict()`-et mentett checkpointba. A 7B VLM + 588M DiT action model teljes state dictje ~14GB, ami kétszer mentve (~28GB) túllépte a Kaggle `/kaggle/working` ~20GB limitet. A step_01000.pt már ott volt, step_02000.pt mentésekor `RuntimeError: iostream error` keletkezett.
+
+**Következmény:** Training crash step 2000-nél, az összes addigi munka elveszett.
+
+**Tanulság:** Checkpoint mentésekor SOHA ne `model.state_dict()` — csak trainable paraméterek (`requires_grad=True`), azaz LoRA rétegek + action model (~200MB). Előző checkpointot mindig törölni kell mentés előtt. A `save_final()` menthet teljes modelt, mert az csak egyszer fut le.
+
 _Ide kerül minden jövőbeli AI hiba is. A szekció növekszik a projekt előrehaladásával._
 
 ---
