@@ -13,20 +13,26 @@ G1 verziótól való eltérések:
 
 Feltöltési mód:
   1. Kaggle Dataset-ként töltsd fel ezt a fájlt
-     (pl. "roboshelf-vla-scripts-t1" névvel)
+     (pl. "roboshelf-vla-scripts-t1" névvel, leventevrss account)
   2. Az új notebook-ban:
        import sys
-       sys.path.insert(0, "/kaggle/input/roboshelf-vla-scripts-t1")
+       sys.path.insert(0, "/kaggle/input/datasets/leventevrss/roboshelf-vla-scripts-t1")
        import kaggle_unifolm_vla_finetune_t1 as vla
 
+  FONTOS — Kaggle path formátum (AI-6 known issue):
+    scripts: /kaggle/input/datasets/leventevrss/roboshelf-vla-scripts-t1
+    dataset: /kaggle/input/datasets/leventevrss/roboshelf-t1-push-v1/t1_push_v1
+
 API (sorrendben):
-  vla.install_deps()
+  vla.install_deps()                              # először! (AI-7: import csak utána)
+  import torch
   vla.clone_and_patch_repo()
-  vla.download_dataset()          # ← új lépés, HF-ről tölti le
-  info = vla.check_dataset()
+  DS_ROOT = Path("/kaggle/input/datasets/leventevrss/roboshelf-t1-push-v1/t1_push_v1")
+  info = vla.check_dataset(ds_root=DS_ROOT)       # dataset Kaggle inputból jön, nem HF-ről
   dataset = vla.build_dataset(info)
   model, processor = vla.load_model(info)
   model, dataloader, optimizer, scheduler = vla.setup_training(model, processor, dataset)
+  # setup_training automatikusan: gradient_checkpointing + AdamW8bit + batch_size=1 (AI-8)
   vla.train(model, dataloader, optimizer, scheduler)
   vla.save_final(model, info)
 
