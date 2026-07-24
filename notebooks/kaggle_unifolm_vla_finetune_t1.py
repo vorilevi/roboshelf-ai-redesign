@@ -54,7 +54,9 @@ _processor = None
 
 # ── Alapértelmezett útvonalak ─────────────────────────────────────────────────
 DEFAULT_REPO_DIR = Path("/kaggle/working/unifolm-vla")
-DEFAULT_DS_ROOT  = Path("/kaggle/input/roboshelf-t1-push-v1/t1_push_v1")  # Kaggle dataset input
+# Kaggle path formátum: /kaggle/input/datasets/{username}/{dataset-slug}/
+# (AI-6 known issue: soha ne használj /kaggle/input/{slug} rövidített formátumot)
+DEFAULT_DS_ROOT  = Path("/kaggle/input/datasets/leventevrss/roboshelf-t1-push-v1/t1_push_v1")
 DEFAULT_CKPT_DIR = Path("/kaggle/working/unifolm_vla_t1_roboshelf")
 DEFAULT_HF_MODEL = "Qwen/Qwen2.5-VL-7B-Instruct"
 HF_DATASET_ID    = "vorilevi/roboshelf-t1-push-v1"  # fallback HF letöltéshez
@@ -418,15 +420,21 @@ def setup_training(
     model,
     processor,
     dataset,
-    batch_size: int = 2,
+    batch_size: int = 1,       # T4 16GB: batch=1 kötelező (AI-8 known issue)
     lr_action:  float = 1e-4,
     lr_lora:    float = 1e-5,
     max_steps:  int = 10000,   # G1 F3e: 10k steps → 80% SR
 ) -> tuple:
     """
     LoRA r=32 (G1 F3e konfigurációval azonos).
+
+    T4 memória fix-ek (AI-8 known issue):
+      - batch_size=1 (alapértelmezett)
+      - gradient_checkpointing_enable() a VLM-re
+      - AdamW8bit (bitsandbytes) — optimizer state ~75% kisebb
     """
     import torch
+    import bitsandbytes as bnb   # install_deps() után hívandó (AI-7 known issue)
     from torch.utils.data import DataLoader
     from peft import get_peft_model, LoraConfig
 
@@ -444,6 +452,10 @@ def setup_training(
     )
     model.qwen_vl_interface.model.print_trainable_parameters()
 
+    # Gradient checkpointing — aktivációk újraszámítása backward-ban (AI-8)
+    model.qwen_vl_interface.model.gradient_checkpointing_enable()
+    torch.cuda.empty_cache()
+
     collate_fn = _make_qwen_collate(processor)
     dataloader = DataLoader(
         dataset,
@@ -454,7 +466,8 @@ def setup_training(
         pin_memory=torch.cuda.is_available(),
     )
 
-    optimizer = torch.optim.AdamW([
+    # 8-bit Adam — optimizer state ~75% kisebb (AI-8)
+    optimizer = bnb.optim.AdamW8bit([
         {"params": model.action_model.parameters(),            "lr": lr_action},
         {"params": model.qwen_vl_interface.model.parameters(), "lr": lr_lora},
     ], weight_decay=0.01)
@@ -465,6 +478,7 @@ def setup_training(
 
     print(f"\n✅ setup_training kész")
     print(f"  LoRA r=32 | batch={batch_size} | {len(dataloader)} batch/epoch")
+    print(f"  AdamW8bit + gradient_checkpointing (T4 OOM fix)")
     print(f"  max_steps={max_steps} (~456 perc T4-en, G1 referencia alapján)")
     return model, dataloader, optimizer, scheduler
 
