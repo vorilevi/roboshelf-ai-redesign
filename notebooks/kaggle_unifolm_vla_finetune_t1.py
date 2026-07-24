@@ -600,10 +600,17 @@ def save_final(
     ckpt_dir = ckpt_dir or DEFAULT_CKPT_DIR
     ckpt_dir.mkdir(parents=True, exist_ok=True)
 
+    # Csak trainable paraméterek (LoRA + action model) — ~1.3GB vs 14GB full state
+    # AI-9: full model.state_dict() disk full-t okoz Kaggle-en
+    trainable = {
+        k: v.detach().cpu()
+        for k, v in model.named_parameters()
+        if v.requires_grad
+    }
     final_path = ckpt_dir / "final.pt"
     torch.save({
-        "step":        step,
-        "model_state": model.state_dict(),
+        "step":            step,
+        "trainable_state": trainable,
         "config": {
             "action_dim":  info["action_dim"] if info else ACTION_DIM,
             "state_dim":   info["obs_dim"]    if info else STATE_DIM,
