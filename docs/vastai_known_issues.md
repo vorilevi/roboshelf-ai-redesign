@@ -206,7 +206,36 @@ Tanulság: hogyan kell helyesen
 | Notebook neve (Kaggle) | Cél | Státusz |
 |---|---|---|
 | `notebook7b97304d37` | T1 UnifoLM-VLA-0 fine-tune (10k lépés) | ✅ KÉSZ — step_10000.pt output |
-| T1 eval notebook (aktuális) | T1 50-ep eval, mujoco_menagerie fix | 🔄 Fut (mujoco fix v2) |
+| `roboshelf-t1-eval-v1` | T1 50-ep eval | ✅ KÉSZ — 86% SR (43/50) · Script: `notebooks/kaggle_vla_eval_t1_v2.py` |
+
+---
+
+## AI-11. [2026-07-25] mujoco_menagerie --filter=blob:none → STL fájlok üresek
+
+**Kontextus:** T1 eval notebook — mujoco_menagerie sparse clone a booster_t1 mesh fájlokhoz.
+
+**Hiba:** A sparse clone parancsban `--filter=blob:none` flag szerepelt. Ez azt jelenti, hogy a git csak a fa-struktúrát tölti le, a tényleges fájl-tartalmak (blob-ok) nem kerülnek lemezre. A MuJoCo közvetlenül a fájlrendszerről olvassa az STL fájlokat, nem git protokollon keresztül, ezért üres/hiányzó fájlokat talált.
+
+**Következmény:** `ValueError: Error opening file .../booster_t1/assets/Trunk.stl` (és más STL fájlok). Többszöri sikertelen futás.
+
+**Tanulság:** mujoco_menagerie sparse clone-nál SOHA ne használj `--filter=blob:none`-t. A helyes parancs:
+```bash
+git clone --depth=1 --sparse https://github.com/google-deepmind/mujoco_menagerie.git MENAGERIE_DIR
+git -C MENAGERIE_DIR sparse-checkout set booster_t1
+```
+Ellenőrzés: `len(list(MENAGERIE_DIR.glob("booster_t1/assets/*.stl"))) > 0`
+
+---
+
+## AI-12. [2026-07-25] Unifolm_VLA.forward() vs predict_action() — inference API tévesztés
+
+**Kontextus:** T1 VLA eval inference loop — `model(qwen_inputs=inp)` hívás.
+
+**Hiba:** A `forward()` metódus training-only: az `action` kulcsot ground truth-ként várja, és `{"action_loss": ...}` dict-et ad vissza. Inference-hez a `predict_action()` metódust kell hívni, ami `{"normalized_actions": numpy_array}` dict-et ad vissza. Az AI először `model(...)` hívással próbálkozott, majd `inp["action"] = zeros` hozzáadásával, ami tovább rontott (loss-t számolt a zérus targetra).
+
+**Következmény:** Három sikertelen futás (`KeyError: 'action'`, `{'action_loss': ...}`, `{'normalized_actions': ...}` hibák sorban).
+
+**Tanulság:** Unifolm_VLA inference = `model.predict_action(qwen_inputs=inp)`, visszatérési érték: `out["normalized_actions"][0]` → `(CHUNK_SIZE, ACTION_DIM)` numpy array. Forrás: `unifolm_vla/model/framework/unifolm_vla.py`. Soha ne hívd a `forward()`-ot inference-kor.
 
 _Ide kerül minden jövőbeli AI hiba is. A szekció növekszik a projekt előrehaladásával._
 
