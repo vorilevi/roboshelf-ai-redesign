@@ -186,6 +186,28 @@ Tanulság: hogyan kell helyesen
 
 **Tanulság:** Checkpoint mentésekor SOHA ne `model.state_dict()` — csak trainable paraméterek (`requires_grad=True`), azaz LoRA rétegek + action model (~200MB). Előző checkpointot mindig törölni kell mentés előtt. A `save_final()` menthet teljes modelt, mert az csak egyszer fut le.
 
+---
+
+## AI-10. [2026-07-25] Kaggle notebook névtelenség — nem tudtuk melyik a "jó"
+
+**Kontextus:** T1 eval notebook futtatása Kaggle-en. Több notebookot hoztunk létre (kaggle_vla_eval_t1 javítások közben), de a nevek auto-generáltak maradtak (pl. `notebook7b97304d37`).
+
+**Hiba:** Nem adtunk egyedi, leíró nevet a notebookoknak létrehozáskor, és nem dokumentáltuk melyik verzió volt sikeres. Ennek következtében nem volt egyértelmű melyik notebook az aktuális, működő verzió.
+
+**Következmény:** Időpocsékolás: keresés, összehasonlítás, félreértések hogy "melyiket futtatjuk most".
+
+**Tanulság:**
+- Kaggle notebookot létrehozásakor AZONNAL adjunk egyedi nevet: pl. `roboshelf-t1-eval-v1`, `roboshelf-t1-finetune-v2`
+- Tartsuk nyilván itt (vastai_known_issues vagy Index) melyik notebook mire való és mi az aktuális "production" verzió
+- Ha egy notebook crashel és újat kell csinálni, a régit nevezzük át `-broken` vagy `-archived` utótaggal, ne hagyjuk névtelenül
+
+**Aktuális notebook registry:**
+
+| Notebook neve (Kaggle) | Cél | Státusz |
+|---|---|---|
+| `notebook7b97304d37` | T1 UnifoLM-VLA-0 fine-tune (10k lépés) | ✅ KÉSZ — step_10000.pt output |
+| T1 eval notebook (aktuális) | T1 50-ep eval, mujoco_menagerie fix | 🔄 Fut (mujoco fix v2) |
+
 _Ide kerül minden jövőbeli AI hiba is. A szekció növekszik a projekt előrehaladásával._
 
 ---
