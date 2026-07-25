@@ -94,6 +94,19 @@ for qp in UNIFOLM_DIR.rglob("QWen2_5.py"):
         qp.write_text(new)
         print("  QWen2_5.py patchelve (eager)")
 
+# mujoco_menagerie — T1 mesh fájlok (scene_manip_sandbox_t1_v1.xml relatív útvonala)
+MENAGERIE_DIR = ROBOSHELF_DIR / "mujoco_menagerie"
+if not MENAGERIE_DIR.exists():
+    print("mujoco_menagerie klónozása (sparse: csak booster_t1)...")
+    subprocess.run(["git", "clone", "--depth=1", "--filter=blob:none", "--sparse",
+        "https://github.com/google-deepmind/mujoco_menagerie.git",
+        str(MENAGERIE_DIR)], check=True)
+    subprocess.run(["git", "sparse-checkout", "set", "booster_t1"],
+        cwd=str(MENAGERIE_DIR), check=True)
+    print(f"  mujoco_menagerie/booster_t1 kész")
+else:
+    print(f"  mujoco_menagerie megvan: {MENAGERIE_DIR}")
+
 print("✅ Repók + patchek kész")
 
 # %% [markdown]
