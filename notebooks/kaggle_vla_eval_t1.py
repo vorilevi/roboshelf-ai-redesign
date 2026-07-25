@@ -102,16 +102,51 @@ print("✅ Repók + patchek kész")
 # %%
 KAGGLE_INPUT = Path("/kaggle/input")
 
-# step_10000.pt keresése (roboshelf-t1-ckpt-v1 dataset)
+# step_10000.pt keresése
+# 1. Közvetlen fájlként (roboshelf-t1-ckpt-v1 dataset)
+# 2. ZIP-ben (tréning notebook output: unifolm_vla_t1_roboshelf_final.zip)
+import zipfile, shutil
+
 _ckpt_candidates = list(KAGGLE_INPUT.rglob("step_10000.pt"))
+
 if not _ckpt_candidates:
-    print("❌ step_10000.pt nem található /kaggle/input/ alatt!")
+    # Keresés zip-ben
+    _zip_candidates = list(KAGGLE_INPUT.rglob("unifolm_vla_t1_roboshelf_final.zip"))
+    if _zip_candidates:
+        _zip_path = _zip_candidates[0]
+        print(f"ZIP megtalálva: {_zip_path} ({_zip_path.stat().st_size/1e9:.1f} GB)")
+        print("  step_10000.pt kicsomagolása...")
+        _extract_dir = Path("/kaggle/working/ckpt_extracted")
+        _extract_dir.mkdir(exist_ok=True)
+        with zipfile.ZipFile(_zip_path) as zf:
+            # Csak step_10000.pt-t csomagoljuk ki
+            _members = [m for m in zf.namelist() if "step_10000" in m]
+            for m in _members:
+                zf.extract(m, _extract_dir)
+                print(f"  Kicsomagolva: {m}")
+        _ckpt_candidates = list(_extract_dir.rglob("step_10000.pt"))
+        if not _ckpt_candidates:
+            # Ha directory formátumban van (step_10000/ mappa) → rezip
+            _step_dir = list(_extract_dir.rglob("step_10000"))
+            if _step_dir and _step_dir[0].is_dir():
+                print("  Directory formátum → rezip .pt-be...")
+                import subprocess
+                _out_pt = Path("/kaggle/working/step_10000.pt")
+                subprocess.run(
+                    ["zip", "-r", str(_out_pt), "."],
+                    cwd=str(_step_dir[0]), check=True
+                )
+                _ckpt_candidates = [_out_pt]
+
+if not _ckpt_candidates:
+    print("❌ step_10000.pt nem található!")
     print("\nElérhető inputok:")
     for d in sorted(KAGGLE_INPUT.iterdir()):
         print(f"  {d.name}/")
     raise FileNotFoundError(
-        "Add hozzá a checkpointot inputként!\n"
-        "Kaggle → Input → Add Data → leventevrss/roboshelf-t1-ckpt-v1"
+        "Add hozzá inputként:\n"
+        "  Opció A: leventevrss/roboshelf-t1-ckpt-v1 dataset\n"
+        "  Opció B: tréning notebook outputja (Your Work → Notebook Outputs)"
     )
 
 CKPT_PATH = _ckpt_candidates[0]
