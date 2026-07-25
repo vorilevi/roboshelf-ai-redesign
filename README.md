@@ -1,10 +1,10 @@
 # Roboshelf AI
 
-MuJoCo- and VLA-based robot learning for Unitree G1 retail tasks: locomotion, in-store navigation, and shelf manipulation.
+MuJoCo- and VLA-based robot learning for humanoid retail tasks: locomotion, in-store navigation, shelf manipulation, and multi-robot vendor-independence validation.
 
 ## Overview
 
-Roboshelf AI trains a humanoid robot to work in a retail store environment. The work is split into three tracks — locomotion, in-store navigation, and manipulation — with a vision-language-action (VLA) model fine-tuned for the manipulation task.
+Roboshelf AI trains humanoid robots to work in retail store environments. The work covers three locomotion/manipulation tracks plus a vendor-independence track demonstrating that the same software stack runs on robots from different manufacturers.
 
 ## Current Status
 
@@ -27,6 +27,15 @@ The task is a **push primitive**: moving an object into a target zone. This is n
 
 Evaluation protocol: 50 independent episodes, randomised object position (x 0.25–0.65 m, y −0.15–0.15 m), max 200 steps per episode, MuJoCo headless with EGL rendering. Training ran on a free-tier Kaggle T4 — no paid compute has been used so far.
 
+**Vendor-independence track — closed 2026-07-25.** The same UnifoLM-VLA-0 pipeline was retrained and evaluated on a **Booster Robotics T1** (different manufacturer from G1). Result: **86% SR (43/50)** — exceeds the G1 result. This directly validates the platform-agnostic positioning.
+
+| Robot | Manufacturer | SR | Eval date |
+|---|---|---|---|
+| Unitree G1 | Unitree Robotics | 80% (40/50) | 2026-05-25 |
+| Booster T1 | Booster Robotics | **86% (43/50)** | 2026-07-25 |
+
+Eval script: `notebooks/kaggle_vla_eval_t1_v2.py`. Kaggle notebook: `roboshelf-t1-eval-v1`.
+
 **Phase 4 — planned.** A/B/C comparison of WALL-OSS, GR00T N1.5 and UnifoLM-VLA-0 on a common benchmark; protocol drafted in `docs/vla_abc_test_protocol.md`. Transfer to physical hardware has not started.
 
 ## Tech Stack
@@ -36,7 +45,7 @@ Evaluation protocol: 50 independent episodes, randomised object position (x 0.25
 - **UnifoLM-VLA-0** — Qwen2.5-VL-7B backbone + DiT action head, LoRA fine-tuning
 - **LeRobot v2.1** — dataset format
 - **PyTorch**
-- **Unitree G1** humanoid model
+- **Unitree G1** + **Booster T1** humanoid models (vendor-independence)
 
 ## Data and Checkpoints
 
@@ -74,7 +83,7 @@ VLA fine-tuning and evaluation run as Kaggle notebooks:
 
 ## Roadmap
 
-1. Phase 4 — A/B/C model comparison on a common benchmark.
-2. Transfer the manipulation policy to physical hardware.
+1. Phase 4 — A/B/C model comparison on a common benchmark (WALL-OSS / GR00T N1.6 / UnifoLM-VLA-0).
+2. Transfer the manipulation policy to physical hardware (Unitree G1).
 3. Extend beyond the push primitive to grasping.
 4. Combine navigation and manipulation under hierarchical control.
