@@ -1,0 +1,381 @@
+<!--
+  ROBOSHELF AI — Manipulációs Sandbox Scene — Fourier GR1T1 v1
+  Létrehozva: 2026-07-26
+
+  Robot: Fourier GR1T1 (32 DOF humanoid)
+  Gyártó: Fourier Intelligence — HARMADIK GYÁRTÓ (G1=Unitree, T1=Booster, GR1=Fourier)
+  Forrás: FFTAI/Wiki-GRx-Models GRX/GR1/gr1t1 (GPL-3.0)
+
+  Felépítés:
+    - GR1T1 base_link rögzített (nincs freejoint)
+    - Lábak, fej, derék, bal kar, csukló: passzív (high damping)
+    - Jobb kar: aktív (4 DOF: Shoulder Pitch/Roll/Yaw + Elbow Pitch)
+    - Storage asztal (x=0.45): robot előtt (GR1 kar ~0.42m, mint G1)
+    - Push task: termék → target oldalirányú tolás
+
+  Összehasonlítás:
+    - G1 pelvis z=0.793m · T1 Trunk z=0.665m · GR1 base z=0.868m
+    - GR1 kar: 7 DOF (1-4: aktív, 5-7: csuklók passzívak)
+    - Meshek: mujoco_menagerie/fourier_gr1t1/assets/ (FFTAI/Wiki-GRx-Models, GPL-3.0)
+
+  ⚠️ TODO a diag_arm_reach_gr1.py futtatása után:
+    - Mért GR1 arm max_x alapján pontosítsd az asztal távolságát
+    - kp értékek validálása kp_sweep_gr1.py-val
+
+  Kapcsolódó fájlok (NE MÓDOSÍTSD):
+    - scene_manip_sandbox_v2.xml   ← G1 scene
+    - scene_manip_sandbox_t1_v1.xml ← T1 scene
+-->
+<mujoco model="roboshelf_manip_sandbox_gr1_v1">
+
+    <!-- meshdir: src/envs/assets/ → mujoco_menagerie/fourier_gr1t1/assets/ -->
+    <compiler angle="radian" autolimits="true"
+                meshdir="../../../mujoco_menagerie/fourier_gr1t1/assets/"/>
+
+    <option timestep="0.001" gravity="0 0 -9.81" integrator="implicitfast"/>
+
+    <visual>
+        <headlight diffuse="0.8 0.8 0.8" ambient="0.3 0.3 0.3" specular="0.1 0.1 0.1"/>
+        <global azimuth="120" elevation="-25" offwidth="1920" offheight="1080"/>
+        <quality shadowsize="2048"/>
+        <map znear="0.01" zfar="20"/>
+    </visual>
+
+    <default>
+        <default class="gr1">
+            <geom material="medium_gray"/>
+            <site rgba="1 0 0 1" size="0.01" group="5"/>
+            <joint frictionloss="0.1" armature="0.005"/>
+            <position inheritrange="1" kp="75" kv="5"/>
+            <default class="visual">
+                <geom type="mesh" contype="0" conaffinity="0" group="2"/>
+            </default>
+            <default class="collision">
+                <geom group="3"/>
+            </default>
+        </default>
+        <default class="passive_joint">
+            <joint damping="200.0" armature="0.5"/>
+        </default>
+        <default class="arm_joint">
+            <joint damping="2.0" armature="0.01"/>
+        </default>
+        <default class="arm_motor">
+            <position kp="150" forcerange="-20 20" ctrlrange="-3.14 3.14"/>
+        </default>
+        <default class="product_box">
+            <geom friction="0.8 0.01 0.001" condim="4" solref="0.02 1" solimp="0.9 0.95 0.001"/>
+        </default>
+    </default>
+
+    <asset>
+        <texture name="tex_floor" type="2d" builtin="checker" width="512" height="512"
+                   rgb1="0.82 0.82 0.78" rgb2="0.78 0.78 0.74"/>
+        <material name="tex_floor"  texture="tex_floor" texrepeat="6 6" reflectance="0.1"/>
+        <material name="mat_shelf"  rgba="0.7 0.7 0.7 1" reflectance="0.3" shininess="0.5"/>
+        <material name="mat_board"  rgba="0.88 0.86 0.82 1" reflectance="0.05"/>
+        <material name="mat_red"    rgba="0.85 0.15 0.15 1"/>
+        <material name="mat_green"  rgba="0.15 0.70 0.25 1"/>
+        <material name="light_gray" rgba="0.76 0.76 0.76 1"/>
+        <material name="medium_gray" rgba="0.4 0.4 0.4 1"/>
+      <mesh name="IMU_link" file="IMU_link.STL"/>
+      <mesh name="base_link" file="base_link.STL"/>
+      <mesh name="head_pitch_link" file="head_pitch_link.STL"/>
+      <mesh name="head_roll_link" file="head_roll_link.STL"/>
+      <mesh name="head_yaw_link" file="head_yaw_link.STL"/>
+      <mesh name="left_foot_pitch_link" file="left_foot_pitch_link.STL"/>
+      <mesh name="left_foot_roll_link" file="left_foot_roll_link.STL"/>
+      <mesh name="left_hand_pitch_link" file="left_hand_pitch_link.STL"/>
+      <mesh name="left_hand_roll_link" file="left_hand_roll_link.STL"/>
+      <mesh name="left_hand_yaw_link" file="left_hand_yaw_link.STL"/>
+      <mesh name="left_lower_arm_pitch_link" file="left_lower_arm_pitch_link.STL"/>
+      <mesh name="left_shank_pitch_link" file="left_shank_pitch_link.STL"/>
+      <mesh name="left_thigh_pitch_link" file="left_thigh_pitch_link.STL"/>
+      <mesh name="left_thigh_roll_link" file="left_thigh_roll_link.STL"/>
+      <mesh name="left_thigh_yaw_link" file="left_thigh_yaw_link.STL"/>
+      <mesh name="left_upper_arm_pitch_link" file="left_upper_arm_pitch_link.STL"/>
+      <mesh name="left_upper_arm_roll_link" file="left_upper_arm_roll_link.STL"/>
+      <mesh name="left_upper_arm_yaw_link" file="left_upper_arm_yaw_link.STL"/>
+      <mesh name="right_foot_pitch_link" file="right_foot_pitch_link.STL"/>
+      <mesh name="right_foot_roll_link" file="right_foot_roll_link.STL"/>
+      <mesh name="right_hand_pitch_link" file="right_hand_pitch_link.STL"/>
+      <mesh name="right_hand_roll_link" file="right_hand_roll_link.STL"/>
+      <mesh name="right_hand_yaw_link" file="right_hand_yaw_link.STL"/>
+      <mesh name="right_lower_arm_pitch_link" file="right_lower_arm_pitch_link.STL"/>
+      <mesh name="right_shank_pitch_link" file="right_shank_pitch_link.STL"/>
+      <mesh name="right_thigh_pitch_link" file="right_thigh_pitch_link.STL"/>
+      <mesh name="right_thigh_roll_link" file="right_thigh_roll_link.STL"/>
+      <mesh name="right_thigh_yaw_link" file="right_thigh_yaw_link.STL"/>
+      <mesh name="right_upper_arm_pitch_link" file="right_upper_arm_pitch_link.STL"/>
+      <mesh name="right_upper_arm_roll_link" file="right_upper_arm_roll_link.STL"/>
+      <mesh name="right_upper_arm_yaw_link" file="right_upper_arm_yaw_link.STL"/>
+      <mesh name="torso_link" file="torso_link.STL"/>
+      <mesh name="waist_pitch_link" file="waist_pitch_link.STL"/>
+      <mesh name="waist_roll_link" file="waist_roll_link.STL"/>
+      <mesh name="waist_yaw_link" file="waist_yaw_link.STL"/>
+    </asset>
+
+    <worldbody>
+
+        <light name="ceil_1" pos="0 0 3.5" dir="0 0 -1" diffuse="0.9 0.9 0.9" castshadow="true" cutoff="60"/>
+        <light name="ceil_2" pos="1 0 3.0" dir="0 0 -1" diffuse="0.7 0.7 0.7" castshadow="false" cutoff="60"/>
+        <geom name="floor" type="plane" size="4 4 0.01" material="tex_floor"/>
+
+        <!-- ===== FOURIER GR1T1 ROBOT ===== -->
+        <!-- base_link z=0.868: foot-to-base mért távolság (Python: right_foot_roll_link.xpos[2]=-0.868m) -->
+        <!-- Gyártó: Fourier Intelligence — HARMADIK gyártó Track 3 validáláshoz! -->
+        <!-- MJCF forrás: FFTAI/Wiki-GRx-Models (GPL-3.0) → mujoco_menagerie/fourier_gr1t1/assets/ -->
+        <body name="base_link" pos="0 0 0.868" childclass="gr1">
+            <inertial pos="-0.042 0 0.009" mass="2.5" diaginertia="0.015 0.012 0.008"/>
+            <geom class="visual" mesh="base_link" material="light_gray"/>
+            <geom class="collision" type="box" size="0.12 0.10 0.03" pos="-0.04 0 0.01"/>
+
+            <!-- ===== BAL LÁB (passzív) ===== -->
+      <body name="left_thigh_roll_link" pos="-0.0025 0.105 -0.0276">
+        <inertial pos="-0.0327 9.169e-05 0.002323" quat="-0.0333877 0.695218 -0.0328245 0.717272" mass="1.45" diaginertia="0.00250664 0.0024263 0.00154406"/>
+        <joint name="left_hip_roll_joint" class="passive_joint" axis="1 0 0" range="-0.09 0.79"/>
+        <geom class="visual" mesh="left_thigh_roll_link" material="medium_gray"/>
+        <body name="left_thigh_yaw_link" pos="0 0 0">
+          <inertial pos="-0.00019288 0.03547 -0.1073" quat="0.695263 0.0885308 -0.105597 0.705422" mass="3.17" diaginertia="0.0187495 0.0155538 0.00552366"/>
+          <joint name="left_hip_yaw_joint" class="passive_joint" axis="0 0 1" range="-0.7 0.7"/>
+          <geom class="visual" mesh="left_thigh_yaw_link" material="medium_gray"/>
+          <body name="left_thigh_pitch_link" pos="0 0.0223 -0.1405">
+            <inertial pos="0.001419 -0.02869 -0.05999" quat="0.563485 -0.0288779 0.0157908 0.82547" mass="7.99" diaginertia="0.0726805 0.0722025 0.021167"/>
+            <joint name="left_hip_pitch_joint" class="passive_joint" axis="0 1 0" range="-1.75 0.7"/>
+            <geom class="visual" mesh="left_thigh_pitch_link" material="medium_gray"/>
+            <geom class="collision" type="cylinder" size="0.055 0.12" pos="0 -0.02 -0.14"/>
+            <body name="left_shank_pitch_link" pos="0 -0.0213 -0.36">
+              <inertial pos="0.001724 -3.024e-05 -0.1128" quat="0.933705 -0.00658684 -0.00149886 -0.357979" mass="1.93" diaginertia="0.00991684 0.0099128 0.000948263"/>
+              <joint name="left_knee_pitch_joint" class="passive_joint" axis="0 1 0" range="-0.09 1.92"/>
+              <geom class="visual" mesh="left_shank_pitch_link" material="medium_gray"/>
+              <geom class="collision" type="cylinder" size="0.04 0.10" pos="0 0 -0.17"/>
+              <body name="left_foot_pitch_link" pos="0 0 -0.34">
+                <inertial pos="0.0284 0.00121 -0.0293" quat="0.00525623 0.735579 0.00949935 0.677352" mass="0.538" diaginertia="0.00248837 0.00231998 0.000379658"/>
+                <joint name="left_ankle_pitch_joint" class="passive_joint" axis="0 1 0" range="-1.05 0.52"/>
+                <geom class="visual" mesh="left_foot_pitch_link" material="medium_gray"/>
+                <body name="left_foot_roll_link" pos="0 0 0">
+                  <inertial pos="0.0284 0.00121 -0.0293" quat="0.00525623 0.735579 0.00949935 0.677352" mass="0.538" diaginertia="0.00248837 0.00231998 0.000379658"/>
+                  <joint name="left_ankle_roll_joint" class="passive_joint" axis="1 0 0" range="-0.44 0.44"/>
+                  <geom class="visual" mesh="left_foot_roll_link" material="medium_gray"/>
+                  <geom class="collision" type="box" size="0.12 0.05 0.015" pos="0.04 0.02 -0.03"/>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+
+            <!-- ===== JOBB LÁB (passzív) ===== -->
+      <body name="right_thigh_roll_link" pos="-0.0025 -0.105 -0.0276">
+        <inertial pos="-0.0325 -7.432e-05 0.002322" quat="0.0358186 0.695351 0.0278322 0.717238" mass="1.45" diaginertia="0.00252461 0.00244444 0.00154395"/>
+        <joint name="right_hip_roll_joint" class="passive_joint" axis="1 0 0" range="-0.79 0.09"/>
+        <geom class="visual" mesh="right_thigh_roll_link" material="medium_gray"/>
+        <body name="right_thigh_yaw_link" pos="0 0 0">
+          <inertial pos="-0.0001289 -0.03547 -0.1132" quat="0.707179 -0.100752 0.093415 0.693557" mass="3.17" diaginertia="0.0187501 0.0155492 0.00552367"/>
+          <joint name="right_hip_yaw_joint" class="passive_joint" axis="0 0 1" range="-0.7 0.7"/>
+          <geom class="visual" mesh="right_thigh_yaw_link" material="medium_gray"/>
+          <body name="right_thigh_pitch_link" pos="0 -0.0223 -0.1405">
+            <inertial pos="0.00151 0.02868 -0.0598" quat="0.818776 0.0150828 -0.0284695 0.573208" mass="7.99" diaginertia="0.0727223 0.0722714 0.0211863"/>
+            <joint name="right_hip_pitch_joint" class="passive_joint" axis="0 1 0" range="-1.75 0.7"/>
+            <geom class="visual" mesh="right_thigh_pitch_link" material="medium_gray"/>
+            <geom class="collision" type="cylinder" size="0.055 0.12" pos="0  0.02 -0.14"/>
+            <body name="right_shank_pitch_link" pos="0 0.0213 -0.36">
+              <inertial pos="0.00172 3.024e-05 -0.1128" quat="0.770863 0.00710581 -0.00190153 0.636959" mass="1.93" diaginertia="0.00991496 0.00990498 0.000958362"/>
+              <joint name="right_knee_pitch_joint" class="passive_joint" axis="0 1 0" range="-0.09 1.92"/>
+              <geom class="visual" mesh="right_shank_pitch_link" material="medium_gray"/>
+              <geom class="collision" type="cylinder" size="0.04 0.10" pos="0 0 -0.17"/>
+              <body name="right_foot_pitch_link" pos="0 0 -0.34">
+                <inertial pos="0.0284 -0.00121 -0.0293" quat="-0.00543913 0.735629 -0.0096842 0.677293" mass="0.538" diaginertia="0.00248439 0.00231997 0.000379631"/>
+                <joint name="right_ankle_pitch_joint" class="passive_joint" axis="0 1 0" range="-1.05 0.52"/>
+                <geom class="visual" mesh="right_foot_pitch_link" material="medium_gray"/>
+                <body name="right_foot_roll_link" pos="0 0 0">
+                  <inertial pos="0.0284 -0.00121 -0.0293" quat="-0.00543913 0.735629 -0.0096842 0.677293" mass="0.538" diaginertia="0.00248439 0.00231997 0.000379631"/>
+                  <joint name="right_ankle_roll_joint" class="passive_joint" axis="1 0 0" range="-0.44 0.44"/>
+                  <geom class="visual" mesh="right_foot_roll_link" material="medium_gray"/>
+                  <geom class="collision" type="box" size="0.12 0.05 0.015" pos="0.04 -0.02 -0.03"/>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+
+            <!-- ===== DERÉK + TÖRZS ===== -->
+      <body name="waist_yaw_link" pos="0 0 0">
+        <inertial pos="-0.002641 -0.009332 0.05066" quat="0.967239 0.191378 -0.0307135 0.163948" mass="1.49" diaginertia="0.00303371 0.00290717 0.00146913"/>
+        <joint name="waist_yaw_joint" class="passive_joint" axis="0 0 1" range="-1.05 1.05"/>
+        <geom class="visual" mesh="waist_yaw_link" material="light_gray"/>
+        <body name="waist_pitch_link" pos="0 0 0.0873">
+          <inertial pos="0.00451 -0.00439 0.0406" quat="0.531996 0.0125456 0.0669515 0.844003" mass="1.62" diaginertia="0.0045927 0.00458165 0.00180365"/>
+          <joint name="waist_pitch_joint" class="passive_joint" axis="0 1 0" range="-0.52 1.22"/>
+          <geom class="visual" mesh="waist_pitch_link" material="light_gray"/>
+          <body name="waist_roll_link" pos="0 0 0.081">
+            <inertial pos="0.00639684 -0.000181439 0.15804" quat="0.999922 0.000707652 0.0124204 0.000899446" mass="7.31" diaginertia="0.0644726 0.0543417 0.0266101"/>
+            <joint name="waist_roll_joint" class="passive_joint" axis="1 0 0" range="-0.7 0.7"/>
+            <geom class="visual" mesh="waist_roll_link" material="light_gray"/>
+            <geom class="visual" mesh="torso_link" material="light_gray"/>
+            <geom class="collision" type="box" size="0.12 0.08 0.15" pos="0 0 0.15"/>
+
+                      <!-- BAL KAR (passzív) -->
+            <body name="left_upper_arm_pitch_link" pos="-0.00414 0.10111 0.207859" quat="0.976296 0.216438 0 0">
+              <inertial pos="0.00323 0.05324 0.000192" quat="0.707075 0.706425 -0.0197518 -0.0248718" mass="0.81" diaginertia="0.00203012 0.001957 0.000493887"/>
+              <joint name="left_shoulder_pitch_joint" class="passive_joint" axis="0 1 0" range="-2.79 1.92"/>
+              <geom class="visual" mesh="left_upper_arm_pitch_link" material="light_gray"/>
+              <body name="left_upper_arm_roll_link" pos="0 0.09515 0" quat="0.976296 -0.216438 0 0">
+                <inertial pos="0.003427 0.01466 -0.02316" quat="0.893873 0.258142 0.0928721 -0.354583" mass="0.5" diaginertia="0.000886251 0.000862243 0.000234106"/>
+                <joint name="left_shoulder_roll_joint" class="passive_joint" axis="1 0 0" range="-0.57 3.27"/>
+                <geom class="visual" mesh="left_upper_arm_roll_link" material="light_gray"/>
+                <body name="left_upper_arm_yaw_link" pos="0 0.04 -0.07095">
+                  <inertial pos="5.47e-05 0.002013 -0.0852" quat="0.999468 0.0150745 0.000700882 -0.0289205" mass="0.55" diaginertia="0.00354401 0.00353998 0.000248202"/>
+                  <joint name="left_shoulder_yaw_joint" class="passive_joint" axis="0 0 1" range="-2.97 2.97"/>
+                  <geom class="visual" mesh="left_upper_arm_yaw_link" material="light_gray"/>
+                  <geom class="collision" type="cylinder" size="0.036 0.085" pos="0 0 -0.079"/>
+                  <body name="left_lower_arm_pitch_link" pos="0 0 -0.1751">
+                    <inertial pos="-1.69e-06 0.007855 -0.02549" quat="0.702814 -0.0890955 0.0887771 0.700167" mass="0.32" diaginertia="0.000297199 0.0002914 9.65012e-05"/>
+                    <joint name="left_elbow_pitch_joint" class="passive_joint" axis="0 1 0" range="-2.27 2.27"/>
+                    <geom class="visual" mesh="left_lower_arm_pitch_link" material="light_gray"/>
+                    <body name="left_hand_yaw_link" pos="0 5.033e-05 -0.05395">
+                      <inertial pos="3.9e-05 0.00212 -0.06117" quat="0.998577 -0.00525175 0.0038125 0.0529257" mass="0.89" diaginertia="0.00186612 0.00186214 0.00032084"/>
+                      <joint name="left_wrist_yaw_joint" class="passive_joint" axis="0 0 1" range="-2.97 2.97"/>
+                      <geom class="visual" mesh="left_hand_yaw_link" material="light_gray"/>
+                      <body name="left_hand_roll_link" pos="0 0 -0.18765">
+                        <inertial pos="0 0.00129 -0.0117" quat="0.404502 0.579981 0.404502 0.579981" mass="0.0295" diaginertia="1.01694e-05 8.75063e-06 5.38e-06"/>
+                        <joint name="left_wrist_roll_joint" class="passive_joint" axis="1 0 0" range="-0.96 0.87"/>
+                        <geom class="visual" mesh="left_hand_roll_link" material="light_gray"/>
+                        <body name="left_hand_pitch_link" pos="0 0 0">
+                          <inertial pos="-0.00294694 -0.0047058 -0.067892" quat="0.601813 0.270449 0.255172 0.7068" mass="0.4981" diaginertia="0.00148108 0.00102489 0.000554251"/>
+                          <joint name="left_wrist_pitch_joint" class="passive_joint" axis="0 1 0" range="-0.61 0.61"/>
+                          <geom class="visual" mesh="left_hand_pitch_link" material="light_gray"/>
+                          <geom class="collision" type="box" size="0.035 0.02 0.055" pos="0 0 -0.078"/>
+                        </body>
+                      </body>
+                    </body>
+                  </body>
+                </body>
+              </body>
+            </body>
+
+                      <!-- ===== JOBB KAR — AKTÍV (4 DOF) + CSUKLÓK PASSZÍV ===== -->
+                      <!-- right_shoulder_pitch/roll/yaw: 3 aktív -->
+                      <!-- right_elbow_pitch: aktív   |   wrist_yaw/roll/pitch: passzív -->
+            <body name="right_upper_arm_pitch_link" pos="-0.00414 -0.10111 0.207859" quat="0.976296 -0.216438 0 0">
+              <inertial pos="0.00324 -0.0533 0.000185" quat="0.7064 0.707006 0.0228604 0.0248708" mass="0.81" diaginertia="0.00203703 0.00196 0.000491967"/>
+              <joint name="right_shoulder_pitch_joint" class="arm_joint" axis="0 1 0" range="-2.79 1.92"/>
+              <geom class="visual" mesh="right_upper_arm_pitch_link" material="light_gray"/>
+              <body name="right_upper_arm_roll_link" pos="0 -0.09515 0" quat="0.976296 0.216438 0 0">
+                <inertial pos="0.00342 -0.0147 -0.0232" quat="0.892464 -0.257881 0.09389 0.358036" mass="0.5" diaginertia="0.000886565 0.000862499 0.000234036"/>
+                <joint name="right_shoulder_roll_joint" class="arm_joint" axis="1 0 0" range="-3.27 0.57"/>
+                <geom class="visual" mesh="right_upper_arm_roll_link" material="light_gray"/>
+                <body name="right_upper_arm_yaw_link" pos="0 -0.04 -0.07095">
+                  <inertial pos="7.6e-05 -0.002032 -0.08519" quat="0.999725 -0.0150371 -4.36925e-05 -0.0179929" mass="0.55" diaginertia="0.00354301 0.00353897 0.000248224"/>
+                  <joint name="right_shoulder_yaw_joint" class="arm_joint" axis="0 0 1" range="-2.97 2.97"/>
+                  <geom class="visual" mesh="right_upper_arm_yaw_link" material="light_gray"/>
+                  <geom class="collision" type="cylinder" size="0.036 0.085" pos="0 0 -0.079"/>
+                  <body name="right_lower_arm_pitch_link" pos="0 0 -0.1751">
+                    <inertial pos="-1.69e-06 -0.007855 -0.02549" quat="0.702814 0.0890955 -0.0887771 0.700167" mass="0.32" diaginertia="0.000297199 0.0002914 9.65012e-05"/>
+                    <joint name="right_elbow_pitch_joint" class="arm_joint" axis="0 1 0" range="-2.27 2.27"/>
+                    <geom class="visual" mesh="right_lower_arm_pitch_link" material="light_gray"/>
+                    <body name="right_hand_yaw_link" pos="0 -5.033e-05 -0.05395">
+                      <inertial pos="3.9e-05 -0.00212 -0.06117" quat="0.998577 -0.00525175 0.0038125 0.0529257" mass="0.89" diaginertia="0.00186612 0.00186214 0.00032084"/>
+                      <joint name="right_wrist_yaw_joint" class="passive_joint" axis="0 0 1" range="-2.97 2.97"/>
+                      <geom class="visual" mesh="right_hand_yaw_link" material="light_gray"/>
+                      <geom class="collision" type="cylinder" size="0.04 0.07" pos="0 0 -0.076"/>
+                      <body name="right_hand_roll_link" pos="0 0 -0.18765">
+                        <inertial pos="0 -0.00129 -0.0117" quat="0.404502 0.579981 0.404502 0.579981" mass="0.0295" diaginertia="1.01694e-05 8.75063e-06 5.38e-06"/>
+                        <joint name="right_wrist_roll_joint" class="passive_joint" axis="1 0 0" range="-0.96 0.87"/>
+                        <geom class="visual" mesh="right_hand_roll_link" material="light_gray"/>
+                        <body name="right_hand_pitch_link" pos="0 0 0">
+                          <inertial pos="-0.00294694 0.0047058 -0.067892" quat="0.601813 -0.270449 -0.255172 0.7068" mass="0.4981" diaginertia="0.00148108 0.00102489 0.000554251"/>
+                          <joint name="right_wrist_pitch_joint" class="passive_joint" axis="0 1 0" range="-0.61 0.61"/>
+                          <geom class="visual" mesh="right_hand_pitch_link" material="light_gray"/>
+                          <geom class="collision" type="box" size="0.035 0.02 0.055" pos="0 0 -0.078"/>
+                          <site name="right_hand_site" size="0.025" pos="0 0 -0.12" rgba="0 1 0 0.6"/>
+                        </body>
+                      </body>
+                    </body>
+                  </body>
+                </body>
+              </body>
+            </body>
+
+                      <!-- FEJ (passzív) -->
+            <body name="head_yaw_link" pos="-0.00414 0 0.33405">
+              <inertial pos="-0.0006 0 0.094" quat="0.999 0 0 0" mass="0.32" diaginertia="0.00085 0.00085 0.00025"/>
+              <joint name="head_yaw_joint" class="passive_joint" axis="0 0 1" range="-1.05 1.05"/>
+              <geom class="visual" mesh="head_yaw_link" material="medium_gray"/>
+              <body name="head_roll_link" pos="0 -0.001 0.14185">
+                <inertial pos="0 0 0.05" quat="1 0 0 0" mass="0.12" diaginertia="0.0003 0.0003 0.0001"/>
+                <joint name="head_roll_joint" class="passive_joint" axis="1 0 0" range="-0.44 0.44"/>
+                <geom class="visual" mesh="head_roll_link" material="medium_gray"/>
+                <body name="head_pitch_link" pos="0 0 0">
+                  <inertial pos="0 0 0.05" quat="1 0 0 0" mass="0.35" diaginertia="0.001 0.001 0.0003"/>
+                  <joint name="head_pitch_joint" class="passive_joint" axis="0 1 0" range="-0.52 0.87"/>
+                  <geom class="visual" mesh="head_pitch_link" material="medium_gray"/>
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+        </body>
+
+        <!-- ===== STORAGE ASZTAL (x=0.45) =====
+             GR1 kar ~0.42m → G1-gyel azonos x=0.45 kiindulópontként -->
+        <body name="storage" pos="0.45 0 0">
+            <geom name="st_legs" type="box" size="0.20 0.30 0.35" pos="0 0 0.35" rgba="0.50 0.45 0.35 1"/>
+            <geom name="st_top"  type="box" size="0.20 0.30 0.015" pos="0 0 0.715" rgba="0.60 0.55 0.45 1"/>
+        </body>
+
+        <!-- ===== GONDOLA A (robot mögött, x=-0.5) ===== -->
+        <body name="gondola_A" pos="-0.5 0 0">
+            <geom name="gA_sL" type="box" size="0.02 0.35 0.60" pos="0 -0.35 0.60" material="mat_shelf"/>
+            <geom name="gA_sR" type="box" size="0.02 0.35 0.60" pos="0  0.35 0.60" material="mat_shelf"/>
+            <geom name="gA_bk" type="box" size="0.01 0.33 0.60" pos="-0.20 0 0.60" material="mat_shelf"/>
+            <geom name="gA_b1" type="box" size="0.18 0.33 0.012" pos="0 0 0.10" material="mat_board"/>
+            <geom name="gA_b2" type="box" size="0.18 0.33 0.012" pos="0 0 0.40" material="mat_board"/>
+            <geom name="gA_b3" type="box" size="0.18 0.33 0.012" pos="0 0 0.70" material="mat_board"/>
+            <geom name="gA_b4" type="box" size="0.18 0.33 0.012" pos="0 0 1.00" material="mat_board"/>
+        </body>
+
+        <!-- ===== STOCK TERMÉK (asztalon) =====
+             Asztalfelszín z=0.730, doboz félmagasság=0.04 → settled z=0.770 -->
+        <body name="stock_1" pos="0.45 0.0 0.770">
+            <freejoint/>
+            <geom type="box" size="0.05 0.04 0.04" class="product_box" material="mat_red" mass="0.35"/>
+            <site name="stock_1_site" size="0.01" rgba="1 0 0 0.8"/>
+        </body>
+
+        <!-- ===== TARGET (push task célja) ===== -->
+        <site name="target_shelf" type="box" size="0.065 0.045 0.002"
+                pos="0.45 0.0 0.77" rgba="0 1 0 0.4"/>
+
+        <!-- ===== KAMERÁK ===== -->
+        <camera name="front_cam"
+                  pos="0.35 -1.4 0.9"
+                  xyaxes="1 0 0  0 0 1"/>
+        <camera name="top_cam"
+                  pos="0.35 0.0 2.2"
+                  xyaxes="1 0 0  0 1 0"/>
+
+    </worldbody>
+
+    <!-- ===== AKTUÁTOROK (4 DOF jobb kar) ====
+           ctrl[0] = right_shoulder_pitch
+           ctrl[1] = right_shoulder_roll
+           ctrl[2] = right_shoulder_yaw
+           ctrl[3] = right_elbow_pitch -->
+    <actuator>
+        <position name="right_shoulder_pitch" joint="right_shoulder_pitch_joint" class="arm_motor"/>
+        <position name="right_shoulder_roll"  joint="right_shoulder_roll_joint"  class="arm_motor"/>
+        <position name="right_shoulder_yaw"   joint="right_shoulder_yaw_joint"   class="arm_motor"/>
+        <position name="right_elbow_pitch"    joint="right_elbow_pitch_joint"    class="arm_motor"/>
+    </actuator>
+
+    <sensor>
+        <framepos name="s_stock_1"    objtype="body" objname="stock_1"/>
+        <framepos name="s_right_hand" objtype="site" objname="right_hand_site"/>
+        <framepos name="s_target"     objtype="site" objname="target_shelf"/>
+        <touch    name="touch_palm"   site="right_hand_site"/>
+    </sensor>
+
+</mujoco>
