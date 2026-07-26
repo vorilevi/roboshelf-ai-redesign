@@ -42,6 +42,9 @@ data/demonstrations/
 data/exports/
 data/logs/
 
+# Robot mesh fájlok — setup script tölti le (setup_gr1_assets.sh)
+mujoco_menagerie/fourier_gr1t1/assets/
+
 # Bizalmas üzleti dokumentumok — soha ne kerüljön publikus repo-ba
 *confidential*
 *_private*
