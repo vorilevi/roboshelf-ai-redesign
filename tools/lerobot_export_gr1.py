@@ -69,6 +69,13 @@ ACTION_DIM = 4   # GR1T1: 4-DOF right arm (shoulder_pitch/roll/yaw + elbow_pitch
 
 TASK_LANG  = "Push the stock to the target position on the shelf."
 
+# A scripted expert 80 lépés SETTLE-t tartalmaz (konstans PUSH_ARM_POS akció).
+# Ha az egész SETTLE bekerül a datasetbe, a modell megtanulja mindig ezt a konstanst
+# jósolni → 0% SR. Fix: kihagyjuk az első SETTLE_SKIP frame-et, csak az utolsó
+# néhány settle + a teljes push fázis marad (állapotfüggő akciók).
+SETTLE_SKIP = 3    # első 3 frame kihagyása (5 settle-ből 2 marad + push)
+                   # (volt: 75 amikor SETTLE_STEPS=80; most SETTLE_STEPS=5)
+
 
 # ---------------------------------------------------------------------------
 # Fő konverzió
@@ -122,6 +129,13 @@ def export_to_lerobot(
         obs_ep    = obs_all[src_idx].astype(np.float32)
         action_ep = actions_all[src_idx].astype(np.float32)
         reward_ep = rewards_all[src_idx].astype(np.float64)
+
+        # SETTLE frame-ek kihagyása — csak utolsó 5 settle + push fázis
+        skip = min(SETTLE_SKIP, len(reward_ep) - 1)
+        obs_ep    = obs_ep[skip:]
+        action_ep = action_ep[skip:]
+        reward_ep = reward_ep[skip:]
+
         T         = len(reward_ep)
 
         done_ep = np.zeros(T, dtype=bool)
