@@ -35,8 +35,8 @@ git init -q
 git remote add origin "$REPO"
 git sparse-checkout init --cone
 git sparse-checkout set "$MESH_PATH"
-git fetch --depth=1 origin main -q
-git checkout FETCH_HEAD -q 2>/dev/null || git checkout main -q
+git fetch --depth=1 origin master -q
+git checkout FETCH_HEAD -q 2>/dev/null || git checkout master -q
 
 cd - > /dev/null
 cp "$TMP_DIR/$MESH_PATH"/*.STL "$DEST/"
