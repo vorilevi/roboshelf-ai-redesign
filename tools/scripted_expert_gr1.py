@@ -80,9 +80,10 @@ DEFAULT_N_EPISODES = 1000
 #            site=(0.395, −0.264, 0.840) @ forward kinematics
 PUSH_ARM_POS = np.array([-0.654, 0.111, 1.875, 0.500], dtype=np.float32)
 
-SETTLE_STEPS = 5      # PUSH_ARM_POS-ra settler — kp=150-nél ~0.25s alatt stabilizálódik
-                      # (volt: 80 → training data 94% konstans akció → 20% SR)
-                      # Fix: 5 settle + ~3 push → push arány 37% vs korábbi 6%
+SETTLE_STEPS = 13     # PUSH_ARM_POS-ra settler — diag_settle_gr1.py mérés: 6-8 lépés
+                      # (13 = max 8 + 5 biztonsági margó)
+                      # (volt: 80 → training data 94% konstans → 20% SR)
+                      # (5 próba: sikertelen, 1-2 lépéssel nem ért oda)
 PUSH_GAIN    = 5.0    # Jacobian transpose gain
 MAX_DELTA_Q  = 0.10   # max joint delta per policy step (rad)
 PUSH_OVERSHOOT = 0.03 # m — target y-on túllövés
