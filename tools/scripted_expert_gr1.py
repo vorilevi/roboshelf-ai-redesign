@@ -80,10 +80,15 @@ DEFAULT_N_EPISODES = 1000
 #            site=(0.395, −0.264, 0.840) @ forward kinematics
 PUSH_ARM_POS = np.array([-0.654, 0.111, 1.875, 0.500], dtype=np.float32)
 
-SETTLE_STEPS = 13     # PUSH_ARM_POS-ra settler — diag_settle_gr1.py mérés: 6-8 lépés
-                      # (13 = max 8 + 5 biztonsági margó)
-                      # (volt: 80 → training data 94% konstans → 20% SR)
-                      # (5 próba: sikertelen, 1-2 lépéssel nem ért oda)
+SETTLE_STEPS = 80     # PUSH_ARM_POS-ra settler — FIZIKAI KÖVETELMÉNY
+                      # A kar 6-8 lépés alatt eléri PUSH_ARM_POS-t, DE:
+                      # útközben átmegy a stock-on (geom_y_hi: -0.103 → -0.203,
+                      # stock back face ≈ -0.14) → megüti a stockot.
+                      # A stock-nak ~70 lépés kell visszastabilizálódni.
+                      # SETTLE_STEPS=13 → stock még lötyög → 3.7% SR
+                      # SETTLE_STEPS=5  → kar sem ér oda → 0% SR
+                      # A 20% SR fix: SETTLE_SKIP növelése az exportban (→75),
+                      # NEM a SETTLE_STEPS csökkentése!
 PUSH_GAIN    = 5.0    # Jacobian transpose gain
 MAX_DELTA_Q  = 0.10   # max joint delta per policy step (rad)
 PUSH_OVERSHOOT = 0.03 # m — target y-on túllövés

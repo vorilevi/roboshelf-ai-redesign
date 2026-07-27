@@ -69,13 +69,15 @@ ACTION_DIM = 4   # GR1T1: 4-DOF right arm (shoulder_pitch/roll/yaw + elbow_pitch
 
 TASK_LANG  = "Push the stock to the target position on the shelf."
 
-# A scripted expert 13 lépés SETTLE-t tartalmaz (konstans PUSH_ARM_POS akció).
-# Ha az egész SETTLE bekerül a datasetbe, a modell megtanulja mindig ezt a konstanst
-# jósolni → alacsony SR. Fix: kihagyjuk az első SETTLE_SKIP frame-et (approach fázis),
-# csak az utolsó 5 settle (arm AT PUSH_ARM_POS) + a teljes push fázis marad.
-SETTLE_SKIP = 8    # első 8 frame kihagyása (13 settle-ből 5 marad + push)
-                   # diag: kar 6-8 lépésnél ér oda → 8 skip után arm AT PUSH_ARM_POS
-                   # (volt: 75 amikor SETTLE_STEPS=80; 3 amikor SETTLE_STEPS=5)
+# A scripted expert 80 lépés SETTLE-t tartalmaz (konstans PUSH_ARM_POS akció).
+# A stock kb. 70 lépés alatt stabil újra (a kar megüti útközben) — ez a fizikai ok.
+# Ha az egész SETTLE bekerül a datasetbe (SETTLE_SKIP=0), a modell ~94% konstans
+# akciót lát → megtanulja mindig PUSH_ARM_POS-t jósolni → alacsony eval SR.
+# Fix: SETTLE_SKIP=75 → csak utolsó 5 settle (arm AT PUSH_ARM_POS) + push marad.
+SETTLE_SKIP = 75   # első 75 frame kihagyása — SETTLE_STEPS=80-ból 5 marad + push
+                   # Ez adja a jó training arányt: ~5 settle + ~3 push = ~8 frame/ep
+                   # push arány ~37% (vs eredeti ~4% amikor SETTLE_SKIP=0 volt)
+                   # (próbák: 3 @ SETTLE_STEPS=5 → 0% SR; 8 @ SETTLE_STEPS=13 → 3.7%)
 
 
 # ---------------------------------------------------------------------------
