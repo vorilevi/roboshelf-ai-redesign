@@ -89,11 +89,18 @@ SETTLE_STEPS = 80     # PUSH_ARM_POS-ra settler — FIZIKAI KÖVETELMÉNY
                       # SETTLE_STEPS=5  → kar sem ér oda → 0% SR
                       # A 20% SR fix: SETTLE_SKIP növelése az exportban (→75),
                       # NEM a SETTLE_STEPS csökkentése!
-PUSH_GAIN    = 5.0    # Jacobian transpose gain
+SETTLE_GAIN  = 5.0    # J-transpose gain a settle (approach) fázisban
+PUSH_GAIN    = 5.0    # Jacobian transpose gain a push fázisban
 MAX_DELTA_Q  = 0.10   # max joint delta per policy step (rad)
 PUSH_OVERSHOOT = 0.03 # m — target y-on túllövés
 
-# Normalizált PUSH_ARM_POS (gyorsítótár)
+# PUSH_ARM_POS kézfej (hand site) xyz pozíciója forward kinematics szerint.
+# Ez a J-transpose settle fázis célja — ugyanoda vezet mint a direkt pozíció,
+# de lépésenként ELTÉRŐ akciót generál → nincs konstans akció contamination.
+# Érték: PUSH_ARM_POS-ra settled env-ből olvasva: site=(0.395, -0.264, 0.840)
+PUSH_ARM_SITE_XYZ = np.array([0.395, -0.264, 0.840], dtype=np.float64)
+
+# Normalizált PUSH_ARM_POS (csak referenciához, már nem training akció)
 _mid         = (_JOINT_RANGES[:, 0] + _JOINT_RANGES[:, 1]) / 2.0
 _half        = (_JOINT_RANGES[:, 1] - _JOINT_RANGES[:, 0]) / 2.0
 _PAP_NORM    = np.clip((PUSH_ARM_POS - _mid) / (_half + 1e-6), -1.0, 1.0).astype(np.float32)
@@ -152,12 +159,11 @@ class ScriptedPushController:
     GR1T1 push task scripted vezérlő — SETTLE → PUSH.
 
     SETTLE (első SETTLE_STEPS lépés):
-        PUSH_ARM_POS-ra hozza a kart. Ez az a konfiguráció ahol:
-          - a kézfej BOX geom y range: [-0.307, -0.203]
-            → a geom teljesen a stock back face mögött van (back face ≥ -0.19)
-          - a kézfej BOX geom z range: [0.802, 0.933]
-            → a geom z-ben átfed a stockkal (stock top = 0.810)
-        Nincs APPROACH fázis — elkerüli a chaotikus brief contact-ot.
+        J-transpose approach PUSH_ARM_SITE_XYZ=(0.395, -0.264, 0.840) felé.
+        FONTOS: NEM konstans akció — lépésenként eltérő (mint G1 APPROACH fázisa).
+        Ez szünteti meg a konstans akció contamination-t (G1: 0% contam → 80% SR).
+        A kar ~7 lépésnél ér oda, utána micro-korrekciókat végez (~0 delta_xyz).
+        80 lépés szükséges: a kar útközben megüti a stockot, stock ~70 lépés alatt stabil.
 
     PUSH (SETTLE_STEPS után):
         Jacobian transpose: kéz a target irányába (y = target_y + PUSH_OVERSHOOT).
@@ -181,9 +187,13 @@ class ScriptedPushController:
         """Returns: (4,) float32 normalizált akció [-1, 1]."""
         self._step += 1
 
-        # SETTLE: PUSH_ARM_POS
+        # SETTLE: J-transpose approach PUSH_ARM_SITE_XYZ felé
+        # (NEM konstans akció — lépésenként eltérő, mint G1 APPROACH fázisa)
         if self._step <= SETTLE_STEPS:
-            return _PAP_NORM
+            hand_xyz  = obs[0:3].astype(np.float64)
+            delta_xyz = PUSH_ARM_SITE_XYZ - hand_xyz
+            new_q     = jt_step(model, data, site_id, delta_xyz, SETTLE_GAIN)
+            return joint_to_norm(new_q)
 
         # PUSH: Jacobian transpose toward target
         hand_xyz   = obs[0:3].astype(np.float64)
