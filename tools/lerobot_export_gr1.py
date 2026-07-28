@@ -69,15 +69,17 @@ ACTION_DIM = 4   # GR1T1: 4-DOF right arm (shoulder_pitch/roll/yaw + elbow_pitch
 
 TASK_LANG  = "Push the stock to the target position on the shelf."
 
-# A scripted expert 80 lépés SETTLE-t tartalmaz (konstans PUSH_ARM_POS akció).
-# A stock kb. 70 lépés alatt stabil újra (a kar megüti útközben) — ez a fizikai ok.
-# Ha az egész SETTLE bekerül a datasetbe (SETTLE_SKIP=0), a modell ~94% konstans
-# akciót lát → megtanulja mindig PUSH_ARM_POS-t jósolni → alacsony eval SR.
-# Fix: SETTLE_SKIP=75 → csak utolsó 5 settle (arm AT PUSH_ARM_POS) + push marad.
-SETTLE_SKIP = 75   # első 75 frame kihagyása — SETTLE_STEPS=80-ból 5 marad + push
-                   # Ez adja a jó training arányt: ~5 settle + ~3 push = ~8 frame/ep
-                   # push arány ~37% (vs eredeti ~4% amikor SETTLE_SKIP=0 volt)
-                   # (próbák: 3 @ SETTLE_STEPS=5 → 0% SR; 8 @ SETTLE_STEPS=13 → 3.7%)
+# A scripted expert 80 lépés SETTLE-t tartalmaz (PUSH_ARM_POS akció).
+# SETTLE_SKIP=0: minden frame belekerül a datasetbe.
+# G1-nél ez a megközelítés → 64 frame/ep, 80% SR. GR1T1 is ugyanígy.
+# A settle approach (1-8 lépés) tanítja meg "DEFAULT_ARM_POS → PUSH_ARM_POS" mappinget,
+# ami az eval startnál kritikus (arm ott indul DEFAULT_ARM_POS-ból).
+SETTLE_SKIP = 0    # NE HAGYD KI a settle frame-eket!
+                   # G1 lerobot_export.py-ban sincs SETTLE_SKIP → 64 frame/ep → 80% SR
+                   # GR1T1 SETTLE_SKIP=75: model soha nem látta DEFAULT_ARM_POS-t
+                   #   → evalban ott kezd, nem tudja mi a teendő → 20-24% SR
+                   # SETTLE_SKIP=0: 80 settle + ~4 push = ~84 frame/ep → ~83k frame total
+                   # Contamination ~95%, de G1-nél is ~93% volt → elfogadható
 
 
 # ---------------------------------------------------------------------------
