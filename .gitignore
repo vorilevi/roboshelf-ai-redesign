@@ -51,6 +51,12 @@ mujoco_menagerie/fourier_gr1t1/assets/
 roboshelf_strategic_*.md
 *.docx
 
+# Befektetői / weboldal anyagok — FTP-vel megy a tárhelyre, NEM a (publikus) gitbe
+index.html
+Roboshelf_Pitch_Deck_EN.html
+Roboshelf_One_Pager_*.html
+*.pptx
+
 # MuJoCo debug log
 MUJOCO_LOG.TXT
 

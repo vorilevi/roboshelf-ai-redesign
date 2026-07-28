@@ -52,7 +52,7 @@ sys.path.insert(0, str(_REPO_ROOT / "src"))
 
 from roboshelf_ai.mujoco.envs.manipulation.t1_shelf_stock_env import (
     T1ShelfStockEnv,
-    ACTION_DIM as _ENV_ACTION_DIM,
+    N_ARM_DOF as _ENV_ACTION_DIM,
 )
 
 

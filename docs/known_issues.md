@@ -515,3 +515,107 @@ véletlen push → 1% siker. Nem tanult viselkedés, hanem geometriai véletlen.
 - Stock reset range kiterjesztve: x∈[0.25, 0.65], y∈[-0.15, 0.15]
 
 **Összefüggés:** #19 (target magasság), #20 (geometriai deadlock döntési pontok), #21a (kp fix)
+
+
+---
+
+## 24. collect_vla_demos.py — renderelés minden kísérletben (AI kódolási hiba)
+
+**Dátum:** 2026-05-02  
+**Status:** ✅ JAVÍTVA (kétmenetes gyűjtés)
+
+**Tünet:** Demo gyűjtés ~7.5 órára becsült (43/200 ep 96 perc alatt).
+
+**Root cause (AI hiba):** Az első verzió minden epizód minden lépésénél renderelt kamerát,
+beleértve a ~92% sikertelen kísérletet is (300 lépés/kísérlet × render overhead).
+Emellett az összes frame RAM-ban gyűlt (potenciálisan ~1.5 GB).
+
+**Javítás:** Kétmenetes pipeline:
+1. Menet: renderelés nélküli gyors gyűjtés → sikeres epizódok kezdeti stock pozíciójának mentése
+2. Menet: csak a ~200 sikeres epizód újrafuttatása renderelésssel, videók azonnal disk-re
+
+**Eredmény:** ~35 perc vs. ~7.5 óra (12x gyorsulás)
+
+**Tanulság:** Gyűjtési pipeline tervezésekor mindig számold ki a worst-case futásidőt
+(SR × max_steps × render_time) mielőtt elindítod.
+
+---
+
+## 25. train_ppo_from_bc.py — MPS float64 hiba (AI kódolási hiba)
+
+**Dátum:** 2026-05-02  
+**Status:** ✅ JAVÍTVA
+
+**Hiba:**
+```
+TypeError: Cannot convert a MPS Tensor to float64 dtype as the MPS framework
+doesn't support float64. Please use float32 instead.
+```
+
+**Root cause (AI hiba):** A `compute_dense_reward()` numpy műveleteket végez (`np.tanh` stb.),
+amik Python `float64`-et adnak vissza. A `torch.tensor(reward, device="mps")` ezt float64
+tenzorként próbálta létrehozni — az MPS nem támogatja.
+
+**Javítás:**
+```python
+# Előtte:
+torch.tensor(reward, device=device)
+# Utána:
+torch.tensor(float(reward), dtype=torch.float32, device=device)
+```
+
+**Tanulság:** MPS-en minden `torch.tensor()` híváshoz add meg explicit `dtype=torch.float32`-t
+ha a bemenet numpy scalar vagy Python float (mert azok float64-ek).
+
+---
+
+## 27. Kaggle — disk tele, checkpoint mentés sikertelen
+
+**Dátum:** 2026-05-23  
+**Status:** ✅ JAVÍTVA
+
+**Hiba:**
+```
+RuntimeError: basic_ios::clear: iostream error
+RuntimeError: [enforce fail at inline_container.cc:668] unexpected pos 4242514304 vs 4242514234
+```
+
+**Root cause:** A training loop `model.state_dict()`-et mentett checkpointonként, ami az egész 4-bit kvantált VLM-et (Qwen2.5-VL-7B, ~4 GB) tartalmazza. Kaggle `/kaggle/working` limit: 20 GB. Két checkpoint (step_00500.pt + step_01000.pt) már kitöltötte a helyet, a step_01500.pt mentése közben crashelt.
+
+**Megoldás:** Csak az action_model és a LoRA adapterek mentése — ezek együtt ~50-100 MB:
+```python
+# ROSSZ — teljes modell, ~4 GB/checkpoint:
+torch.save({"model_state": model.state_dict()}, p)
+
+# HELYES — csak a tanított részek:
+torch.save({"action_model": model.action_model.state_dict()}, p)
+model.qwen_vl_interface.model.save_pretrained(str(lora_dir))
+```
+
+**Disk helyreállítás Kaggle-on:** Restart & Clear Output — a `/kaggle/working` session-onként nullázódik.
+
+**Tanulság:** Kaggle notebooknál mindig csak a delta súlyokat (LoRA + action head) kell menteni, soha nem a teljes modell state_dict-et.
+
+---
+
+## 26. collect_vla_demos.py — nem létező ScriptedExpert API hívás (AI kódolási hiba)
+
+**Dátum:** 2026-05-02  
+**Status:** ✅ JAVÍTVA
+
+**Root cause (AI hiba):** Az első verzió `env._compute_action()` és `env._step_with_action()`
+metódusokat hívott, amelyek nem léteznek a `ScriptedExpert` osztályban.
+
+**Helyes API:**
+```python
+# Rossz (nem létező metódusok):
+action_np = env._compute_action()
+next_obs_np, reward, done, info = env._step_with_action(action_np)
+
+# Helyes:
+action_np = env.expert_action()
+next_obs_np, reward, done, info = env.step(action_np)
+```
+
+**Tanulság:** Új script írásakor a célmodulban (`scripted_expert.py`) mindig ellenőrizd
+a nyilvános API-t (`grep "def "`) mielőtt hívod — ne találj ki metódusneveket.
