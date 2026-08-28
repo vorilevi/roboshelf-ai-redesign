@@ -1,0 +1,16 @@
+{
+  "sku_id": "alpro_barista_coconut_1l",
+  "body": "product_0",
+  "mass_kg": 1.03,
+  "collision_half_m": [
+    0.0393,
+    0.0398,
+    0.1021
+  ],
+  "settled_pos": [
+    0.3983000000741431,
+    -0.1791998048203266,
+    1.0536275978297867
+  ],
+  "settle_drift_mm": 2.072402179404479
+}

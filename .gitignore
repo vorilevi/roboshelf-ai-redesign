@@ -51,7 +51,11 @@ mujoco_menagerie/fourier_gr1t1/assets/
 roboshelf_strategic_*.md
 *.docx
 
-# Befektetői / weboldal anyagok — FTP-vel megy a tárhelyre, NEM a (publikus) gitbe
+# Befektetői / weboldal anyagok — SOHA ne kerüljön a gitbe.
+# MIÉRT: ez a repo PUBLIKUS, ezek pedig BIZALMAS anyagok ("Confidential — for investors only":
+# tőkekérés, felosztás, pénzügyek, gyenge pontok). FTP-vel mennek a tárhelyre, nem gitbe.
+# 2026-07-25: korábban véletlenül felkerültek és pusholva lettek → a teljes történetből purge-ölve
+# (git-filter-repo + force-push). Részletek: döntési napló (roboshelf_dontesi_naplo_2026-07).
 index.html
 Roboshelf_Pitch_Deck_EN.html
 Roboshelf_One_Pager_*.html
@@ -60,3 +64,40 @@ Roboshelf_One_Pager_*.html
 # MuJoCo debug log
 MUJOCO_LOG.TXT
 
+
+# ─────────────────────────────────────────────────────────────────────────
+# 2026-08-16 — öt kategória, ami átcsúszott a szűrőn
+# ─────────────────────────────────────────────────────────────────────────
+
+# ⚠️ BIZALMAS. A fenti `Roboshelf_One_Pager_*.html` minta ALÁHÚZÁSSAL van,
+#    ezek a fájlnevek viszont SZÓKÖZZEL — ezért nem fogta meg őket, és
+#    publikus repón ott álltak követetlenül. Ugyanaz a hibaosztály, mint a
+#    2026-07-25-i szivárgás.
+Roboshelf One-Pager*.html
+*One-Pager*.html
+*One_Pager*.html
+
+# Betanítási adathalmazok — HuggingFace-re mennek, nem gitbe (100+ MB)
+data/lerobot/
+data/demos/
+
+# Vendorolt külső repó — a setup script tölti le, nem verziózzuk (69 MB)
+mujoco_menagerie/
+
+# Robot mesh-ek — mint a GR1T1-nél: setup script tölti le
+assets/*/meshes/
+
+# Renderelt képkockák és filmek — újragenerálhatók, 145+ MB
+results/shelflife_film*/
+results/shelflife_gripper_film/
+results/**/*.npy
+
+# Videók — a demo reel BIZALMAS (a döntési napló szerint szándékosan
+# követetlen), a többi render pedig újragenerálható
+*.mp4
+*.mov
+
+# Külön GitHub-repó, itt kicsekkolva (github.com/vorilevi/roboshelf-ai-EAN).
+# Beágyazott repóként csak törött mutató kerülne be — a klónok nem kapnák meg
+# a tartalmát. Saját repóként kell kezelni, nem submodule-ként.
+roboshelf-ai-EAN/

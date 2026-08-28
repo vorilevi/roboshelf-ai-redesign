@@ -1,0 +1,320 @@
+{
+  "also": {
+    "nev": "alsó referencia: semmit sem csinál",
+    "epizod": 10,
+    "siker": 0,
+    "sikerarany": 0.0,
+    "konfidencia_95": [
+      0.0,
+      27.8
+    ],
+    "bukas_okai": {
+      "időtúllépés": 10
+    },
+    "kriterium": {
+      "emeles_mm": 50.0,
+      "tartas_lepes": 100,
+      "max_doles_fok": 30.0
+    },
+    "epizodok": [
+      {
+        "index": 0,
+        "siker": false,
+        "ok": "időtúllépés",
+        "max_emeles_mm": 0.0,
+        "max_doles_fok": 0.0,
+        "lepesek": 1500,
+        "kezdet": {
+          "dx_mm": 6.8,
+          "dy_mm": -16.1,
+          "fordulas_fok": -165.2,
+          "tomeg_g": 316.5
+        }
+      },
+      {
+        "index": 1,
+        "siker": false,
+        "ok": "időtúllépés",
+        "max_emeles_mm": 0.0,
+        "max_doles_fok": 0.0,
+        "lepesek": 1500,
+        "kezdet": {
+          "dx_mm": 15.7,
+          "dy_mm": 28.9,
+          "fordulas_fok": 38.4,
+          "tomeg_g": 355.6
+        }
+      },
+      {
+        "index": 2,
+        "siker": false,
+        "ok": "időtúllépés",
+        "max_emeles_mm": 0.0,
+        "max_doles_fok": 0.0,
+        "lepesek": 1500,
+        "kezdet": {
+          "dx_mm": 2.2,
+          "dy_mm": 30.5,
+          "fordulas_fok": 113.7,
+          "tomeg_g": 315.7
+        }
+      },
+      {
+        "index": 3,
+        "siker": false,
+        "ok": "időtúllépés",
+        "max_emeles_mm": 0.0,
+        "max_doles_fok": 0.0,
+        "lepesek": 1500,
+        "kezdet": {
+          "dx_mm": 17.9,
+          "dy_mm": -32.6,
+          "fordulas_fok": 82.7,
+          "tomeg_g": 325.2
+        }
+      },
+      {
+        "index": 4,
+        "siker": false,
+        "ok": "időtúllépés",
+        "max_emeles_mm": 0.0,
+        "max_doles_fok": 0.0,
+        "lepesek": 1500,
+        "kezdet": {
+          "dx_mm": 18.2,
+          "dy_mm": 2.9,
+          "fordulas_fok": -72.1,
+          "tomeg_g": 338.8
+        }
+      },
+      {
+        "index": 5,
+        "siker": false,
+        "ok": "időtúllépés",
+        "max_emeles_mm": 0.0,
+        "max_doles_fok": 0.0,
+        "lepesek": 1500,
+        "kezdet": {
+          "dx_mm": -23.6,
+          "dy_mm": -26.3,
+          "fordulas_fok": 61.4,
+          "tomeg_g": 351.1
+        }
+      },
+      {
+        "index": 6,
+        "siker": false,
+        "ok": "időtúllépés",
+        "max_emeles_mm": 0.0,
+        "max_doles_fok": 0.0,
+        "lepesek": 1500,
+        "kezdet": {
+          "dx_mm": 5.8,
+          "dy_mm": -8.1,
+          "fordulas_fok": 179.0,
+          "tomeg_g": 369.4
+        }
+      },
+      {
+        "index": 7,
+        "siker": false,
+        "ok": "időtúllépés",
+        "max_emeles_mm": 0.0,
+        "max_doles_fok": 0.0,
+        "lepesek": 1500,
+        "kezdet": {
+          "dx_mm": 9.3,
+          "dy_mm": 10.5,
+          "fordulas_fok": 67.8,
+          "tomeg_g": 336.9
+        }
+      },
+      {
+        "index": 8,
+        "siker": false,
+        "ok": "időtúllépés",
+        "max_emeles_mm": 0.0,
+        "max_doles_fok": 0.0,
+        "lepesek": 1500,
+        "kezdet": {
+          "dx_mm": -18.2,
+          "dy_mm": 15.5,
+          "fordulas_fok": 9.1,
+          "tomeg_g": 332.6
+        }
+      },
+      {
+        "index": 9,
+        "siker": false,
+        "ok": "időtúllépés",
+        "max_emeles_mm": 0.0,
+        "max_doles_fok": 0.0,
+        "lepesek": 1500,
+        "kezdet": {
+          "dx_mm": -0.7,
+          "dy_mm": 27.3,
+          "fordulas_fok": 156.3,
+          "tomeg_g": 335.2
+        }
+      }
+    ]
+  },
+  "felso": {
+    "nev": "felső referencia: a doboz felemelve (csalás)",
+    "epizod": 10,
+    "siker": 10,
+    "sikerarany": 100.0,
+    "konfidencia_95": [
+      72.2,
+      100.0
+    ],
+    "bukas_okai": {},
+    "kriterium": {
+      "emeles_mm": 50.0,
+      "tartas_lepes": 100,
+      "max_doles_fok": 30.0
+    },
+    "epizodok": [
+      {
+        "index": 0,
+        "siker": true,
+        "ok": "siker",
+        "max_emeles_mm": 120.0,
+        "max_doles_fok": 0.0,
+        "lepesek": 99,
+        "kezdet": {
+          "dx_mm": 6.8,
+          "dy_mm": -16.1,
+          "fordulas_fok": -165.2,
+          "tomeg_g": 316.5
+        }
+      },
+      {
+        "index": 1,
+        "siker": true,
+        "ok": "siker",
+        "max_emeles_mm": 120.0,
+        "max_doles_fok": 0.0,
+        "lepesek": 99,
+        "kezdet": {
+          "dx_mm": 15.7,
+          "dy_mm": 28.9,
+          "fordulas_fok": 38.4,
+          "tomeg_g": 355.6
+        }
+      },
+      {
+        "index": 2,
+        "siker": true,
+        "ok": "siker",
+        "max_emeles_mm": 120.0,
+        "max_doles_fok": 0.0,
+        "lepesek": 99,
+        "kezdet": {
+          "dx_mm": 2.2,
+          "dy_mm": 30.5,
+          "fordulas_fok": 113.7,
+          "tomeg_g": 315.7
+        }
+      },
+      {
+        "index": 3,
+        "siker": true,
+        "ok": "siker",
+        "max_emeles_mm": 120.0,
+        "max_doles_fok": 0.0,
+        "lepesek": 99,
+        "kezdet": {
+          "dx_mm": 17.9,
+          "dy_mm": -32.6,
+          "fordulas_fok": 82.7,
+          "tomeg_g": 325.2
+        }
+      },
+      {
+        "index": 4,
+        "siker": true,
+        "ok": "siker",
+        "max_emeles_mm": 120.0,
+        "max_doles_fok": 0.0,
+        "lepesek": 99,
+        "kezdet": {
+          "dx_mm": 18.2,
+          "dy_mm": 2.9,
+          "fordulas_fok": -72.1,
+          "tomeg_g": 338.8
+        }
+      },
+      {
+        "index": 5,
+        "siker": true,
+        "ok": "siker",
+        "max_emeles_mm": 120.0,
+        "max_doles_fok": 0.0,
+        "lepesek": 99,
+        "kezdet": {
+          "dx_mm": -23.6,
+          "dy_mm": -26.3,
+          "fordulas_fok": 61.4,
+          "tomeg_g": 351.1
+        }
+      },
+      {
+        "index": 6,
+        "siker": true,
+        "ok": "siker",
+        "max_emeles_mm": 120.0,
+        "max_doles_fok": 0.0,
+        "lepesek": 99,
+        "kezdet": {
+          "dx_mm": 5.8,
+          "dy_mm": -8.1,
+          "fordulas_fok": 179.0,
+          "tomeg_g": 369.4
+        }
+      },
+      {
+        "index": 7,
+        "siker": true,
+        "ok": "siker",
+        "max_emeles_mm": 120.0,
+        "max_doles_fok": 0.0,
+        "lepesek": 99,
+        "kezdet": {
+          "dx_mm": 9.3,
+          "dy_mm": 10.5,
+          "fordulas_fok": 67.8,
+          "tomeg_g": 336.9
+        }
+      },
+      {
+        "index": 8,
+        "siker": true,
+        "ok": "siker",
+        "max_emeles_mm": 120.0,
+        "max_doles_fok": 0.0,
+        "lepesek": 99,
+        "kezdet": {
+          "dx_mm": -18.2,
+          "dy_mm": 15.5,
+          "fordulas_fok": 9.1,
+          "tomeg_g": 332.6
+        }
+      },
+      {
+        "index": 9,
+        "siker": true,
+        "ok": "siker",
+        "max_emeles_mm": 120.0,
+        "max_doles_fok": 0.0,
+        "lepesek": 99,
+        "kezdet": {
+          "dx_mm": -0.7,
+          "dy_mm": 27.3,
+          "fordulas_fok": 156.3,
+          "tomeg_g": 335.2
+        }
+      }
+    ]
+  }
+}

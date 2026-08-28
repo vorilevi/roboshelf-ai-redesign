@@ -619,3 +619,37 @@ next_obs_np, reward, done, info = env.step(action_np)
 
 **Tanulság:** Új script írásakor a célmodulban (`scripted_expert.py`) mindig ellenőrizd
 a nyilvános API-t (`grep "def "`) mielőtt hívod — ne találj ki metódusneveket.
+
+---
+
+## 28. macOS: offscreen renderelés ≠ interaktív viewer (Shelf Life)
+
+**Kontextus:** a Shelf Life feladat kamerát használ (szavatossági dátum olvasása),
+ezért gyakran kell renderelni. Könnyű összekeverni a #1-es viewer-korláttal, és
+fölöslegesen `mjpython`-t erőltetni mindenre.
+
+**A két eset KÜLÖNBÖZIK:**
+
+| Mit hívsz | Nyit ablakot? | macOS-en `mjpython` kell? |
+|---|---|---|
+| `mujoco.viewer.launch*` / `python -m mujoco.viewer` | igen | **IGEN** — lásd #1. Apple szálkezelési korlát: a GUI-nak a fő szálon kell futnia |
+| `mujoco.Renderer(...).render()` (offscreen) | nem | **Általában NEM** — sima `python3` is jó |
+
+**Gyakorlatilag:**
+```bash
+python3  tools/shelflife_check_render.py                       # offscreen — elég
+mjpython -m mujoco.viewer --mjcf=src/envs/assets/shelflife_scene_gene01_v1.xml   # ablak — kell
+```
+
+**Ha az offscreen render MÉGIS elszáll**, akkor nem a #1-es korlátba futottál,
+hanem hiányzik az OpenGL backend. Hibaüzenet ilyenkor jellemzően:
+```
+FatalError: an OpenGL platform library has not been loaded into this process
+```
+Linux/konténer esetén `MUJOCO_GL=egl` vagy `MUJOCO_GL=osmesa` + a megfelelő
+rendszerkönyvtárak kellenek. **A fejlesztői sandboxban egyik sincs**, ezért ott
+a renderelést igénylő lépések nem futtathatók — azok a felhasználó gépére valók.
+
+**Tanulság:** a `tools/shelflife_primitives.py` `render_view()` metódusa
+szándékosan BESZÉDES hibát dob, nem néma fekete képet ad vissza. Egy üres képre
+a VLM magabiztosan félreolvasna egy dátumot — ez a legveszélyesebb kimenet.

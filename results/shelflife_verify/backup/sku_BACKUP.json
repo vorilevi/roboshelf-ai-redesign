@@ -1,0 +1,148 @@
+{
+  "_comment": [
+    "SKU-adatbázis bejegyzés — Shelf Life / Roboshelf AI 2. pillér.",
+    "",
+    "EZ A FÁJL NEM MEHET PUBLIKUS REPÓBA. A könyvtárnév tartalmazza a",
+    "'_private' szót, amit a .gitignore 50. sora (*_private*) elkap.",
+    "Ellenőrzés commit előtt:  git status --short | grep -i private",
+    "",
+    "Miért ez a védőárok: a robotgyártó nem tudja, hol van a dátum egy",
+    "Alpro dobozon, sem azt, hogy lejárat után kivonni vagy csak jelölni",
+    "kell. Mi tudjuk. SKU-nként egyszer kell megállapítani, utána minden",
+    "telepítés használja."
+  ],
+  "sku_id": "alpro_barista_coconut_1l",
+  "brand": "Alpro",
+  "product_name": "Barista Coconut",
+  "category": "növényi ital (UHT)",
+  "volume_ml": 1000,
+  "package_type": "tetra_gable_top",
+  "geometry": {
+    "source": "iPhone 17 Pro / Scaniverse fotogrammetria, 2026-08-03",
+    "mesh": "data/doboz_private/Scaniverse 2026-08-03 093736/Scaniverse_2026_08_03_093736.obj",
+    "texture": "data/doboz_private/Scaniverse 2026-08-03 093736/Scaniverse_2026_08_03_093736.jpg",
+    "vertices": 17825,
+    "faces": 35179,
+    "bbox_m": [
+      0.0786,
+      0.2042,
+      0.0796
+    ],
+    "long_axis": "y",
+    "texture_px": 8192,
+    "texture_quality_note": [
+      "A szkennelt textúra a TERMÉKEN elmosódott (a QR-kód is szétkenődött),",
+      "és az atlasz nagy részét az asztal foglalja. A dátum NINCS benne —",
+      "a tetőgerinc sima fehér. Ez nem baj: a dátumot amúgy sem innen vesszük",
+      "(lásd date_field), mert egyedenként változik."
+    ]
+  },
+  "date_field": {
+    "_comment": "EZ A LÉNYEG — a 2. pillér: 'a szavatossági idő helye a csomagoláson'",
+    "type": "best_before",
+    "type_source_hu": "minőségét megőrzi",
+    "location_human": "a csomagolás teteje (gable-top gerinc)",
+    "location_source_hu": "\"minőségét megőrzi: lásd a csomagolás tetején (nap/hónap/év)\"",
+    "format": "%d.%m.%y",
+    "format_source_hu": "(nap/hónap/év)",
+    "layout_lines": [
+      "dátum",
+      "tételkód + idő",
+      "egy számjegy"
+    ],
+    "print_style": "tintasugaras 5x7 mátrix, sötét kékesfekete",
+    "char_height_mm": 3.6,
+    "block_width_mm": 47,
+    "reference_photo": "data/doboz_private/IMG_7347.jpeg",
+    "observed_value": "22.03.27",
+    "observed_batch": "HA2225 12:14",
+    "observed_parsed_iso": "2027-03-22",
+    "placement": {
+      "_comment": [
+        "A dátummező helye a modell SAJÁT koordinátarendszerében (méter).",
+        "NEM a textúrába van festve: külön matricaként (decal) kerül a modellre,",
+        "mert a dátum egyedenként változik. Így az eval minden epizódban más",
+        "dátumot tehet ugyanide, a 8K szkennelt textúrához hozzányúlás nélkül.",
+        "",
+        "Hogyan határoztuk meg:",
+        " 1. a tetősík illesztése a hálóra (normális, középpont)",
+        " 2. a kupak megtalálása magasság alapján (8 mm kiemelkedés) -> ez adja",
+        "    az ELÖL irányt, mert a kupak az elülső oldal felé van tolva",
+        " 3. a felhasználó megerősítette: a dátum BAL HÁTUL van",
+        "",
+        "PONTOSSÁG: a helyzet ~±1 cm-re becsült. A fotogrammetria lekerekítette",
+        "a zárófül hajtásélét, ezért a hálóból nem volt kimérhető. A kísérlet",
+        "szempontjából ez elég: a lényeg, hogy a dátum a TETŐN van, tehát elölről",
+        "nem látszik, és a robotnak meg kell fordítania a terméket."
+      ],
+      "plane_point_m": [
+        -0.0008,
+        0.2057,
+        0.0174
+      ],
+      "plane_normal": [
+        -0.2,
+        0.9798,
+        0.0
+      ],
+      "axis_u_back": [
+        0.9798,
+        0.2,
+        -0.0
+      ],
+      "axis_v_left": [
+        -0.0,
+        0.0,
+        -1.0
+      ],
+      "center_uv_cm": [
+        1.9,
+        0.3
+      ],
+      "center_xyz_m": [
+        0.01782,
+        0.2095,
+        0.0144
+      ],
+      "size_cm": [
+        1.6,
+        4.2
+      ],
+      "text_runs_along": "v (a hátsó él mentén)",
+      "human_description": "bal hátul, a tető zárófülén, a kupakkal átellenben",
+      "accuracy_cm": 1.0,
+      "_fit_note": "A mezőt beljebb húztuk (u 2.5->1.9) és kisebbre vettük (1.8x4.7 -> 1.6x4.2 cm), mert a fotogrammetria lekerekítette a tető széleit: az illesztett SÍK nagyobb, mint a tényleges felület, ezért a matrica túllógott a doboz sziluettjén."
+    }
+  },
+  "decision_rules": {
+    "_comment": [
+      "EU-jelölés: a 'minőségét megőrzi' (best before) MINŐSÉGI kategória —",
+      "lejárat után sok termék még legálisan árusítható, jelöléssel.",
+      "A 'fogyaszthatósági idő' (use by) BIZTONSÁGI — kötelező kivonni.",
+      "Ez a különbség a feladat üzleti magja."
+    ],
+    "not_expired": "MARADHAT",
+    "expired": "JELÖLNI",
+    "unreadable": "NEM_OLVASHATO"
+  },
+  "grasp": {
+    "_comment": "3. pillér-elem: SKU-nkénti fogástechnika. Még nem mért.",
+    "recommended": null,
+    "notes": "Gable-top karton, merev, ~1 kg tele. Oldalról fogható."
+  },
+  "provenance": {
+    "created": "2026-08-03",
+    "created_by": "Shelf Life kísérlet, 1. SKU",
+    "date_type_verified_by": "felhasználó, a csomagolás szövege alapján"
+  },
+  "_lessons": [
+    "A fotogrammetriás szkennelés a FORMÁT jól adja vissza (17825 csúcs, helyes",
+    "méretek), a NYOMTATOTT RÉSZLETEK helyét viszont nem: a zárófül hajtásélét",
+    "lekerekítette, a dátum a textúrába sem került bele.",
+    "",
+    "Következmény a terméktudásbázis felvételi folyamatára: a szkennelés mellé",
+    "MINDIG kell (a) közelkép a dátumról és (b) egy emberi megerősítés arról,",
+    "hogy melyik oldalon van. A kettő együtt 2 perc, és e nélkül a szkennelés",
+    "önmagában nem elég."
+  ]
+}

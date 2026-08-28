@@ -1,0 +1,85 @@
+{
+  "settle_large": 2000,
+  "settle_step": 60,
+  "reset_home": {
+    "repeat_spread_mm": 0.0
+  },
+  "preset": {
+    "pre_grasp": {
+      "ik_mm": 1.3,
+      "ik_deg": 1.26,
+      "joint_margin_rad": 0.202,
+      "reachable": true
+    },
+    "grasp": {
+      "ik_mm": 1.43,
+      "ik_deg": 1.34,
+      "joint_margin_rad": 0.345,
+      "reachable": true
+    },
+    "inspect": {
+      "ik_mm": 1.96,
+      "ik_deg": 2.3,
+      "joint_margin_rad": 0.264,
+      "reachable": true
+    },
+    "lift": {
+      "relative": true,
+      "ik_mm": 1.31,
+      "ik_deg": 1.47,
+      "joint_margin_rad": 0.334,
+      "reachable": true
+    },
+    "shelf_out": {
+      "relative": true,
+      "ik_mm": 2.51,
+      "ik_deg": 1.54,
+      "joint_margin_rad": 0.185,
+      "reachable": true
+    }
+  },
+  "approach_until_goal": {
+    "err_mm": 4.5,
+    "sec": 4.7,
+    "reason": "goal",
+    "product_moved_mm": 8.171964216361037e-05
+  },
+  "approach_to_grasp": {
+    "reason": "goal",
+    "final_err_mm": 3.5319100019898313,
+    "parts": [],
+    "product_moved_mm": 7.626257065852064e-07
+  },
+  "approach_until_contact": {
+    "reason": "guard",
+    "parts": [],
+    "sec": 0.3,
+    "product_moved_mm": 31.602862135109863
+  },
+  "close_until_grip": {
+    "reason": "guard",
+    "sec": 0.2,
+    "contacts": 3,
+    "parts": [
+      "little",
+      "middle",
+      "thumb"
+    ],
+    "force_N": 9.9,
+    "holding": false
+  },
+  "guard": {
+    "reason": "guard",
+    "product_moved_mm": 3.6128128535447352
+  },
+  "can_see_date_on_shelf": {
+    "visible": false,
+    "detail": "rgb_camera: KILÓG (vízsz +30.1°, függ +23.6°, fél-FOV 22.5°, táv 0.39 m)"
+  },
+  "view": {
+    "available": false,
+    "error": "RuntimeError"
+  },
+  "m2_input_grip_succeeds": false,
+  "m1_exit": true
+}

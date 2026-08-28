@@ -1,0 +1,41 @@
+{
+  "knuckle": "+60°",
+  "dz_mm": -40,
+  "thumb": [
+    1.4,
+    0.2,
+    0.4
+  ],
+  "preflex": 0.25,
+  "geometry": {
+    "resultant": 0.20564049816233956,
+    "max_gap_deg": 157.01746058937425,
+    "heights_mm": {
+      "thumb": 53.77315004219696,
+      "index": 65.24966882953231,
+      "middle": 56.565101674661335,
+      "ring": 34.79452712949804,
+      "little": 0.0005011555455070038
+    },
+    "height_mean_frac": 0.2893850740459892,
+    "height_spread_mm": 65.2491676739868,
+    "spread_frac": 0.44875631137542504,
+    "finger_mean_mm": 39.152449697309294,
+    "thumb_offset_mm": 14.620700344887666,
+    "thumb_frac": 0.36982909244977274,
+    "product_h_mm": 145.4,
+    "open_gap_mm": 5.947719552770842
+  },
+  "run": {
+    "digits": [],
+    "medial": 0,
+    "force_N": 0.0,
+    "moved_mm": 0.0001038420639214309,
+    "follow": -5.209241291517747e-06,
+    "hand_mm": -13.644632176360139,
+    "rise_mm": 7.10781813406669e-05,
+    "digits_after": [],
+    "held": false
+  },
+  "_note": "kinematikai söprés + egy valódi futás"
+}

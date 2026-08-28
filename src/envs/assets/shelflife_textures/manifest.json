@@ -1,0 +1,55 @@
+{
+  "reference_date": "2026-08-02",
+  "items": [
+    {
+      "file": "product_0.png",
+      "product": "TEJFÖL",
+      "date_kind": "BEST BEFORE",
+      "date": "2026-09-22",
+      "date_printed": "22.09.2026",
+      "days_from_today": 51,
+      "expired": false,
+      "ground_truth_decision": "MARADHAT"
+    },
+    {
+      "file": "product_1.png",
+      "product": "JOGHURT",
+      "date_kind": "USE BY",
+      "date": "2026-07-27",
+      "date_printed": "27.07.2026",
+      "days_from_today": -6,
+      "expired": true,
+      "ground_truth_decision": "KIVONNI"
+    },
+    {
+      "file": "product_2.png",
+      "product": "VAJ",
+      "date_kind": "USE BY",
+      "date": "2026-06-26",
+      "date_printed": "26.06.2026",
+      "days_from_today": -37,
+      "expired": true,
+      "ground_truth_decision": "KIVONNI"
+    },
+    {
+      "file": "product_3.png",
+      "product": "SAJT",
+      "date_kind": "USE BY",
+      "date": "2026-07-20",
+      "date_printed": "20.07.2026",
+      "days_from_today": -13,
+      "expired": true,
+      "ground_truth_decision": "KIVONNI"
+    },
+    {
+      "file": "product_4.png",
+      "product": "TEJSZÍN",
+      "date_kind": "BEST BEFORE",
+      "date": "2026-06-28",
+      "date_printed": "28.06.2026",
+      "days_from_today": -35,
+      "expired": true,
+      "ground_truth_decision": "JELÖLNI"
+    }
+  ]
+}

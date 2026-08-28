@@ -24,5 +24,5 @@
 | `configs/manipulation/shelf_stock_v12_final.yaml` | Utolsó PPO config |
 | `tools/scripted_expert.py` | Scripted expert (F3b, blokkolt) |
 | `tools/policy_demo_collector.py` | PPO rollout gyűjtő |
-| `docs/known_issues.md` | Ismert hibák (#15–20; #19-20 = F3b deadlock) |
+| `docs/known_issues.md` | Ismert hibák (#15–20; #19-20 = F3b deadlock) · **macOS viewer = #1**, nem #15–18 |
 | `roboshelf_schedule.md` | F3b állapot: ❌ blokkolt |

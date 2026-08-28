@@ -1,0 +1,47 @@
+{
+  "held": false,
+  "lift_mm": 48.12248705352506,
+  "contacts": 0,
+  "force_N": 0.0,
+  "parts": [],
+  "stages": {
+    "odaallas": {
+      "reason": "őrfeltétel: a termék elmozdult",
+      "travelled_mm": 23.94512369966801,
+      "remaining_mm": 134.69132081063256,
+      "product_moved_mm": 10.273871674634734,
+      "parts": [
+        "index"
+      ],
+      "steps": 16
+    },
+    "kozelites": {
+      "reason": "kontaktus",
+      "travelled_mm": 1.4933381752942834,
+      "remaining_mm": 186.6672719117854,
+      "product_moved_mm": 23.715234058999506,
+      "parts": [
+        "index"
+      ],
+      "steps": 1
+    },
+    "zaras": {
+      "reason": "őrfeltétel: a termék elmozdult",
+      "amount": 0.0,
+      "contacts": 1,
+      "force_N": 3.6514049420624923,
+      "parts": [
+        "index"
+      ],
+      "product_moved_mm": 10.257681479833199
+    },
+    "emeles": {
+      "reason": "goal",
+      "travelled_mm": 100.00000000000009,
+      "remaining_mm": 0.0,
+      "product_moved_mm": 48.795042874548685,
+      "parts": [],
+      "steps": 67
+    }
+  }
+}

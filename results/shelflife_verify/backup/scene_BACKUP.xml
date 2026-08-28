@@ -1,0 +1,558 @@
+<mujoco model="shelflife_gene01_sku_alpro_barista_coconut_1l">
+  <compiler angle="radian" meshdir="../../../models/gene01_meshes/" texturedir="shelflife_textures/" autolimits="true" />
+  <option timestep="0.001" gravity="0 0 -9.81" integrator="implicitfast" />
+  <visual>
+    <global offwidth="1280" offheight="1280" />
+    <quality shadowsize="2048" />
+  </visual>
+  <default>
+    <default class="gene_arm">
+      <joint damping="10.0" armature="0.01" />
+    </default>
+    <default class="gene_finger">
+      <joint damping="0.5" armature="0.001" />
+    </default>
+    <default class="gene_neck">
+      <joint damping="5.0" armature="0.005" />
+    </default>
+    <default class="gene_passive">
+      <joint damping="500.0" armature="0.5" stiffness="100000.0" />
+    </default>
+    <default class="product">
+      <geom friction="0.9 0.02 0.002" condim="4" solref="0.02 1" solimp="0.9 0.95 0.001" />
+    </default>
+    <default class="gene_torso">
+      <joint damping="100.0" armature="0.5" />
+    </default>
+  </default>
+  <asset>
+    <mesh name="sim_gene01_torso_1_collision" content_type="model/stl" file="sim_gene01_torso_1_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_l_hip_1_collision" content_type="model/stl" file="sim_gene01_l_hip_1_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_r_hip_1_collision" content_type="model/stl" file="sim_gene01_r_hip_1_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_torso_2_collision" content_type="model/stl" file="sim_gene01_torso_2_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_chest_collision" content_type="model/stl" file="sim_gene01_chest_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_l_shoulder_1_collision" content_type="model/stl" file="sim_gene01_l_shoulder_1_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_r_shoulder_1_collision" content_type="model/stl" file="sim_gene01_r_shoulder_1_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_r_shoulder_2_collision" content_type="model/stl" file="sim_gene01_r_shoulder_2_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_r_upperarm_collision" content_type="model/stl" file="sim_gene01_r_upperarm_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_r_forearm_collision" content_type="model/stl" file="sim_gene01_r_forearm_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_r_wrist_1_collision" content_type="model/stl" file="sim_gene01_r_wrist_1_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_r_wrist_2_collision" content_type="model/stl" file="sim_gene01_r_wrist_2_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_r_wrist_3_collision" content_type="model/stl" file="sim_gene01_r_wrist_3_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_head_collision" content_type="model/stl" file="sim_gene01_head_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_l_shoulder_2_collision" content_type="model/stl" file="sim_gene01_l_shoulder_2_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_l_upperarm_collision" content_type="model/stl" file="sim_gene01_l_upperarm_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_l_forearm_collision" content_type="model/stl" file="sim_gene01_l_forearm_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_l_wrist_1_collision" content_type="model/stl" file="sim_gene01_l_wrist_1_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_l_wrist_2_collision" content_type="model/stl" file="sim_gene01_l_wrist_2_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_l_wrist_3_collision" content_type="model/stl" file="sim_gene01_l_wrist_3_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_r_hip_2_collision" content_type="model/stl" file="sim_gene01_r_hip_2_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_r_upper_leg_collision" content_type="model/stl" file="sim_gene01_r_upper_leg_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_r_lower_leg_collision" content_type="model/stl" file="sim_gene01_r_lower_leg_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_r_ankle_1_collision" content_type="model/stl" file="sim_gene01_r_ankle_1_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_r_ankle_2_collision" content_type="model/stl" file="sim_gene01_r_ankle_2_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_l_hip_2_collision" content_type="model/stl" file="sim_gene01_l_hip_2_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_l_upper_leg_collision" content_type="model/stl" file="sim_gene01_l_upper_leg_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_l_lower_leg_collision" content_type="model/stl" file="sim_gene01_l_lower_leg_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_l_ankle_1_collision" content_type="model/stl" file="sim_gene01_l_ankle_1_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_l_ankle_2_collision" content_type="model/stl" file="sim_gene01_l_ankle_2_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_l_hand_palm_collision" content_type="model/stl" file="sim_gene01_l_hand_palm_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_l_hand_index_1_collision" content_type="model/stl" file="sim_gene01_l_hand_index_1_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_l_hand_little_1_collision" content_type="model/stl" file="sim_gene01_l_hand_little_1_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_l_hand_middle_1_collision" content_type="model/stl" file="sim_gene01_l_hand_middle_1_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_l_hand_ring_1_collision" content_type="model/stl" file="sim_gene01_l_hand_ring_1_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_l_hand_thumb_1_collision" content_type="model/stl" file="sim_gene01_l_hand_thumb_1_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_l_hand_thumb_2_collision" content_type="model/stl" file="sim_gene01_l_hand_thumb_2_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_l_hand_thumb_3_collision" content_type="model/stl" file="sim_gene01_l_hand_thumb_3_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_l_hand_thumb_4_collision" content_type="model/stl" file="sim_gene01_l_hand_thumb_4_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_l_hand_thumb_5_collision" content_type="model/stl" file="sim_gene01_l_hand_thumb_5_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_l_hand_ring_2_collision" content_type="model/stl" file="sim_gene01_l_hand_ring_2_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_l_hand_ring_3_collision" content_type="model/stl" file="sim_gene01_l_hand_ring_3_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_l_hand_ring_4_collision" content_type="model/stl" file="sim_gene01_l_hand_ring_4_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_l_hand_middle_2_collision" content_type="model/stl" file="sim_gene01_l_hand_middle_2_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_l_hand_middle_3_collision" content_type="model/stl" file="sim_gene01_l_hand_middle_3_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_l_hand_middle_4_collision" content_type="model/stl" file="sim_gene01_l_hand_middle_4_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_l_hand_little_2_collision" content_type="model/stl" file="sim_gene01_l_hand_little_2_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_l_hand_little_3_collision" content_type="model/stl" file="sim_gene01_l_hand_little_3_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_l_hand_little_4_collision" content_type="model/stl" file="sim_gene01_l_hand_little_4_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_l_hand_index_2_collision" content_type="model/stl" file="sim_gene01_l_hand_index_2_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_l_hand_index_3_collision" content_type="model/stl" file="sim_gene01_l_hand_index_3_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_l_hand_index_4_collision" content_type="model/stl" file="sim_gene01_l_hand_index_4_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_r_hand_palm_collision" content_type="model/stl" file="sim_gene01_r_hand_palm_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_r_hand_index_1_collision" content_type="model/stl" file="sim_gene01_r_hand_index_1_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_r_hand_little_1_collision" content_type="model/stl" file="sim_gene01_r_hand_little_1_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_r_hand_middle_1_collision" content_type="model/stl" file="sim_gene01_r_hand_middle_1_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_r_hand_ring_1_collision" content_type="model/stl" file="sim_gene01_r_hand_ring_1_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_r_hand_thumb_1_collision" content_type="model/stl" file="sim_gene01_r_hand_thumb_1_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_r_hand_thumb_2_collision" content_type="model/stl" file="sim_gene01_r_hand_thumb_2_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_r_hand_thumb_3_collision" content_type="model/stl" file="sim_gene01_r_hand_thumb_3_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_r_hand_thumb_4_collision" content_type="model/stl" file="sim_gene01_r_hand_thumb_4_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_r_hand_thumb_5_collision" content_type="model/stl" file="sim_gene01_r_hand_thumb_5_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_r_hand_ring_2_collision" content_type="model/stl" file="sim_gene01_r_hand_ring_2_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_r_hand_ring_3_collision" content_type="model/stl" file="sim_gene01_r_hand_ring_3_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_r_hand_ring_4_collision" content_type="model/stl" file="sim_gene01_r_hand_ring_4_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_r_hand_middle_2_collision" content_type="model/stl" file="sim_gene01_r_hand_middle_2_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_r_hand_middle_3_collision" content_type="model/stl" file="sim_gene01_r_hand_middle_3_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_r_hand_middle_4_collision" content_type="model/stl" file="sim_gene01_r_hand_middle_4_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_r_hand_little_2_collision" content_type="model/stl" file="sim_gene01_r_hand_little_2_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_r_hand_little_3_collision" content_type="model/stl" file="sim_gene01_r_hand_little_3_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_r_hand_little_4_collision" content_type="model/stl" file="sim_gene01_r_hand_little_4_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_r_hand_index_2_collision" content_type="model/stl" file="sim_gene01_r_hand_index_2_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_r_hand_index_3_collision" content_type="model/stl" file="sim_gene01_r_hand_index_3_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_r_hand_index_4_collision" content_type="model/stl" file="sim_gene01_r_hand_index_4_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_neck_2_collision_collision" content_type="model/stl" file="sim_gene01_neck_2_collision_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_neck_3_collision_collision" content_type="model/stl" file="sim_gene01_neck_3_collision_collision.stl" scale="0.001 0.001 0.001" />
+    <mesh name="sim_gene01_neck_1_collision_collision" content_type="model/stl" file="sim_gene01_neck_1_collision_collision.stl" scale="0.001 0.001 0.001" />
+    <texture name="tex_floor" type="2d" builtin="checker" width="512" height="512" rgb1="0.82 0.82 0.78" rgb2="0.78 0.78 0.74" />
+    <material name="mat_floor" texture="tex_floor" texrepeat="8 8" reflectance="0.05" />
+    <material name="mat_shelf" rgba="0.72 0.72 0.70 1" />
+    <material name="mat_board" rgba="0.88 0.86 0.82 1" />
+    <mesh name="alpro_barista_coconut_1l_visual" file="../shelflife_sku/alpro_barista_coconut_1l/visual.obj" />
+    <texture name="alpro_barista_coconut_1l_tex" type="2d" file="../../../../models/shelflife_sku/alpro_barista_coconut_1l/visual.png" />
+    <texture name="alpro_barista_coconut_1l_dtex" type="cube" file="../../../../models/shelflife_sku/alpro_barista_coconut_1l/date_decal.png" />
+    <material name="alpro_barista_coconut_1l_mat" texture="alpro_barista_coconut_1l_tex" specular="0.08" shininess="0.15" reflectance="0" />
+    <material name="alpro_barista_coconut_1l_dmat" texture="alpro_barista_coconut_1l_dtex" specular="0.0" shininess="0.0" reflectance="0" />
+  </asset>
+  <worldbody>
+    <light name="ceil" pos="0.3 0 3.0" dir="0 0 -1" diffuse="0.9 0.9 0.9" castshadow="true" />
+    <light name="fill" pos="0.8 -0.8 2.2" dir="-0.3 0.3 -1" diffuse="0.5 0.5 0.5" castshadow="false" />
+    <geom name="floor" type="plane" size="4 4 0.01" material="mat_floor" />
+    <camera name="overview" pos="1.2 -1.5 1.7" xyaxes="0.78 0.63 0  -0.28 0.35 0.89" fovy="50" />
+    <camera name="side_view" pos="0.3 -1.8 1.25" xyaxes="1 0 0  0 0 1" fovy="45" />
+    <body name="gene01_base" pos="0 0 0.9808">
+      <geom type="mesh" mesh="sim_gene01_torso_1_collision" />
+      <body name="l_hip_1" pos="0.0061 0.07 0">
+        <inertial pos="-0.0639924 0.0171995 -0.0758531" quat="0.833442 0.164881 0.370402 0.375487" mass="2.6878" diaginertia="0.0102753 0.00947085 0.00697128" />
+        <joint name="l_hip_pitch" pos="0 0 0" axis="0 1 0" range="-1.95477 0.523599" class="gene_passive" />
+        <geom type="mesh" mesh="sim_gene01_l_hip_1_collision" />
+        <body name="l_hip_2" pos="-0.0585 0.0163 -0.09">
+          <inertial pos="0.0555811 0.018143 -0.0786529" quat="0.679102 -0.069042 -0.286064 0.672474" mass="2.44583" diaginertia="0.00658505 0.00647751 0.00410242" />
+          <joint name="l_hip_roll" pos="0 0 0" axis="-1 0 0" range="-0.959931 0.261799" class="gene_passive" />
+          <geom type="mesh" mesh="sim_gene01_l_hip_2_collision" />
+          <body name="l_upper_leg" pos="0.06095 0.022 -0.1242">
+            <inertial pos="0.00245895 -0.00382835 -0.102456" quat="0.622504 0.0253884 0.0453582 0.780889" mass="5.94868" diaginertia="0.0410128 0.0394258 0.0136165" />
+            <joint name="l_hip_yaw" pos="0 0 0" axis="0 0 -1" range="-1.22173 1.22173" class="gene_passive" />
+            <geom type="mesh" mesh="sim_gene01_l_upper_leg_collision" />
+            <body name="l_lower_leg" pos="-0.02855 -0.02245 -0.2658">
+              <inertial pos="0.03792 0.015009 -0.136392" quat="0.516565 0.0339773 0.00655924 0.855549" mass="5.47258" diaginertia="0.0906561 0.0898752 0.00889758" />
+              <joint name="l_knee" pos="0 0 0" axis="0 1 0" range="-0.0523599 2.35619" class="gene_passive" />
+              <geom type="mesh" mesh="sim_gene01_l_lower_leg_collision" />
+              <body name="l_ankle_1" pos="0.0149861 0.01775 -0.420239" quat="1 0 -1.21249e-07 0">
+                <inertial pos="-0.00408682 0.00027965 -0.0179458" quat="0.67348 0.208499 0.240967 0.666999" mass="0.245451" diaginertia="0.000109833 7.89642e-05 6.12521e-05" />
+                <joint name="l_ankle_pitch" pos="0 0 0" axis="0 1 0" range="-1.0472 0.523599" class="gene_passive" />
+                <geom type="mesh" mesh="sim_gene01_l_ankle_1_collision" />
+                <body name="l_ankle_2" pos="0 0 -0.03">
+                  <inertial pos="0.0381142 2.44022e-07 -0.0301114" quat="-2.31365e-05 0.735092 -6.62352e-06 0.677967" mass="1.28441" diaginertia="0.00746313 0.00725443 0.00140847" />
+                  <joint name="l_ankle_roll" pos="0 0 0" axis="-1 0 0" range="-0.436332 0.436332" class="gene_passive" />
+                  <geom type="mesh" mesh="sim_gene01_l_ankle_2_collision" />
+                  <geom size="0.02021 0.058205 0.01" pos="0.168089 -1.763e-10 -0.0418132" quat="0.965926 0 -0.258819 0" type="box" />
+                  <geom size="0.113635 0.058205 0.01" pos="0.041953 -1.6645e-09 -0.0505773" type="box" />
+                  <geom size="0.016495 0.058205 0.01" pos="-0.0837626 6.195e-10 -0.0455391" quat="0.984808 0 0.173648 0" type="box" />
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+      <body name="r_hip_1" pos="0.0061 -0.07 0">
+        <inertial pos="-0.0640764 -0.0169009 -0.0762838" quat="0.39946 0.360608 0.174556 0.824575" mass="2.69149" diaginertia="0.0103083 0.00951805 0.00699956" />
+        <joint name="r_hip_pitch" pos="0 0 0" axis="0 1 0" range="-1.95477 0.523599" class="gene_passive" />
+        <geom type="mesh" mesh="sim_gene01_r_hip_1_collision" />
+        <body name="r_hip_2" pos="-0.0585 -0.0163 -0.09">
+          <inertial pos="0.0552926 -0.0182122 -0.0786529" quat="0.631043 -0.289491 -0.0537819 0.717696" mass="2.44583" diaginertia="0.00657907 0.00648846 0.00408442" />
+          <joint name="r_hip_roll" pos="0 0 0" axis="1 0 0" range="-0.959931 0.261799" class="gene_passive" />
+          <geom type="mesh" mesh="sim_gene01_r_hip_2_collision" />
+          <body name="r_upper_leg" pos="0.06095 -0.022 -0.1242">
+            <inertial pos="0.00226774 0.00388385 -0.102592" quat="0.783112 0.0452454 0.0253543 0.619714" mass="5.94868" diaginertia="0.0410093 0.0394566 0.0135546" />
+            <joint name="r_hip_yaw" pos="0 0 0" axis="0 0 1" range="-1.22173 1.22173" class="gene_passive" />
+            <geom type="mesh" mesh="sim_gene01_r_upper_leg_collision" />
+            <body name="r_lower_leg" pos="-0.02855 0.02245 -0.2658">
+              <inertial pos="0.0379237 -0.0152715 -0.136406" quat="0.852144 0.00455534 0.0353102 0.522095" mass="5.47204" diaginertia="0.0906878 0.0899075 0.00887916" />
+              <joint name="r_knee" pos="0 0 0" axis="0 1 0" range="-0.0523599 2.35619" class="gene_passive" />
+              <geom type="mesh" mesh="sim_gene01_r_lower_leg_collision" />
+              <body name="r_ankle_1" pos="0.0149861 -0.01775 -0.420239">
+                <inertial pos="-0.00403866 0.000117112 -0.0177343" quat="0.673817 0.208058 0.228908 0.671031" mass="0.248377" diaginertia="0.00011093 8.04543e-05 6.21144e-05" />
+                <joint name="r_ankle_pitch" pos="0 0 0" axis="0 1 0" range="-1.0472 0.523599" class="gene_passive" />
+                <geom type="mesh" mesh="sim_gene01_r_ankle_1_collision" />
+                <body name="r_ankle_2" pos="-0.0005 0 -0.03">
+                  <inertial pos="0.0386147 2.77325e-07 -0.0301091" quat="-2.29104e-05 0.735108 -6.05733e-06 0.67795" mass="1.28441" diaginertia="0.007463 0.00725419 0.00140835" />
+                  <joint name="r_ankle_roll" pos="0 0 0" axis="1 0 0" range="-0.436332 0.436332" class="gene_passive" />
+                  <geom type="mesh" mesh="sim_gene01_r_ankle_2_collision" />
+                  <geom size="0.02021 0.058205 0.01" pos="0.168089 -1.763e-10 -0.0418132" quat="0.965926 0 -0.258819 0" type="box" />
+                  <geom size="0.113635 0.058205 0.01" pos="0.041953 -1.6645e-09 -0.0505773" type="box" />
+                  <geom size="0.016495 0.058205 0.01" pos="-0.0837626 6.195e-10 -0.0455391" quat="0.984808 0 0.173648 0" type="box" />
+                </body>
+              </body>
+            </body>
+          </body>
+        </body>
+      </body>
+      <body name="waist" pos="0 0 0.161">
+        <inertial pos="-0.0156033 -5.40072e-05 -0.0171571" quat="0.67378 -0.221684 -0.22455 0.668173" mass="2.30786" diaginertia="0.00571983 0.00496455 0.00361136" />
+        <joint name="torso_yaw" pos="0 0 0" axis="0 0 1" range="-0.785398 0.785398" class="gene_torso" />
+        <geom type="mesh" mesh="sim_gene01_torso_2_collision" />
+        <body name="chest" pos="-0.053 0 0">
+          <inertial pos="0.0120572 0.000347786 0.165467" quat="0.707443 -0.0269436 -0.0300135 0.705619" mass="17.4804" diaginertia="0.274732 0.229649 0.172027" />
+          <joint name="torso_roll" pos="0 0 0" axis="1 0 0" range="-0.785398 0.785398" class="gene_torso" />
+          <geom type="mesh" mesh="sim_gene01_chest_collision" />
+          <geom pos="0.06 0 0.305" type="mesh" mesh="sim_gene01_neck_1_collision_collision" />
+          <body name="l_shoulder_1" pos="0.0272776 0.106003 0.235236" quat="0.969332 0.208229 -0.0274138 -0.127615">
+            <inertial pos="0.014169 0.10209 0.000650752" quat="0.701496 0.650012 -0.271452 0.108179" mass="1.37021" diaginertia="0.00331482 0.00329883 0.0011916" />
+            <joint name="l_shoulder_pitch" pos="0 0 0" axis="0 1 0" range="-2.35619 0.785398" class="gene_passive" />
+            <geom type="mesh" mesh="sim_gene01_l_shoulder_1_collision" />
+            <body name="l_shoulder_2" pos="0.0500248 0.123987 1.31115e-05" quat="0.997892 -0.0649014 -0.000171739 -0.00019583">
+              <inertial pos="-0.0353773 0.000293288 -0.0868581" quat="0.712512 0.0536245 0.0684003 0.696256" mass="1.4526" diaginertia="0.00332234 0.00309007 0.0019153" />
+              <joint name="l_shoulder_roll" pos="0 0 0" axis="-1 0 0" range="-2.61799 0.261799" class="gene_passive" />
+              <geom type="mesh" mesh="sim_gene01_l_shoulder_2_collision" />
+              <body name="l_upper_arm" pos="-0.037 0 -0.127">
+                <inertial pos="-0.000224707 0.000857938 -0.0835584" quat="0.999929 0.00939579 -0.00167903 0.00711166" mass="1.83631" diaginertia="0.0058361 0.00556873 0.00191987" />
+                <joint name="l_shoulder_yaw" pos="0 0 0" axis="0 0 -1" range="-1.8326 1.8326" class="gene_passive" />
+                <geom type="mesh" mesh="sim_gene01_l_upperarm_collision" />
+                <body name="l_forearm" pos="0 0.0295 -0.1245">
+                  <inertial pos="-0.00111781 -0.0292932 -0.0717255" quat="0.972298 -0.233483 0.0099177 0.00500207" mass="0.735974" diaginertia="0.00127203 0.00100998 0.000859074" />
+                  <joint name="l_elbow" pos="0 0 0" axis="0 1 0" range="-1.91986 0.0872665" class="gene_passive" />
+                  <geom type="mesh" mesh="sim_gene01_l_forearm_collision" />
+                  <body name="l_wrist_1" pos="2.03519e-09 -0.02945 -0.106" quat="1 1.1636e-08 2.01541e-08 -5.30022e-11">
+                    <inertial pos="-0.00349497 -0.00415242 -0.0608275" quat="0.724556 -0.0252603 0.0314032 0.688036" mass="1.48366" diaginertia="0.004683 0.00454894 0.00161277" />
+                    <joint name="l_wrist_yaw" pos="0 0 0" axis="0 0 -1" range="-1.48353 1.48353" class="gene_passive" />
+                    <geom type="mesh" mesh="sim_gene01_l_wrist_1_collision" />
+                    <body name="l_wrist_2" pos="-7.5629e-08 -0.01 -0.179" quat="0.999048 -1.64959e-07 -0.0436234 -3.77785e-06">
+                      <inertial pos="0 8.4046e-05 0" quat="0 0.707107 0 0.707107" mass="0.0325076" diaginertia="2.89536e-06 1.87935e-06 1.70527e-06" />
+                      <joint name="l_wrist_pitch" pos="0 0 0" axis="-7.53411e-06 1 6.59209e-07" range="-0.383972 0.558505" class="gene_passive" />
+                      <geom type="mesh" mesh="sim_gene01_l_wrist_2_collision" />
+                      <body name="l_wrist_3" quat="1 4.66778e-07 0 0">
+                        <inertial pos="-0.00252969 0.00532525 -0.0718095" quat="0.72438 -0.0175943 0.0720712 0.685398" mass="0.407012" diaginertia="0.00118105 0.00100299 0.000326297" />
+                        <joint name="l_wrist_roll" pos="0 0 0" axis="-1 0 0" range="-0.733038 1.01229" class="gene_passive" />
+                        <geom type="mesh" mesh="sim_gene01_l_wrist_3_collision" />
+                        <geom pos="0 0 -0.0230879" quat="1 0 0 0" type="mesh" mesh="sim_gene01_l_hand_palm_collision" />
+                        <body name="l_index_prox_1" pos="0.0307792 -0.00537791 -0.145228" quat="0.477578 -0.521459 0.477851 -0.521209">
+                          <inertial pos="-3.58765e-05 0.00602502 -1.11836e-10" quat="0.999952 0.00879171 -0.000219838 0.00438137" mass="0.00212769" diaginertia="6.97963e-08 4.75685e-08 3.84319e-08" />
+                          <joint name="l_index_1_add" pos="0 0 0" axis="1 0 0" range="-0.349066 0.349066" class="gene_passive" />
+                          <geom type="mesh" mesh="sim_gene01_l_hand_index_1_collision" />
+                          <body name="l_index_prox_2" pos="0 0.008 0" quat="0.707107 0 0.707107 0">
+                            <inertial pos="-0.000582515 0.0241153 -0.000182066" quat="0.481031 0.516946 -0.494177 0.507115" mass="0.0198555" diaginertia="4.42134e-06 4.03644e-06 1.32443e-06" />
+                            <joint name="l_index_1_flex" pos="0 0 0" axis="1 0 0" range="0 1.37881" class="gene_passive" />
+                            <geom type="mesh" mesh="sim_gene01_l_hand_index_2_collision" />
+                            <body name="l_index_medial" pos="0 0.04 1.65152e-06" quat="1 2.0644e-05 0 0">
+                              <inertial pos="-0.000111556 0.0200499 -0.000955615" quat="0.435739 0.545004 -0.482393 0.529526" mass="0.0152619" diaginertia="2.77865e-06 2.22641e-06 1.08608e-06" />
+                              <joint name="l_index_2" pos="0 0 0" axis="1 0 0" range="0 1.74533" class="gene_passive" />
+                              <geom type="mesh" mesh="sim_gene01_l_hand_index_3_collision" />
+                              <body name="l_index_distal" pos="0 0.034 0" quat="1 0 0 0">
+                                <inertial pos="-0.00016426 0.0134134 -0.000946347" quat="0.402287 0.579458 -0.416699 0.573371" mass="0.00822173" diaginertia="9.55874e-07 6.57816e-07 6.05127e-07" />
+                                <joint name="l_index_3" pos="0 0 0" axis="1 0 0" range="0 1.74533" class="gene_passive" />
+                                <geom type="mesh" mesh="sim_gene01_l_hand_index_4_collision" />
+                              </body>
+                            </body>
+                          </body>
+                        </body>
+                        <body name="l_little_prox_1" pos="-0.0575057 -0.00382925 -0.127527" quat="0.40558 -0.579228 0.541675 -0.454519">
+                          <inertial pos="-3.58765e-05 0.00602502 -1.11836e-10" quat="0.999952 0.00879171 -0.000219838 0.00438137" mass="0.00212769" diaginertia="6.97963e-08 4.75685e-08 3.84319e-08" />
+                          <joint name="l_little_1_add" pos="0 0 0" axis="1 0 0" range="-0.349066 0.349066" class="gene_passive" />
+                          <geom type="mesh" mesh="sim_gene01_l_hand_little_1_collision" />
+                          <body name="l_little_prox_2" pos="0 0.008 0" quat="0.707107 -3.60352e-05 0.707107 3.60352e-05">
+                            <inertial pos="-0.000582515 0.0241153 -0.000182066" quat="0.481031 0.516946 -0.494177 0.507115" mass="0.0198555" diaginertia="4.42134e-06 4.03644e-06 1.32443e-06" />
+                            <joint name="l_little_1_flex" pos="0 0 0" axis="1 0 0" range="0 1.37881" class="gene_passive" />
+                            <geom type="mesh" mesh="sim_gene01_l_hand_little_2_collision" />
+                            <body name="l_little_medial" pos="0 0.04 1.65152e-06" quat="1 2.0644e-05 0 0">
+                              <inertial pos="-0.000111556 0.0200499 -0.000955615" quat="0.435739 0.545004 -0.482393 0.529526" mass="0.0152619" diaginertia="2.77865e-06 2.22641e-06 1.08608e-06" />
+                              <joint name="l_little_2" pos="0 0 0" axis="1 0 0" range="0 1.74533" class="gene_passive" />
+                              <geom type="mesh" mesh="sim_gene01_l_hand_little_3_collision" />
+                              <body name="l_little_distal" pos="0 0.034 0" quat="1 0 0 0">
+                                <inertial pos="-0.00016426 0.0134134 -0.000946347" quat="0.402287 0.579458 -0.416699 0.573371" mass="0.00822173" diaginertia="9.55874e-07 6.57816e-07 6.05127e-07" />
+                                <joint name="l_little_3" pos="0 0 0" axis="1 0 0" range="0 1.74533" class="gene_passive" />
+                                <geom type="mesh" mesh="sim_gene01_l_hand_little_4_collision" />
+                              </body>
+                            </body>
+                          </body>
+                        </body>
+                        <body name="l_middle_prox_1" pos="2.47428e-05 -0.00601771 -0.152541" quat="0.454519 -0.541675 0.5 -0.5">
+                          <inertial pos="-3.58765e-05 0.00602502 -1.11836e-10" quat="0.999952 0.00879171 -0.000219838 0.00438137" mass="0.00212769" diaginertia="6.97963e-08 4.75685e-08 3.84319e-08" />
+                          <joint name="l_middle_1_add" pos="0 0 0" axis="1 0 0" range="-0.349066 0.349066" class="gene_passive" />
+                          <geom type="mesh" mesh="sim_gene01_l_hand_middle_1_collision" />
+                          <body name="l_middle_prox_2" pos="0 0.008 0" quat="0.707107 0 0.707107 0">
+                            <inertial pos="-0.000582515 0.0241153 -0.000182066" quat="0.481031 0.516946 -0.494177 0.507115" mass="0.0198555" diaginertia="4.42134e-06 4.03644e-06 1.32443e-06" />
+                            <joint name="l_middle_1_flex" pos="0 0 0" axis="1 0 0" range="0 1.37881" class="gene_passive" />
+                            <geom type="mesh" mesh="sim_gene01_l_hand_middle_2_collision" />
+                            <body name="l_middle_medial" pos="0 0.04 1.65152e-06" quat="1 2.0644e-05 0 0">
+                              <inertial pos="-0.000111556 0.0200499 -0.000955615" quat="0.435739 0.545004 -0.482393 0.529526" mass="0.0152619" diaginertia="2.77865e-06 2.22641e-06 1.08608e-06" />
+                              <joint name="l_middle_2" pos="0 0 0" axis="1 0 0" range="0 1.74533" class="gene_passive" />
+                              <geom type="mesh" mesh="sim_gene01_l_hand_middle_3_collision" />
+                              <body name="l_middle_distal" pos="0 0.034 0" quat="1 4.46449e-09 0 0">
+                                <inertial pos="-0.00016426 0.0134134 -0.000946347" quat="0.402287 0.579458 -0.416699 0.573371" mass="0.00822173" diaginertia="9.55874e-07 6.57816e-07 6.05127e-07" />
+                                <joint name="l_middle_3" pos="0 0 0" axis="1 0 0" range="0 1.74533" class="gene_passive" />
+                                <geom type="mesh" mesh="sim_gene01_l_hand_middle_4_collision" />
+                              </body>
+                            </body>
+                          </body>
+                        </body>
+                        <body name="l_ring_prox_1" pos="-0.0289888 -0.00492183 -0.140015" quat="0.430459 -0.560986 0.521334 -0.477714">
+                          <inertial pos="-3.58765e-05 0.00602502 -1.11836e-10" quat="0.999952 0.00879171 -0.000219838 0.00438137" mass="0.00212769" diaginertia="6.97963e-08 4.75685e-08 3.84319e-08" />
+                          <joint name="l_ring_1_add" pos="0 0 0" axis="1 0 0" range="-0.349066 0.349066" class="gene_passive" />
+                          <geom type="mesh" mesh="sim_gene01_l_hand_ring_1_collision" />
+                          <body name="l_ring_prox_2" pos="0 0.008 0" quat="0.707107 0 0.707107 0">
+                            <inertial pos="-0.000582515 0.0241153 -0.000182066" quat="0.481031 0.516946 -0.494177 0.507115" mass="0.0198555" diaginertia="4.42134e-06 4.03644e-06 1.32443e-06" />
+                            <joint name="l_ring_1_flex" pos="0 0 0" axis="1 0 0" range="0 1.37881" class="gene_passive" />
+                            <geom type="mesh" mesh="sim_gene01_l_hand_ring_2_collision" />
+                            <body name="l_ring_medial" pos="1.25455e-11 0.0399996 1.65152e-06" quat="1 2.0644e-05 3.10106e-10 1.50216e-05">
+                              <inertial pos="-0.000111556 0.0200499 -0.000955615" quat="0.435739 0.545004 -0.482393 0.529526" mass="0.0152619" diaginertia="2.77865e-06 2.22641e-06 1.08608e-06" />
+                              <joint name="l_ring_2" pos="0 0 0" axis="1 -3.00432e-05 1.24042e-09" range="0 1.74533" class="gene_passive" />
+                              <geom type="mesh" mesh="sim_gene01_l_hand_ring_3_collision" />
+                              <body name="l_ring_distal" pos="0 0.034 0" quat="1 0 0 0">
+                                <inertial pos="-0.00016426 0.0134134 -0.000946347" quat="0.402287 0.579458 -0.416699 0.573371" mass="0.00822173" diaginertia="9.55874e-07 6.57816e-07 6.05127e-07" />
+                                <joint name="l_ring_3" pos="0 0 0" axis="1 0 0" range="0 1.74533" class="gene_passive" />
+                                <geom type="mesh" mesh="sim_gene01_l_hand_ring_4_collision" />
+                              </body>
+                            </body>
+                          </body>
+                        </body>
+                        <body name="l_thumb_prox_1" pos="0.0124049 -0.0194325 -0.05535" quat="0.407197 -0.215942 -0.848096 0.261329">
+                          <inertial pos="-0.0226848 -3.91206e-07 -0.00185349" quat="-0.000440006 0.703989 -0.000294493 0.710211" mass="0.0564803" diaginertia="1.31172e-05 1.3049e-05 4.7954e-06" />
+                          <joint name="l_thumb_1_rot" pos="0 0 0" axis="-1 0 0" range="-0.959931 0.698132" class="gene_passive" />
+                          <geom type="mesh" mesh="sim_gene01_l_hand_thumb_1_collision" />
+                          <body name="l_thumb_prox_2" pos="-0.0453 0 0" quat="0.5 0.5 -0.5 0.5">
+                            <inertial pos="2.31407e-06 0.00818598 1.82053e-10" quat="0.999922 -0.0118625 0.00353326 0.00159648" mass="0.00306234" diaginertia="1.16358e-07 7.86597e-08 5.76533e-08" />
+                            <joint name="l_thumb_1_add" pos="0 0 0" axis="1 0 0" range="-0.523599 0.523599" class="gene_passive" />
+                            <geom type="mesh" mesh="sim_gene01_l_hand_thumb_2_collision" />
+                            <body name="l_thumb_prox_3" pos="0 0.01 0" quat="0.707107 0 0.707107 0">
+                              <inertial pos="0.00038588 0.0214974 -9.96899e-05" quat="0.519384 0.482412 -0.508692 0.488622" mass="0.0333233" diaginertia="6.53607e-06 4.91907e-06 2.99404e-06" />
+                              <joint name="l_thumb_1_flex" pos="0 0 0" axis="1 0 0" range="-0.785398 1.309" class="gene_passive" />
+                              <geom type="mesh" mesh="sim_gene01_l_hand_thumb_3_collision" />
+                              <body name="l_thumb_medial" pos="0 0.032 0" quat="1 0 0 0">
+                                <inertial pos="0.000609514 0.0214434 -0.000900475" quat="0.575807 0.412708 -0.599868 0.371856" mass="0.0235282" diaginertia="5.58855e-06 3.68761e-06 2.81258e-06" />
+                                <joint name="l_thumb_2" pos="0 0 0" axis="-1 0 0" range="-1.74533 0" class="gene_passive" />
+                                <geom type="mesh" mesh="sim_gene01_l_hand_thumb_4_collision" />
+                                <body name="l_thumb_distal" pos="0 0.035 2.34898e-08" quat="1 0 0 0">
+                                  <inertial pos="-5.43427e-05 0.0160448 -0.00136038" quat="-0.102558 0.699309 0.118245 0.697472" mass="0.0111879" diaginertia="1.83076e-06 1.21053e-06 1.16798e-06" />
+                                  <joint name="l_thumb_3" pos="0 0 0" axis="1 0 0" range="0 1.74533" class="gene_passive" />
+                                  <geom type="mesh" mesh="sim_gene01_l_hand_thumb_5_collision" />
+                                </body>
+                              </body>
+                            </body>
+                          </body>
+                        </body>
+                      </body>
+                    </body>
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+          <body name="r_shoulder_1" pos="0.0272776 -0.106003 0.235236" quat="0.969332 -0.208229 -0.0274138 0.127615">
+            <inertial pos="0.0143502 -0.101831 0.000656516" quat="0.682754 0.710272 0.00140269 0.171343" mass="1.36391" diaginertia="0.00330514 0.00327676 0.00117333" />
+            <joint name="r_shoulder_pitch" pos="0 0 0" axis="0 1 0" range="-2.35619 0.785398" class="gene_arm" />
+            <geom type="mesh" mesh="sim_gene01_r_shoulder_1_collision" />
+            <body name="r_shoulder_2" pos="0.05 -0.124 0" quat="0.997859 0.0654033 0 0">
+              <inertial pos="-0.0350667 -0.000443968 -0.0871412" quat="0.68638 0.0830215 0.0630674 0.719731" mass="1.44025" diaginertia="0.00323194 0.00303942 0.00186426" />
+              <joint name="r_shoulder_roll" pos="0 0 0" axis="1 0 0" range="-2.61799 0.261799" class="gene_arm" />
+              <geom type="mesh" mesh="sim_gene01_r_shoulder_2_collision" />
+              <body name="r_upper_arm" pos="-0.037 0 -0.127">
+                <inertial pos="-0.000317683 -0.000310092 -0.0843862" quat="0.999979 -0.0042578 -0.00293593 0.00393398" mass="1.83631" diaginertia="0.00587115 0.00556127 0.00196188" />
+                <joint name="r_shoulder_yaw" pos="0 0 0" axis="0 0 1" range="-1.8326 1.8326" class="gene_arm" />
+                <geom type="mesh" mesh="sim_gene01_r_upperarm_collision" />
+                <body name="r_forearm" pos="0 -0.0295 -0.1245">
+                  <inertial pos="-0.000896101 0.0303919 -0.0700135" quat="0.99993 -0.00124205 0.0115004 0.00243391" mass="0.753971" diaginertia="0.00140471 0.00107205 0.000932438" />
+                  <joint name="r_elbow" pos="0 0 0" axis="0 1 0" range="-1.91986 0.0872665" class="gene_arm" />
+                  <geom type="mesh" mesh="sim_gene01_r_forearm_collision" />
+                  <body name="r_wrist_1" pos="0 0.02945 -0.106" quat="1 0 0 -1.55957e-06">
+                    <inertial pos="0.00349941 0.00404736 -0.0601174" quat="0.72114 0.0250139 -0.0307776 0.691653" mass="1.48343" diaginertia="0.00466096 0.00452516 0.00161463" />
+                    <joint name="r_wrist_yaw" pos="0 0 0" axis="0 0 1" range="-1.48353 1.48353" class="gene_arm" />
+                    <geom type="mesh" mesh="sim_gene01_r_wrist_1_collision" />
+                    <body name="r_wrist_2" pos="-6.23828e-08 0.01 -0.179" quat="0.99905 1.35936e-07 -0.0435811 3.11618e-06">
+                      <inertial pos="0 -8.61147e-05 0" quat="0 0.707107 0 0.707107" mass="0.0317267" diaginertia="2.82092e-06 1.85436e-06 1.63083e-06" />
+                      <joint name="r_wrist_pitch" pos="0 0 0" axis="6.21459e-06 1 -5.43227e-07" range="-0.383972 0.558505" class="gene_arm" />
+                      <geom type="mesh" mesh="sim_gene01_r_wrist_2_collision" />
+                      <body name="r_wrist_3" quat="1 -1.35814e-07 0 0">
+                        <inertial pos="-0.00320262 -0.00477513 -0.0738881" quat="0.692587 0.0689961 -0.0121243 0.717925" mass="0.501798" diaginertia="0.00145737 0.00120352 0.000462839" />
+                        <joint name="r_wrist_roll" pos="0 0 0" axis="1 0 0" range="-0.733038 1.01229" class="gene_arm" />
+                        <geom type="mesh" mesh="sim_gene01_r_wrist_3_collision" />
+                        <geom pos="0 0 -0.0230879" quat="1 0 0 0" type="mesh" mesh="sim_gene01_r_hand_palm_collision" />
+                        <body name="r_index_prox_1" pos="0.0307821 0.00537735 -0.145222" quat="0.521334 -0.477714 -0.521334 0.477714">
+                          <inertial pos="-3.58765e-05 0.00602502 -1.11836e-10" quat="0.999952 0.00879171 -0.000219838 0.00438137" mass="0.00212769" diaginertia="6.97963e-08 4.75685e-08 3.84319e-08" />
+                          <joint name="r_index_1_add" pos="0 0 0" axis="1 0 0" range="-0.349066 0.349066" class="gene_finger" />
+                          <geom type="mesh" mesh="sim_gene01_r_hand_index_1_collision" />
+                          <body name="r_index_prox_2" pos="0 0.008 0" quat="0.707107 0 0.707107 0">
+                            <inertial pos="-0.000582515 0.0241153 -0.000182066" quat="0.481031 0.516946 -0.494177 0.507115" mass="0.0198555" diaginertia="4.42134e-06 4.03644e-06 1.32443e-06" />
+                            <joint name="r_index_1_flex" pos="0 0 0" axis="1 0 0" range="0 1.37881" class="gene_finger" />
+                            <geom type="mesh" mesh="sim_gene01_r_hand_index_2_collision" />
+                            <body name="r_index_medial" pos="0 0.04 1.65152e-06" quat="1 2.0644e-05 0 0">
+                              <inertial pos="-0.000111556 0.0200499 -0.000955615" quat="0.435739 0.545004 -0.482393 0.529526" mass="0.0152619" diaginertia="2.77865e-06 2.22641e-06 1.08608e-06" />
+                              <joint name="r_index_2" pos="0 0 0" axis="1 0 0" range="0 1.74533" class="gene_finger" />
+                              <geom type="mesh" mesh="sim_gene01_r_hand_index_3_collision" />
+                              <body name="r_index_distal" pos="0 0.034 0" quat="1 0 0 0">
+                                <inertial pos="-0.00016426 0.0134134 -0.000946347" quat="0.402287 0.579458 -0.416699 0.573371" mass="0.00822173" diaginertia="9.55874e-07 6.57816e-07 6.05127e-07" />
+                                <joint name="r_index_3" pos="0 0 0" axis="1 0 0" range="0 1.74533" class="gene_finger" />
+                                <geom type="mesh" mesh="sim_gene01_r_hand_index_4_collision" />
+                              </body>
+                            </body>
+                          </body>
+                        </body>
+                        <body name="r_little_prox_1" pos="-0.0575057 0.00382926 -0.127527" quat="0.579228 -0.40558 -0.454519 0.541675">
+                          <inertial pos="-3.58765e-05 0.00602502 -1.11836e-10" quat="0.999952 0.00879171 -0.000219838 0.00438137" mass="0.00212769" diaginertia="6.97963e-08 4.75685e-08 3.84319e-08" />
+                          <joint name="r_little_1_add" pos="0 0 0" axis="1 0 0" range="-0.349066 0.349066" class="gene_finger" />
+                          <geom type="mesh" mesh="sim_gene01_r_hand_little_1_collision" />
+                          <body name="r_little_prox_2" pos="0 0.008 0" quat="0.707107 0 0.707107 0">
+                            <inertial pos="-0.000582515 0.0241153 -0.000182066" quat="0.481031 0.516946 -0.494177 0.507115" mass="0.0198555" diaginertia="4.42134e-06 4.03644e-06 1.32443e-06" />
+                            <joint name="r_little_1_flex" pos="0 0 0" axis="1 0 0" range="0 1.37881" class="gene_finger" />
+                            <geom type="mesh" mesh="sim_gene01_r_hand_little_2_collision" />
+                            <body name="r_little_medial" pos="0 0.04 1.65152e-06" quat="1 2.0644e-05 0 0">
+                              <inertial pos="-0.000111556 0.0200499 -0.000955615" quat="0.435739 0.545004 -0.482393 0.529526" mass="0.0152619" diaginertia="2.77865e-06 2.22641e-06 1.08608e-06" />
+                              <joint name="r_little_2" pos="0 0 0" axis="1 0 0" range="0 1.74533" class="gene_finger" />
+                              <geom type="mesh" mesh="sim_gene01_r_hand_little_3_collision" />
+                              <body name="r_little_distal" pos="0 0.034 0" quat="1 5.75908e-11 0 0">
+                                <inertial pos="-0.00016426 0.0134134 -0.000946347" quat="0.402287 0.579458 -0.416699 0.573371" mass="0.00822173" diaginertia="9.55874e-07 6.57816e-07 6.05127e-07" />
+                                <joint name="r_little_3" pos="0 0 0" axis="1 0 0" range="0 1.74533" class="gene_finger" />
+                                <geom type="mesh" mesh="sim_gene01_r_hand_little_4_collision" />
+                              </body>
+                            </body>
+                          </body>
+                        </body>
+                        <body name="r_middle_prox_1" pos="2.47428e-05 0.00601771 -0.152541" quat="0.541675 -0.454519 -0.5 0.5">
+                          <inertial pos="-3.58765e-05 0.00602502 -1.11836e-10" quat="0.999952 0.00879171 -0.000219838 0.00438137" mass="0.00212769" diaginertia="6.97963e-08 4.75685e-08 3.84319e-08" />
+                          <joint name="r_middle_1_add" pos="0 0 0" axis="1 0 0" range="-0.349066 0.349066" class="gene_finger" />
+                          <geom type="mesh" mesh="sim_gene01_r_hand_middle_1_collision" />
+                          <body name="r_middle_prox_2" pos="0 0.008 0" quat="0.707107 0 0.707107 0">
+                            <inertial pos="-0.000582515 0.0241153 -0.000182066" quat="0.481031 0.516946 -0.494177 0.507115" mass="0.0198555" diaginertia="4.42134e-06 4.03644e-06 1.32443e-06" />
+                            <joint name="r_middle_1_flex" pos="0 0 0" axis="1 0 0" range="0 1.37881" class="gene_finger" />
+                            <geom type="mesh" mesh="sim_gene01_r_hand_middle_2_collision" />
+                            <body name="r_middle_medial" pos="0 0.04 1.65152e-06" quat="1 2.0644e-05 0 0">
+                              <inertial pos="-0.000111556 0.0200499 -0.000955615" quat="0.435739 0.545004 -0.482393 0.529526" mass="0.0152619" diaginertia="2.77865e-06 2.22641e-06 1.08608e-06" />
+                              <joint name="r_middle_2" pos="0 0 0" axis="1 0 0" range="0 1.74533" class="gene_finger" />
+                              <geom type="mesh" mesh="sim_gene01_r_hand_middle_3_collision" />
+                              <body name="r_middle_distal" pos="0 0.034 0">
+                                <inertial pos="-0.00016426 0.0134134 -0.000946347" quat="0.402287 0.579458 -0.416699 0.573371" mass="0.00822173" diaginertia="9.55874e-07 6.57816e-07 6.05127e-07" />
+                                <joint name="r_middle_3" pos="0 0 0" axis="1 0 0" range="0 1.74533" class="gene_finger" />
+                                <geom type="mesh" mesh="sim_gene01_r_hand_middle_4_collision" />
+                              </body>
+                            </body>
+                          </body>
+                        </body>
+                        <body name="r_ring_prox_1" pos="-0.0289895 0.00492159 -0.140012" quat="0.560986 -0.430459 -0.477714 0.521334">
+                          <inertial pos="-3.58765e-05 0.00602502 -1.11836e-10" quat="0.999952 0.00879171 -0.000219838 0.00438137" mass="0.00212769" diaginertia="6.97963e-08 4.75685e-08 3.84319e-08" />
+                          <joint name="r_ring_1_add" pos="0 0 0" axis="1 0 0" range="-0.349066 0.349066" class="gene_finger" />
+                          <geom type="mesh" mesh="sim_gene01_r_hand_ring_1_collision" />
+                          <body name="r_ring_prox_2" pos="0 0.008 0" quat="0.707107 0 0.707107 0">
+                            <inertial pos="-0.000582515 0.0241153 -0.000182066" quat="0.481031 0.516946 -0.494177 0.507115" mass="0.0198555" diaginertia="4.42134e-06 4.03644e-06 1.32443e-06" />
+                            <joint name="r_ring_1_flex" pos="0 0 0" axis="1 0 0" range="0 1.37881" class="gene_finger" />
+                            <geom type="mesh" mesh="sim_gene01_r_hand_ring_2_collision" />
+                            <body name="r_ring_medial" pos="0 0.04 1.65152e-06" quat="1 2.0644e-05 0 0">
+                              <inertial pos="-0.000111556 0.0200499 -0.000955615" quat="0.435739 0.545004 -0.482393 0.529526" mass="0.0152619" diaginertia="2.77865e-06 2.22641e-06 1.08608e-06" />
+                              <joint name="r_ring_2" pos="0 0 0" axis="1 0 0" range="0 1.74533" class="gene_finger" />
+                              <geom type="mesh" mesh="sim_gene01_r_hand_ring_3_collision" />
+                              <body name="r_ring_distal" pos="0 0.034 0" quat="1 0 0 0">
+                                <inertial pos="-0.00016426 0.0134134 -0.000946347" quat="0.402287 0.579458 -0.416699 0.573371" mass="0.00822173" diaginertia="9.55874e-07 6.57816e-07 6.05127e-07" />
+                                <joint name="r_ring_3" pos="0 0 0" axis="1 0 0" range="0 1.74533" class="gene_finger" />
+                                <geom type="mesh" mesh="sim_gene01_r_hand_ring_4_collision" />
+                              </body>
+                            </body>
+                          </body>
+                        </body>
+                        <body name="r_thumb_prox_1" pos="0.0124049 0.0194325 -0.05535" quat="0.313975 -0.337432 0.032921 -0.886834">
+                          <inertial pos="-0.0225291 3.93899e-07 0.00192692" quat="-7.98345e-05 0.714298 -0.000229103 0.699841" mass="0.0560942" diaginertia="1.29175e-05 1.28039e-05 4.74634e-06" />
+                          <joint name="r_thumb_1_rot" pos="0 0 0" axis="1 0 0" range="-0.959931 0.698132" class="gene_finger" />
+                          <geom type="mesh" mesh="sim_gene01_r_hand_thumb_1_collision" />
+                          <body name="r_thumb_prox_2" pos="-0.0453 0 0" quat="0.5 -0.5 0.5 0.5">
+                            <inertial pos="8.32641e-06 0.00817878 1.82053e-10" quat="0.999949 -0.00933324 0.00370025 0.000486789" mass="0.00306234" diaginertia="1.16531e-07 7.88488e-08 5.7577e-08" />
+                            <joint name="r_thumb_1_add" pos="0 0 0" axis="1 0 0" range="-0.523599 0.523599" class="gene_finger" />
+                            <geom type="mesh" mesh="sim_gene01_r_hand_thumb_2_collision" />
+                            <body name="r_thumb_prox_3" pos="0 0.01 0" quat="0.707107 0 0.707107 0">
+                              <inertial pos="0.00038588 0.0214974 -7.88905e-05" quat="0.519564 0.482224 -0.508511 0.488804" mass="0.0333233" diaginertia="6.53616e-06 4.92324e-06 2.99812e-06" />
+                              <joint name="r_thumb_1_flex" pos="0 0 0" axis="1 0 0" range="-0.785398 1.309" class="gene_finger" />
+                              <geom type="mesh" mesh="sim_gene01_r_hand_thumb_3_collision" />
+                              <body name="r_thumb_medial" pos="0 0.032 0" quat="1 0 0 0">
+                                <inertial pos="0.000296755 0.021424 -0.000991128" quat="0.56759 0.426429 -0.592285 0.381048" mass="0.0229769" diaginertia="5.48125e-06 3.69533e-06 2.76404e-06" />
+                                <joint name="r_thumb_2" pos="0 0 0" axis="-1 0 0" range="-1.74533 0" class="gene_finger" />
+                                <geom type="mesh" mesh="sim_gene01_r_hand_thumb_4_collision" />
+                                <body name="r_thumb_distal" pos="0 0.035 0" quat="1 0 0 0">
+                                  <inertial pos="-0.000254343 0.0160448 -0.00136013" quat="-0.102563 0.699308 0.118241 0.697473" mass="0.0111879" diaginertia="1.83076e-06 1.21053e-06 1.16798e-06" />
+                                  <joint name="r_thumb_3" pos="0 0 0" axis="1 0 0" range="0 1.74533" class="gene_finger" />
+                                  <geom type="mesh" mesh="sim_gene01_r_hand_thumb_5_collision" />
+                                </body>
+                              </body>
+                            </body>
+                          </body>
+                        </body>
+                      </body>
+                    </body>
+                  </body>
+                </body>
+              </body>
+            </body>
+          </body>
+          <body name="neck_2" pos="0.0522 0 0.366">
+            <inertial pos="-0.0106207 -0.00353078 0.00922837" quat="-0.0317606 0.704402 -0.093002 0.702965" mass="0.296229" diaginertia="0.00029973 0.000244334 0.000115677" />
+            <joint name="neck_pitch" pos="0 0 0" axis="0 1 0" range="-0.383972 0.785398" class="gene_neck" />
+            <geom type="mesh" mesh="sim_gene01_neck_2_collision_collision" />
+            <body name="neck_3" pos="-2.5e-05 0 0.011">
+              <inertial pos="-0.00825213 1.66525e-07 0.0487151" quat="0.678461 0.200547 0.200746 0.677623" mass="0.239537" diaginertia="0.000203575 0.000192327 5.04757e-05" />
+              <joint name="neck_roll" pos="0 0 0" axis="1 0 0" range="-0.523599 0.523599" class="gene_neck" />
+              <geom type="mesh" mesh="sim_gene01_neck_3_collision_collision" />
+              <body name="head" pos="2.5e-05 0 -0.072">
+                <inertial pos="0.0216346 0.00025579 0.209434" quat="0.714362 -0.212126 -0.234424 0.624288" mass="1.74437" diaginertia="0.0138545 0.0135688 0.00916705" />
+                <joint name="neck_yaw" pos="0 0 0" axis="0 0 1" range="-0.785398 0.785398" class="gene_neck" />
+                <geom type="mesh" mesh="sim_gene01_head_collision" />
+                <camera name="head_camera_left" pos="0.11752 0.03000 0.24454" fovy="45" mode="fixed" xyaxes="0 -1 0  0 0 1" />
+                <camera name="head_camera_right" pos="0.11588 -0.03000 0.24454" fovy="45" mode="fixed" xyaxes="0 -1 0  0 0 1" />
+              </body>
+            </body>
+          </body>
+          <camera name="rgb_camera" pos="0.15445 -0.01150 -0.01745" fovy="45" mode="fixed" xyaxes="0 -1 0  0 0 1" />
+          <camera name="chest_camera_front" pos="0.18442 0.00000 0.23057" fovy="45" mode="fixed" xyaxes="0 -1 0  0 0 1" />
+        </body>
+      </body>
+    </body>
+    <body name="shelf" pos="0.515 0 0">
+      <geom name="shelf_board_0" type="box" size="0.175 0.45 0.012" pos="0 0 0.75" material="mat_board" />
+      <geom name="shelf_board_1" type="box" size="0.175 0.45 0.012" pos="0 0 1.05" material="mat_board" />
+      <geom name="shelf_board_2" type="box" size="0.175 0.45 0.012" pos="0 0 1.35" material="mat_board" />
+      <geom name="shelf_back" type="box" size="0.01 0.45 0.80" pos="0.175 0 0.80" material="mat_shelf" />
+      <geom name="shelf_side_-1" type="box" size="0.175 0.01 0.80" pos="0 -0.450 0.80" material="mat_shelf" />
+      <geom name="shelf_side_1" type="box" size="0.175 0.01 0.80" pos="0 0.450 0.80" material="mat_shelf" />
+    </body>
+    <body name="product_0" pos="0.3983 -0.1792 1.0557" quat="1.000000 0.000000 0.000000 0.000000">
+      <freejoint name="product_0_free" />
+      <geom type="mesh" mesh="alpro_barista_coconut_1l_visual" material="alpro_barista_coconut_1l_mat" contype="0" conaffinity="0" group="2" mass="0" />
+      <geom name="product_0_col" type="box" size="0.0393 0.0398 0.1021" pos="0.0010 -0.0208 0.1104" group="3" rgba="0 0 0 0" mass="1.03" friction="0.9 0.02 0.002" condim="4" />
+      <geom name="product_0_date" type="box" size="0.0210 0.0080 0.0004" material="alpro_barista_coconut_1l_dmat" pos="0.01766 -0.01440 0.21028" quat="0.703527 -0.071070 -0.071070 0.703527" contype="0" conaffinity="0" group="2" mass="0" />
+    </body>
+  </worldbody>
+  <actuator>
+    <position name="act_r_shoulder_pitch" joint="r_shoulder_pitch" kp="3000.0" inheritrange="1" />
+    <position name="act_r_shoulder_roll" joint="r_shoulder_roll" kp="3000.0" inheritrange="1" />
+    <position name="act_r_shoulder_yaw" joint="r_shoulder_yaw" kp="3000.0" inheritrange="1" />
+    <position name="act_r_elbow" joint="r_elbow" kp="3000.0" inheritrange="1" />
+    <position name="act_r_wrist_yaw" joint="r_wrist_yaw" kp="3000.0" inheritrange="1" />
+    <position name="act_r_wrist_pitch" joint="r_wrist_pitch" kp="3000.0" inheritrange="1" />
+    <position name="act_r_wrist_roll" joint="r_wrist_roll" kp="3000.0" inheritrange="1" />
+    <position name="act_r_index_1_add" joint="r_index_1_add" kp="20.0" inheritrange="1" />
+    <position name="act_r_index_1_flex" joint="r_index_1_flex" kp="20.0" inheritrange="1" />
+    <position name="act_r_index_2" joint="r_index_2" kp="20.0" inheritrange="1" />
+    <position name="act_r_index_3" joint="r_index_3" kp="20.0" inheritrange="1" />
+    <position name="act_r_little_1_add" joint="r_little_1_add" kp="20.0" inheritrange="1" />
+    <position name="act_r_little_1_flex" joint="r_little_1_flex" kp="20.0" inheritrange="1" />
+    <position name="act_r_little_2" joint="r_little_2" kp="20.0" inheritrange="1" />
+    <position name="act_r_little_3" joint="r_little_3" kp="20.0" inheritrange="1" />
+    <position name="act_r_middle_1_add" joint="r_middle_1_add" kp="20.0" inheritrange="1" />
+    <position name="act_r_middle_1_flex" joint="r_middle_1_flex" kp="20.0" inheritrange="1" />
+    <position name="act_r_middle_2" joint="r_middle_2" kp="20.0" inheritrange="1" />
+    <position name="act_r_middle_3" joint="r_middle_3" kp="20.0" inheritrange="1" />
+    <position name="act_r_ring_1_add" joint="r_ring_1_add" kp="20.0" inheritrange="1" />
+    <position name="act_r_ring_1_flex" joint="r_ring_1_flex" kp="20.0" inheritrange="1" />
+    <position name="act_r_ring_2" joint="r_ring_2" kp="20.0" inheritrange="1" />
+    <position name="act_r_ring_3" joint="r_ring_3" kp="20.0" inheritrange="1" />
+    <position name="act_r_thumb_1_rot" joint="r_thumb_1_rot" kp="20.0" inheritrange="1" />
+    <position name="act_r_thumb_1_add" joint="r_thumb_1_add" kp="20.0" inheritrange="1" />
+    <position name="act_r_thumb_1_flex" joint="r_thumb_1_flex" kp="20.0" inheritrange="1" />
+    <position name="act_r_thumb_2" joint="r_thumb_2" kp="20.0" inheritrange="1" />
+    <position name="act_r_thumb_3" joint="r_thumb_3" kp="20.0" inheritrange="1" />
+    <position name="act_neck_pitch" joint="neck_pitch" kp="100.0" inheritrange="1" />
+    <position name="act_neck_roll" joint="neck_roll" kp="100.0" inheritrange="1" />
+    <position name="act_neck_yaw" joint="neck_yaw" kp="100.0" inheritrange="1" />
+    <position name="act_torso_yaw" joint="torso_yaw" kp="100000.0" inheritrange="1" />
+    <position name="act_torso_roll" joint="torso_roll" kp="100000.0" inheritrange="1" />
+  </actuator>
+  <sensor>
+    <framepos name="s_product" objtype="body" objname="product_0" />
+    <framepos name="s_palm" objtype="body" objname="r_wrist_3" />
+    <framequat name="s_product_quat" objtype="body" objname="product_0" />
+  </sensor>
+</mujoco>
